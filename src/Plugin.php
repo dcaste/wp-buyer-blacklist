@@ -23,12 +23,20 @@ final class Plugin {
 	private EmailEntryRepository $entries;
 
 	/**
+	 * Email checkout blocking decision.
+	 *
+	 * @var EmailCheckoutBlocker
+	 */
+	private EmailCheckoutBlocker $blocker;
+
+	/**
 	 * Creates the plugin.
 	 *
 	 * @param EmailEntryRepository $entries Email entry storage.
 	 */
 	public function __construct( EmailEntryRepository $entries ) {
 		$this->entries = $entries;
+		$this->blocker = new EmailCheckoutBlocker( $entries );
 	}
 
 	/**
@@ -41,6 +49,7 @@ final class Plugin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'woocommerce_after_checkout_validation', array( $this, 'validate_classic_checkout' ), 10, 2 );
+		add_action( 'woocommerce_checkout_validate_order_before_payment', array( $this, 'validate_store_api_checkout' ), 10, 2 );
 	}
 
 	/**
@@ -85,7 +94,20 @@ final class Plugin {
 	public function validate_classic_checkout( array $data, WP_Error $errors ): void {
 		$email = isset( $data['billing_email'] ) && is_string( $data['billing_email'] ) ? $data['billing_email'] : '';
 
-		if ( $this->entries->has_active_email( $email ) ) {
+		if ( $this->blocker->blocks( $email ) ) {
+			$errors->add( 'wp_buyer_blacklist_blocked', $this->buyer_block_message() );
+		}
+	}
+
+	/**
+	 * Blocks a matching Buyer before Checkout Block or Store API payment.
+	 *
+	 * @param \WC_Order $order  Checkout order.
+	 * @param WP_Error  $errors Checkout validation errors.
+	 * @return void
+	 */
+	public function validate_store_api_checkout( \WC_Order $order, WP_Error $errors ): void {
+		if ( $this->blocker->blocks( $order->get_billing_email() ) ) {
 			$errors->add( 'wp_buyer_blacklist_blocked', $this->buyer_block_message() );
 		}
 	}
