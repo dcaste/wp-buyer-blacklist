@@ -1,0 +1,1 @@
+# wp-buyer-blacklist
