@@ -1,5 +1,5 @@
 const baseConfig = require( '@wordpress/scripts/config/jest-unit.config.js' );
-const presetConfig = require( '@wordpress/jest-preset-default/jest-preset.js' );
+const presetConfig = require( '@wordpress/jest-preset-default' );
 
 module.exports = {
 	...baseConfig,
