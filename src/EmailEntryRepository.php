@@ -176,6 +176,48 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 	}
 
 	/**
+	 * Checks whether a Blacklist entry already has this identity.
+	 *
+	 * @param string $match_type     Match type.
+	 * @param string $canonical_hash Database-safe identity key.
+	 * @return bool Whether the entry exists.
+	 */
+	public function exists( string $match_type, string $canonical_hash ): bool {
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$query = $this->database->prepare( "SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s", $match_type, $canonical_hash );
+
+		return null !== $this->database->get_var( $query );
+	}
+
+	/**
+	 * Creates an active entry validated by the CSV importer.
+	 *
+	 * @param array{match_type: string, value: string|array<string, string>, canonical_hash: string, reason: string, row: int} $entry Validated import entry.
+	 * @return string created, duplicate, or failed.
+	 */
+	public function create_imported( array $entry ): string {
+		$value  = is_array( $entry['value'] ) ? wp_json_encode( $entry['value'] ) : $entry['value'];
+		$result = $this->database->insert(
+			$this->table_name,
+			array(
+				'match_type'      => $entry['match_type'],
+				'value'           => $value,
+				'canonical_value' => $value,
+				'canonical_hash'  => $entry['canonical_hash'],
+				'reason'          => $entry['reason'],
+				'is_active'       => 1,
+				'created_at'      => current_time( 'mysql', true ),
+			),
+			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
+		);
+		if ( 1 === $result ) {
+			return $this->record_audit_event( (int) $this->database->insert_id, 'imported' ) ? 'created' : 'failed';
+		}
+
+		return $this->exists( $entry['match_type'], $entry['canonical_hash'] ) ? 'duplicate' : 'failed';
+	}
+
+	/**
 	 * Updates an entry reason.
 	 *
 	 * @param int    $entry_id Entry identifier.

@@ -20,6 +20,7 @@ require_once __DIR__ . '/src/EmailCanonicalizer.php';
 require_once __DIR__ . '/src/EmailEntry.php';
 require_once __DIR__ . '/src/CustomerIdEntry.php';
 require_once __DIR__ . '/src/AddressEntry.php';
+require_once __DIR__ . '/src/CsvImport.php';
 require_once __DIR__ . '/src/ActiveAddressEntryFinder.php';
 require_once __DIR__ . '/src/ActiveEmailEntryFinder.php';
 require_once __DIR__ . '/src/BlockedAttemptRecorder.php';
