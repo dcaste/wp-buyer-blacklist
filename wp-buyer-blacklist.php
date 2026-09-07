@@ -18,6 +18,7 @@ define( 'WP_BUYER_BLACKLIST_URL', plugin_dir_url( __FILE__ ) );
 
 require_once __DIR__ . '/src/EmailCanonicalizer.php';
 require_once __DIR__ . '/src/EmailEntry.php';
+require_once __DIR__ . '/src/CustomerIdEntry.php';
 require_once __DIR__ . '/src/AddressEntry.php';
 require_once __DIR__ . '/src/ActiveAddressEntryFinder.php';
 require_once __DIR__ . '/src/ActiveEmailEntryFinder.php';
@@ -25,6 +26,7 @@ require_once __DIR__ . '/src/BlockedAttemptRecorder.php';
 require_once __DIR__ . '/src/EmailEntryRepository.php';
 require_once __DIR__ . '/src/EmailCheckoutBlocker.php';
 require_once __DIR__ . '/src/AddressCheckoutBlocker.php';
+require_once __DIR__ . '/src/SourceEnrollment.php';
 require_once __DIR__ . '/src/Plugin.php';
 
 /**

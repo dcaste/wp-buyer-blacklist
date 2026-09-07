@@ -37,14 +37,22 @@ final class Plugin {
 	private AddressCheckoutBlocker $address_blocker;
 
 	/**
+	 * Customer and Order enrollment workflow.
+	 *
+	 * @var SourceEnrollment
+	 */
+	private SourceEnrollment $source_enrollment;
+
+	/**
 	 * Creates the plugin.
 	 *
 	 * @param EmailEntryRepository $entries Email entry storage.
 	 */
 	public function __construct( EmailEntryRepository $entries ) {
-		$this->entries         = $entries;
-		$this->blocker         = new EmailCheckoutBlocker( $entries, $entries );
-		$this->address_blocker = new AddressCheckoutBlocker( $entries );
+		$this->entries           = $entries;
+		$this->blocker           = new EmailCheckoutBlocker( $entries, $entries );
+		$this->address_blocker   = new AddressCheckoutBlocker( $entries );
+		$this->source_enrollment = new SourceEnrollment( $entries );
 	}
 
 	/**
@@ -58,6 +66,7 @@ final class Plugin {
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'woocommerce_after_checkout_validation', array( $this, 'validate_classic_checkout' ), 10, 2 );
 		add_action( 'woocommerce_checkout_validate_order_before_payment', array( $this, 'validate_store_api_checkout' ), 10, 2 );
+		$this->source_enrollment->register();
 	}
 
 	/**

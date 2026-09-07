@@ -125,6 +125,31 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 	}
 
 	/**
+	 * Creates an active Customer-ID Blacklist entry.
+	 *
+	 * @param CustomerIdEntry $entry  Customer identity to store.
+	 * @param string          $reason Operator-provided reason.
+	 * @return bool Whether an entry was created.
+	 */
+	public function create_customer_id( CustomerIdEntry $entry, string $reason ): bool {
+		$result = $this->database->insert(
+			$this->table_name,
+			array(
+				'match_type'      => 'customer_id',
+				'value'           => $entry->canonical_value(),
+				'canonical_value' => $entry->canonical_value(),
+				'canonical_hash'  => $entry->canonical_hash(),
+				'reason'          => $reason,
+				'is_active'       => 1,
+				'created_at'      => current_time( 'mysql', true ),
+			),
+			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
+		);
+
+		return 1 === $result && $this->record_audit_event( (int) $this->database->insert_id, 'created' );
+	}
+
+	/**
 	 * Creates an active address Blacklist entry.
 	 *
 	 * @param AddressEntry $entry  Address identity to store.
