@@ -13,10 +13,10 @@ namespace WP_Buyer_Blacklist;
 interface ActiveEmailEntryFinder {
 
 	/**
-	 * Checks whether an active email entry matches a Buyer email.
+	 * Finds every active Blacklist entry matching a Buyer email.
 	 *
 	 * @param string $email Buyer email address.
-	 * @return bool Whether an active entry matches.
+	 * @return list<int> Matching entry identifiers.
 	 */
-	public function has_active_email( string $email ): bool;
+	public function matching_active_email_entry_ids( string $email ): array;
 }

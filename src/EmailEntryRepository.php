@@ -10,12 +10,12 @@ namespace WP_Buyer_Blacklist;
 /**
  * Stores and finds email Blacklist entries.
  */
-final class EmailEntryRepository implements ActiveEmailEntryFinder {
+final class EmailEntryRepository implements ActiveEmailEntryFinder, BlockedAttemptRecorder {
 
 	/**
 	 * Current database schema version.
 	 */
-	private const DATABASE_VERSION = '2';
+	private const DATABASE_VERSION = '3';
 
 	/**
 	 * WordPress database connection.
@@ -72,9 +72,30 @@ final class EmailEntryRepository implements ActiveEmailEntryFinder {
 		$audit_table    = $this->audit_table_name();
 		$attempts_table = $this->database->prefix . 'buyer_blacklist_blocked_attempts';
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names use only the WordPress table prefix.
-		dbDelta( "CREATE TABLE {$audit_table} (id bigint(20) unsigned NOT NULL AUTO_INCREMENT, entry_id bigint(20) unsigned NULL, action varchar(32) NOT NULL, actor_id bigint(20) unsigned NULL, actor_name varchar(255) NULL, created_at datetime NOT NULL, PRIMARY KEY  (id), KEY entry_id (entry_id)) {$charset_collate};" );
+		dbDelta(
+			"CREATE TABLE {$audit_table} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			entry_id bigint(20) unsigned NULL,
+			action varchar(32) NOT NULL,
+			actor_id bigint(20) unsigned NULL,
+			actor_name varchar(255) NULL,
+			created_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			KEY entry_id (entry_id)
+		) {$charset_collate};"
+		);
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
-		dbDelta( "CREATE TABLE {$attempts_table} (id bigint(20) unsigned NOT NULL AUTO_INCREMENT, entry_id bigint(20) unsigned NOT NULL, identity_value text NOT NULL, outcome varchar(32) NOT NULL, created_at datetime NOT NULL, PRIMARY KEY  (id), KEY entry_id (entry_id)) {$charset_collate};" );
+		dbDelta(
+			"CREATE TABLE {$attempts_table} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			entry_id bigint(20) unsigned NOT NULL,
+			identity_value text NOT NULL,
+			outcome varchar(32) NOT NULL,
+			created_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			KEY entry_id (entry_id)
+		) {$charset_collate};"
+		);
 		update_option( 'wp_buyer_blacklist_database_version', self::DATABASE_VERSION );
 	}
 
@@ -183,27 +204,62 @@ final class EmailEntryRepository implements ActiveEmailEntryFinder {
 	}
 
 	/**
-	 * Checks whether an active email entry matches a Buyer email.
+	 * Finds every active Blacklist entry matching a Buyer email.
 	 *
 	 * @param string $email Buyer email address.
-	 * @return bool Whether an active entry matches.
+	 * @return list<int> Matching entry identifiers.
 	 */
-	public function has_active_email( string $email ): bool {
+	public function matching_active_email_entry_ids( string $email ): array {
 		try {
 			$entry = EmailEntry::from_email( $email );
 		} catch ( \InvalidArgumentException $exception ) {
-			return false;
+			return array();
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
-		$query = $this->database->prepare(
-			"SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s AND is_active = %d LIMIT 1",
+		$query     = $this->database->prepare(
+			"SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s AND is_active = %d",
 			'email',
 			$entry->canonical_hash(),
 			1
 		);
+		$entry_ids = $this->database->get_col( $query );
 
-		return null !== $this->database->get_var( $query );
+		return array_map( 'intval', is_array( $entry_ids ) ? $entry_ids : array() );
+	}
+
+	/**
+	 * Records an email Blocked attempt.
+	 *
+	 * @param int    $entry_id       Matching Blacklist entry identifier.
+	 * @param string $identity_value Evaluated Buyer email address.
+	 * @return bool Whether the attempt was recorded.
+	 */
+	public function record_blocked_attempt( int $entry_id, string $identity_value ): bool {
+		return 1 === $this->database->insert(
+			$this->database->prefix . 'buyer_blacklist_blocked_attempts',
+			array(
+				'entry_id'       => $entry_id,
+				'identity_value' => $identity_value,
+				'outcome'        => 'blocked',
+				'created_at'     => current_time( 'mysql', true ),
+			),
+			array( '%d', '%s', '%s', '%s' )
+		);
+	}
+
+	/**
+	 * Gets Blocked attempts for an entry in reverse creation order.
+	 *
+	 * @param int $entry_id Entry identifier.
+	 * @return list<array<string, string>>
+	 */
+	public function blocked_attempts( int $entry_id ): array {
+		$attempts_table = $this->database->prefix . 'buyer_blacklist_blocked_attempts';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$results = $this->database->get_results( $this->database->prepare( "SELECT id, identity_value, outcome, created_at FROM {$attempts_table} WHERE entry_id = %d ORDER BY created_at DESC, id DESC", $entry_id ), ARRAY_A );
+
+		return is_array( $results ) ? $results : array();
 	}
 
 	/**

@@ -93,6 +93,46 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Records a Blocked attempt for a Store API block.
+	 *
+	 * @return void
+	 */
+	public function test_records_each_store_api_block_without_prohibited_data(): void {
+		$product = new WC_Product_Simple();
+		$product->set_regular_price( '0' );
+		$product->set_virtual( true );
+		$product->save();
+		WC()->cart->empty_cart();
+		WC()->cart->add_to_cart( $product->get_id() );
+		add_filter( 'woocommerce_store_api_disable_nonce_check', '__return_true' );
+
+		$request = new WP_REST_Request( 'POST', '/wc/store/v1/checkout' );
+		$request->set_param(
+			'billing_address',
+			array(
+				'first_name' => 'Blocked',
+				'last_name'  => 'Buyer',
+				'address_1'  => '1 Test Street',
+				'city'       => 'Testville',
+				'state'      => 'CA',
+				'postcode'   => '90210',
+				'country'    => 'US',
+				'email'      => 'buyer@example.com',
+				'phone'      => '5555555555',
+			)
+		);
+		rest_get_server()->dispatch( $request );
+		remove_filter( 'woocommerce_store_api_disable_nonce_check', '__return_true' );
+
+		$attempts = $this->entries->blocked_attempts( $this->entry_id );
+
+		$this->assertCount( 1, $attempts );
+		$this->assertSame( 'buyer@example.com', $attempts[0]['identity_value'] );
+		$this->assertSame( 'blocked', $attempts[0]['outcome'] );
+		$this->assertSame( array( 'id', 'identity_value', 'outcome', 'created_at' ), array_keys( $attempts[0] ) );
+	}
+
+	/**
 	 * Records the operator and action for ordinary entry changes.
 	 *
 	 * @return void
