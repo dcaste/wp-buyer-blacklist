@@ -15,16 +15,16 @@ final class AddressCheckoutBlocker {
 	/**
 	 * Address entry storage.
 	 *
-	 * @var EmailEntryRepository
+	 * @var ActiveAddressEntryFinder&BlockedAttemptRecorder
 	 */
-	private EmailEntryRepository $entries;
+	private ActiveAddressEntryFinder&BlockedAttemptRecorder $entries;
 
 	/**
 	 * Creates the address checkout blocker.
 	 *
-	 * @param EmailEntryRepository $entries Address entry storage.
+	 * @param ActiveAddressEntryFinder&BlockedAttemptRecorder $entries Address entry storage.
 	 */
-	public function __construct( EmailEntryRepository $entries ) {
+	public function __construct( ActiveAddressEntryFinder&BlockedAttemptRecorder $entries ) {
 		$this->entries = $entries;
 	}
 
