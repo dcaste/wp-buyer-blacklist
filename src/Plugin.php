@@ -151,6 +151,27 @@ final class Plugin {
 				),
 			)
 		);
+		register_rest_route(
+			'wp-buyer-blacklist/v1',
+			'/email-entries/(?P<id>\\d+)',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_email_entry_audit_events' ),
+					'permission_callback' => array( $this, 'can_manage_entries' ),
+				),
+				array(
+					'methods'             => 'PATCH',
+					'callback'            => array( $this, 'update_email_entry' ),
+					'permission_callback' => array( $this, 'can_manage_entries' ),
+				),
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => array( $this, 'delete_email_entry' ),
+					'permission_callback' => array( $this, 'can_manage_entries' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -178,9 +199,9 @@ final class Plugin {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function create_email_entry( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-		$reason = sanitize_textarea_field( (string) $request->get_param( 'reason' ) );
-		if ( '' === trim( $reason ) ) {
-			return new \WP_Error( 'wp_buyer_blacklist_missing_reason', __( 'Enter a reason for this Blacklist entry.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
+		$reason = $this->reason_from_request( $request );
+		if ( is_wp_error( $reason ) ) {
+			return $reason;
 		}
 		try {
 			$entry = EmailEntry::from_email( (string) $request->get_param( 'email' ) );
@@ -191,6 +212,75 @@ final class Plugin {
 			return new \WP_Error( 'wp_buyer_blacklist_duplicate', __( 'That email already has a Blacklist entry.', 'wp-buyer-blacklist' ), array( 'status' => 409 ) );
 		}
 		return new \WP_REST_Response( array( 'message' => __( 'Email entry created.', 'wp-buyer-blacklist' ) ), 201 );
+	}
+
+	/**
+	 * Gets an entry's Audit events.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return list<array<string, mixed>>
+	 */
+	public function get_email_entry_audit_events( \WP_REST_Request $request ): array {
+		return $this->entries->audit_events( absint( $request['id'] ) );
+	}
+
+	/**
+	 * Updates an entry reason or status.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function update_email_entry( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$entry_id = absint( $request['id'] );
+		if ( null !== $request->get_param( 'reason' ) ) {
+			$reason = $this->reason_from_request( $request );
+			if ( is_wp_error( $reason ) ) {
+				return $reason;
+			}
+			$updated = $this->entries->update_reason( $entry_id, $reason );
+		} elseif ( null !== $request->get_param( 'is_active' ) ) {
+			$updated = $this->entries->set_active( $entry_id, rest_sanitize_boolean( $request->get_param( 'is_active' ) ) );
+		} else {
+			return new \WP_Error( 'wp_buyer_blacklist_missing_update', __( 'Provide a reason or status to update.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! $updated ) {
+			return new \WP_Error( 'wp_buyer_blacklist_update_failed', __( 'The Blacklist entry could not be updated.', 'wp-buyer-blacklist' ), array( 'status' => 404 ) );
+		}
+
+		return new \WP_REST_Response( array( 'message' => __( 'Blacklist entry updated.', 'wp-buyer-blacklist' ) ) );
+	}
+
+	/**
+	 * Deletes an entry after confirmation.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function delete_email_entry( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		if ( true !== rest_sanitize_boolean( $request->get_param( 'confirm' ) ) ) {
+			return new \WP_Error( 'wp_buyer_blacklist_delete_not_confirmed', __( 'Confirm deletion before removing this Blacklist entry.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
+		}
+		if ( ! $this->entries->delete( absint( $request['id'] ) ) ) {
+			return new \WP_Error( 'wp_buyer_blacklist_delete_failed', __( 'The Blacklist entry could not be deleted.', 'wp-buyer-blacklist' ), array( 'status' => 404 ) );
+		}
+
+		return new \WP_REST_Response( array( 'message' => __( 'Blacklist entry deleted.', 'wp-buyer-blacklist' ) ) );
+	}
+
+	/**
+	 * Gets a required reason from a REST request.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return string|\WP_Error
+	 */
+	private function reason_from_request( \WP_REST_Request $request ): string|\WP_Error {
+		$reason = sanitize_textarea_field( (string) $request->get_param( 'reason' ) );
+		if ( '' === trim( $reason ) ) {
+			return new \WP_Error( 'wp_buyer_blacklist_missing_reason', __( 'Enter a reason for this Blacklist entry.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
+		}
+
+		return $reason;
 	}
 
 	/**
