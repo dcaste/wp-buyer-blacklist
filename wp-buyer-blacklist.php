@@ -48,6 +48,24 @@ function wp_buyer_blacklist_activate(): void {
 register_activation_hook( __FILE__, 'wp_buyer_blacklist_activate' );
 
 /**
+ * Removes plugin data only when an administrator opted in before uninstalling.
+ *
+ * @return void
+ */
+function wp_buyer_blacklist_uninstall(): void {
+	if ( ! get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ) {
+		return;
+	}
+
+	global $wpdb;
+
+	$repository = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
+	$repository->uninstall();
+	delete_option( 'wp_buyer_blacklist_delete_data_on_uninstall' );
+}
+register_uninstall_hook( __FILE__, 'wp_buyer_blacklist_uninstall' );
+
+/**
  * Registers WooCommerce compatibility before initialization.
  *
  * @return void

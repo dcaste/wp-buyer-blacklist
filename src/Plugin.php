@@ -62,11 +62,32 @@ final class Plugin {
 	 */
 	public function register(): void {
 		add_action( 'admin_menu', array( $this, 'register_admin_page' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+		add_action( 'admin_post_wp_buyer_blacklist_export', array( $this, 'download_csv_export' ) );
+		add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_personal_data_exporter' ) );
+		add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_personal_data_eraser' ) );
 		add_action( 'woocommerce_after_checkout_validation', array( $this, 'validate_classic_checkout' ), 10, 2 );
 		add_action( 'woocommerce_checkout_validate_order_before_payment', array( $this, 'validate_store_api_checkout' ), 10, 2 );
 		$this->source_enrollment->register();
+	}
+
+	/**
+	 * Registers the uninstall cleanup option.
+	 *
+	 * @return void
+	 */
+	public function register_settings(): void {
+		register_setting(
+			'wp_buyer_blacklist',
+			'wp_buyer_blacklist_delete_data_on_uninstall',
+			array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				'default'           => false,
+			)
+		);
 	}
 
 	/**
@@ -97,7 +118,18 @@ final class Plugin {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This read-only redirect status does not change plugin data.
 		?>
-		<div class="wrap"><div id="wp-buyer-blacklist-admin"></div></div>
+		<div class="wrap">
+			<?php if ( $this->can_manage_privacy_data() ) : ?>
+				<p><a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_export' ), 'wp_buyer_blacklist_export' ) ); ?>"><?php esc_html_e( 'Export Blacklist CSV', 'wp-buyer-blacklist' ); ?></a></p>
+				<form action="options.php" method="post">
+					<?php settings_fields( 'wp_buyer_blacklist' ); ?>
+					<input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" />
+					<label><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ); ?> /> <?php esc_html_e( 'Delete all Blacklist data when the plugin is uninstalled.', 'wp-buyer-blacklist' ); ?></label>
+					<?php submit_button( __( 'Save privacy setting', 'wp-buyer-blacklist' ), 'secondary', 'submit', false ); ?>
+				</form>
+			<?php endif; ?>
+			<div id="wp-buyer-blacklist-admin"></div>
+		</div>
 		<?php
 	}
 
@@ -245,6 +277,15 @@ final class Plugin {
 		);
 		register_rest_route(
 			'wp-buyer-blacklist/v1',
+			'/email-entries/(?P<id>\\d+)/dossier',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_identity_dossier' ),
+				'permission_callback' => array( $this, 'can_manage_privacy_data' ),
+			)
+		);
+		register_rest_route(
+			'wp-buyer-blacklist/v1',
 			'/email-entries/(?P<id>\\d+)',
 			array(
 				array(
@@ -260,7 +301,7 @@ final class Plugin {
 				array(
 					'methods'             => 'DELETE',
 					'callback'            => array( $this, 'delete_email_entry' ),
-					'permission_callback' => array( $this, 'can_manage_entries' ),
+					'permission_callback' => array( $this, 'can_manage_privacy_data' ),
 				),
 			)
 		);
@@ -273,6 +314,138 @@ final class Plugin {
 	 */
 	public function can_manage_entries(): bool {
 		return current_user_can( 'manage_woocommerce' );
+	}
+
+	/**
+	 * Checks the privacy administration capability.
+	 *
+	 * @return bool
+	 */
+	public function can_manage_privacy_data(): bool {
+		return current_user_can( 'manage_options' );
+	}
+
+	/**
+	 * Sends a full Blacklist CSV export to an administrator.
+	 *
+	 * @return void
+	 */
+	public function download_csv_export(): void {
+		if ( ! $this->can_manage_privacy_data() ) {
+			wp_die( esc_html__( 'You are not allowed to export Blacklist data.', 'wp-buyer-blacklist' ), 403 );
+		}
+		check_admin_referer( 'wp_buyer_blacklist_export' );
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="buyer-blacklist.csv"' );
+		echo $this->entries->export_csv(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV values are encoded by fputcsv().
+		exit;
+	}
+
+	/**
+	 * Gets an identity dossier as structured JSON.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function get_identity_dossier( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$dossier = $this->entries->identity_dossier( absint( $request['id'] ) );
+		if ( null === $dossier ) {
+			return new \WP_Error( 'wp_buyer_blacklist_not_found', __( 'The Blacklist entry could not be found.', 'wp-buyer-blacklist' ), array( 'status' => 404 ) );
+		}
+
+		return new \WP_REST_Response( $dossier );
+	}
+
+	/**
+	 * Registers the WordPress personal-data exporter.
+	 *
+	 * @param array<string, array<string, mixed>> $exporters Personal-data exporters.
+	 * @return array<string, array<string, mixed>> Personal-data exporters.
+	 */
+	public function register_personal_data_exporter( array $exporters ): array {
+		$exporters['wp-buyer-blacklist'] = array(
+			'exporter_friendly_name' => __( 'Buyer Blacklist', 'wp-buyer-blacklist' ),
+			'callback'               => array( $this, 'export_personal_data' ),
+		);
+
+		return $exporters;
+	}
+
+	/**
+	 * Exports data for email identities through WordPress privacy tools.
+	 *
+	 * @param string $email_address Buyer email address.
+	 * @param int    $page          Export page.
+	 * @return array{data: list<array<string, mixed>>, done: bool} Personal data.
+	 */
+	public function export_personal_data( string $email_address, int $page ): array {
+		unset( $page );
+		$data = array();
+		foreach ( $this->entries->identity_dossiers_for_email( $email_address ) as $dossier ) {
+			$entry  = $dossier['entry'];
+			$data[] = array(
+				'group_id'    => 'wp-buyer-blacklist',
+				'group_label' => __( 'Buyer Blacklist', 'wp-buyer-blacklist' ),
+				'item_id'     => 'entry-' . $entry['id'],
+				'data'        => array(
+					array(
+						'name'  => __( 'Email', 'wp-buyer-blacklist' ),
+						'value' => $entry['value'],
+					),
+					array(
+						'name'  => __( 'Reason', 'wp-buyer-blacklist' ),
+						'value' => $entry['reason'],
+					),
+					array(
+						'name'  => __( 'Blocked attempts', 'wp-buyer-blacklist' ),
+						'value' => implode( "\n", array_map( fn( $attempt ) => $attempt['outcome'] . ' at ' . $attempt['created_at'], $dossier['blocked_attempts'] ) ),
+					),
+				),
+			);
+		}
+
+		return array(
+			'data' => $data,
+			'done' => true,
+		);
+	}
+
+	/**
+	 * Registers the WordPress personal-data eraser.
+	 *
+	 * @param array<string, array<string, mixed>> $erasers Personal-data erasers.
+	 * @return array<string, array<string, mixed>> Personal-data erasers.
+	 */
+	public function register_personal_data_eraser( array $erasers ): array {
+		$erasers['wp-buyer-blacklist'] = array(
+			'eraser_friendly_name' => __( 'Buyer Blacklist', 'wp-buyer-blacklist' ),
+			'callback'             => array( $this, 'erase_personal_data' ),
+		);
+
+		return $erasers;
+	}
+
+	/**
+	 * Erases data for email identities through WordPress privacy tools.
+	 *
+	 * @param string $email_address Buyer email address.
+	 * @param int    $page          Erasure page.
+	 * @return array{items_removed: bool, items_retained: bool, messages: list<string>, done: bool} Erasure result.
+	 */
+	public function erase_personal_data( string $email_address, int $page ): array {
+		unset( $page );
+		$removed = false;
+		foreach ( $this->entries->identity_dossiers_for_email( $email_address ) as $dossier ) {
+			$removed = $this->entries->erase( (int) $dossier['entry']['id'] ) || $removed;
+		}
+
+		return array(
+			'items_removed'  => $removed,
+			'items_retained' => false,
+			'messages'       => array(),
+			'done'           => true,
+		);
 	}
 
 	/**
