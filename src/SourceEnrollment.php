@@ -36,7 +36,8 @@ final class SourceEnrollment {
 	 * @return void
 	 */
 	public function register(): void {
-		add_filter( 'user_row_actions', array( $this, 'add_customer_row_action' ), 10, 2 );
+		add_filter( 'manage_users_columns', array( $this, 'add_customer_column' ) );
+		add_filter( 'manage_users_custom_column', array( $this, 'render_customer_column' ), 10, 3 );
 		add_filter( 'bulk_actions-users', array( $this, 'add_customer_bulk_action' ) );
 		add_filter( 'handle_bulk_actions-users', array( $this, 'handle_customer_bulk_action' ), 10, 3 );
 		add_action( 'show_user_profile', array( $this, 'render_customer_detail_action' ) );
@@ -53,24 +54,45 @@ final class SourceEnrollment {
 	}
 
 	/**
-	 * Adds an action to WooCommerce Customer rows.
+	 * Adds the Blacklist status column to the Users list.
 	 *
-	 * @param array<string, string> $actions Existing row actions.
-	 * @param \WP_User              $user    Customer user.
-	 * @return array<string, string>
+	 * @param array<string, string> $columns Existing list columns.
+	 * @return array<string, string> List columns.
 	 */
-	public function add_customer_row_action( array $actions, \WP_User $user ): array {
-		if ( in_array( 'customer', $user->roles, true ) && current_user_can( 'manage_woocommerce' ) ) {
-			$entry_ids = $this->matching_customer_entry_ids( $user->ID );
-			if ( array() === $entry_ids ) {
-				$actions['wp_buyer_blacklist_enroll'] = $this->enrollment_link( 'customer', array( $user->ID ), __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ) );
-			} else {
-				$actions['wp_buyer_blacklist_badge']  = '<span style="background:#ffebe9;border:1px solid #ff818266;border-radius:2em;color:#cf222e;font-size:12px;font-weight:500;padding:.15em .5em;white-space:nowrap">' . esc_html__( 'Blacklisted', 'wp-buyer-blacklist' ) . '</span>';
-				$actions['wp_buyer_blacklist_enroll'] = '<a href="' . esc_url( add_query_arg( 'entry_ids', $entry_ids, admin_url( 'admin.php?page=wp-buyer-blacklist' ) ) ) . '">' . esc_html__( 'Manage Blacklist entries', 'wp-buyer-blacklist' ) . '</a>';
-			}
+	public function add_customer_column( array $columns ): array {
+		$columns['wp_buyer_blacklist'] = __( 'Buyer Blacklist', 'wp-buyer-blacklist' );
+		return $columns;
+	}
+
+	/**
+	 * Renders the Blacklist status for a WooCommerce Customer.
+	 *
+	 * @param string $output  Existing cell markup.
+	 * @param string $column  Current column name.
+	 * @param int    $user_id WordPress user ID.
+	 * @return string Cell markup.
+	 */
+	public function render_customer_column( string $output, string $column, int $user_id ): string {
+		if ( 'wp_buyer_blacklist' !== $column || ! current_user_can( 'manage_woocommerce' ) ) {
+			return $output;
 		}
 
-		return $actions;
+		$user = get_userdata( $user_id );
+		if ( ! $user instanceof \WP_User || ! in_array( 'customer', $user->roles, true ) ) {
+			return $output;
+		}
+
+		$entries = $this->matching_customer_entries( $user_id );
+		if ( array() === $entries ) {
+			return $this->enrollment_link( 'customer', array( $user_id ), __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ) );
+		}
+
+		$entry_ids = array_column( $entries, 'id' );
+		$active    = in_array( '1', array_column( $entries, 'is_active' ), true );
+		$status    = $active ? __( 'Blacklisted', 'wp-buyer-blacklist' ) : __( 'Inactive', 'wp-buyer-blacklist' );
+		$url       = add_query_arg( 'entry_ids', $entry_ids, admin_url( 'admin.php?page=wp-buyer-blacklist' ) );
+
+		return esc_html( $status ) . ' <a href="' . esc_url( $url ) . '">' . esc_html__( 'Manage Blacklist entries', 'wp-buyer-blacklist' ) . '</a>';
 	}
 
 	/**
@@ -328,14 +350,22 @@ final class SourceEnrollment {
 	 * Finds active entries that match a WooCommerce Customer.
 	 *
 	 * @param int $customer_id WooCommerce Customer ID.
-	 * @return list<int> Matching entry identifiers.
+	 * @return list<array{id: string, is_active: string}> Matching entries.
 	 */
-	private function matching_customer_entry_ids( int $customer_id ): array {
-		$customer = new \WC_Customer( $customer_id );
-		$ids      = array_merge(
-			$this->entries->matching_active_customer_id_entry_ids( $customer_id ),
-			$this->entries->matching_active_email_entry_ids( $customer->get_email() )
-		);
+	private function matching_customer_entries( int $customer_id ): array {
+		$customer   = new \WC_Customer( $customer_id );
+		$entries    = $this->entries->matching_entries( 'customer_id', hash( 'sha256', (string) $customer_id ) );
+		$email_hash = '';
+
+		try {
+			$email_hash = EmailEntry::from_email( $customer->get_email() )->canonical_hash();
+		} catch ( InvalidArgumentException $exception ) {
+			$email_hash = '';
+		}
+
+		if ( '' !== $email_hash ) {
+			$entries = array_merge( $entries, $this->entries->matching_entries( 'email', $email_hash ) );
+		}
 
 		foreach ( array( 'billing_address', 'shipping_address' ) as $match_type ) {
 			$fields = array(
@@ -347,13 +377,14 @@ final class SourceEnrollment {
 				'country'        => 'billing_address' === $match_type ? $customer->get_billing_country() : $customer->get_shipping_country(),
 			);
 			try {
-				$ids = array_merge( $ids, $this->entries->matching_active_address_entry_ids( AddressEntry::from_fields( $match_type, $fields, WC()->countries->get_countries() ) ) );
+				$address = AddressEntry::from_fields( $match_type, $fields, WC()->countries->get_countries() );
+				$entries = array_merge( $entries, $this->entries->matching_entries( $match_type, $address->canonical_hash() ) );
 			} catch ( InvalidArgumentException $exception ) {
 				continue;
 			}
 		}
 
-		return array_values( array_unique( $ids ) );
+		return $entries;
 	}
 
 	/**
