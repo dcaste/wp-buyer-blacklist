@@ -30,13 +30,21 @@ final class Plugin {
 	private EmailCheckoutBlocker $blocker;
 
 	/**
+	 * Address checkout blocking decision.
+	 *
+	 * @var AddressCheckoutBlocker
+	 */
+	private AddressCheckoutBlocker $address_blocker;
+
+	/**
 	 * Creates the plugin.
 	 *
 	 * @param EmailEntryRepository $entries Email entry storage.
 	 */
 	public function __construct( EmailEntryRepository $entries ) {
-		$this->entries = $entries;
-		$this->blocker = new EmailCheckoutBlocker( $entries, $entries );
+		$this->entries         = $entries;
+		$this->blocker         = new EmailCheckoutBlocker( $entries, $entries );
+		$this->address_blocker = new AddressCheckoutBlocker( $entries );
 	}
 
 	/**
@@ -94,7 +102,7 @@ final class Plugin {
 	public function validate_classic_checkout( array $data, WP_Error $errors ): void {
 		$email = isset( $data['billing_email'] ) && is_string( $data['billing_email'] ) ? $data['billing_email'] : '';
 
-		if ( $this->blocker->blocks( $email ) ) {
+		if ( $this->blocker->blocks( $email ) || $this->blocks_checkout_address( 'billing_address', $data ) || $this->blocks_checkout_address( 'shipping_address', $data ) ) {
 			$errors->add( 'wp_buyer_blacklist_blocked', $this->buyer_block_message() );
 		}
 	}
@@ -107,9 +115,46 @@ final class Plugin {
 	 * @return void
 	 */
 	public function validate_store_api_checkout( \WC_Order $order, WP_Error $errors ): void {
-		if ( $this->blocker->blocks( $order->get_billing_email() ) ) {
+		$billing_address  = array(
+			'address_line_1' => $order->get_billing_address_1(),
+			'address_line_2' => $order->get_billing_address_2(),
+			'city'           => $order->get_billing_city(),
+			'state'          => $order->get_billing_state(),
+			'postcode'       => $order->get_billing_postcode(),
+			'country'        => $order->get_billing_country(),
+		);
+		$shipping_address = array(
+			'address_line_1' => $order->get_shipping_address_1(),
+			'address_line_2' => $order->get_shipping_address_2(),
+			'city'           => $order->get_shipping_city(),
+			'state'          => $order->get_shipping_state(),
+			'postcode'       => $order->get_shipping_postcode(),
+			'country'        => $order->get_shipping_country(),
+		);
+		if ( $this->blocker->blocks( $order->get_billing_email() ) || $this->address_blocker->blocks( 'billing_address', $billing_address, WC()->countries->get_countries() ) || $this->address_blocker->blocks( 'shipping_address', $shipping_address, WC()->countries->get_countries() ) ) {
 			$errors->add( 'wp_buyer_blacklist_blocked', $this->buyer_block_message() );
 		}
+	}
+
+	/**
+	 * Checks a complete classic-checkout address.
+	 *
+	 * @param string               $match_type Address Match type.
+	 * @param array<string, mixed> $data       Submitted checkout data.
+	 * @return bool Whether the address blocks checkout.
+	 */
+	private function blocks_checkout_address( string $match_type, array $data ): bool {
+		$prefix = 'billing_address' === $match_type ? 'billing_' : 'shipping_';
+		$fields = array(
+			'address_line_1' => isset( $data[ $prefix . 'address_1' ] ) && is_string( $data[ $prefix . 'address_1' ] ) ? $data[ $prefix . 'address_1' ] : '',
+			'address_line_2' => isset( $data[ $prefix . 'address_2' ] ) && is_string( $data[ $prefix . 'address_2' ] ) ? $data[ $prefix . 'address_2' ] : '',
+			'city'           => isset( $data[ $prefix . 'city' ] ) && is_string( $data[ $prefix . 'city' ] ) ? $data[ $prefix . 'city' ] : '',
+			'state'          => isset( $data[ $prefix . 'state' ] ) && is_string( $data[ $prefix . 'state' ] ) ? $data[ $prefix . 'state' ] : '',
+			'postcode'       => isset( $data[ $prefix . 'postcode' ] ) && is_string( $data[ $prefix . 'postcode' ] ) ? $data[ $prefix . 'postcode' ] : '',
+			'country'        => isset( $data[ $prefix . 'country' ] ) && is_string( $data[ $prefix . 'country' ] ) ? $data[ $prefix . 'country' ] : '',
+		);
+
+		return $this->address_blocker->blocks( $match_type, $fields, WC()->countries->get_countries() );
 	}
 
 	/**
