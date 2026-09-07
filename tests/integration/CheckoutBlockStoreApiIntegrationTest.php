@@ -7,7 +7,6 @@
 
 use WP_Buyer_Blacklist\EmailEntry;
 use WP_Buyer_Blacklist\EmailEntryRepository;
-use WP_Buyer_Blacklist\Plugin;
 
 /**
  * Covers the WooCommerce pre-payment checkout hook.
@@ -22,37 +21,17 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 	private EmailEntryRepository $entries;
 
 	/**
-	 * Checkout validator.
-	 *
-	 * @var Plugin
-	 */
-	private Plugin $plugin;
-
-	/**
-	 * Registers an active email entry and the checkout validator.
+	 * Registers an active email entry.
 	 *
 	 * @return void
 	 */
 	public function set_up(): void {
 		parent::set_up();
 
+		WC_Install::create_tables();
 		$this->entries = new EmailEntryRepository( $GLOBALS['wpdb'] );
 		$this->entries->install();
 		$this->assertTrue( $this->entries->create( EmailEntry::from_email( 'buyer@example.com' ), 'Test entry' ) );
-
-		$this->plugin = new Plugin( $this->entries );
-		$this->plugin->register();
-	}
-
-	/**
-	 * Removes the checkout validator.
-	 *
-	 * @return void
-	 */
-	public function tear_down(): void {
-		remove_action( 'woocommerce_checkout_validate_order_before_payment', array( $this->plugin, 'validate_store_api_checkout' ) );
-
-		parent::tear_down();
 	}
 
 	/**

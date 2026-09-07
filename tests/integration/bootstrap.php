@@ -19,7 +19,6 @@ tests_add_filter(
 	'muplugins_loaded',
 	static function () use ( $woocommerce_dir ): void {
 		require_once $woocommerce_dir . '/woocommerce.php';
-		WC_Install::install();
 		require_once dirname( __DIR__, 2 ) . '/wp-buyer-blacklist.php';
 	}
 );
