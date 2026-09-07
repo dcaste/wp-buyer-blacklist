@@ -21,6 +21,7 @@ test( 'paginates entries in groups of 20', async () => {
 	const container = document.createElement( 'div' );
 	await act( async () => { createRoot( container ).render( <App /> ); } );
 	expect( container.querySelectorAll( 'tbody tr' ) ).toHaveLength( 20 );
+	expect( container.querySelector( 'span[style*="border-radius"]' ) ).not.toBeNull();
 	expect( container.textContent ).toContain( 'Next' );
 } );
 
