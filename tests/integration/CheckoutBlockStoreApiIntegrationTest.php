@@ -21,6 +21,13 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 	private EmailEntryRepository $entries;
 
 	/**
+	 * Entry identifier.
+	 *
+	 * @var int
+	 */
+	private int $entry_id;
+
+	/**
 	 * Registers an active email entry.
 	 *
 	 * @return void
@@ -29,9 +36,12 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 		parent::set_up();
 
 		WC_Install::create_tables();
+		wp_set_current_user( self::factory()->user->create( array( 'display_name' => 'Blacklist Operator' ) ) );
 		$this->entries = new EmailEntryRepository( $GLOBALS['wpdb'] );
 		$this->entries->install();
 		$this->assertTrue( $this->entries->create( EmailEntry::from_email( 'buyer@example.com' ), 'Test entry' ) );
+		$entries        = $this->entries->all();
+		$this->entry_id = (int) $entries[0]['id'];
 	}
 
 	/**
@@ -80,5 +90,40 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 				)
 			)
 		);
+	}
+
+	/**
+	 * Records the operator and action for ordinary entry changes.
+	 *
+	 * @return void
+	 */
+	public function test_records_audit_events_for_entry_changes(): void {
+		$this->assertTrue( $this->entries->update_reason( $this->entry_id, 'Updated reason' ) );
+		$this->assertTrue( $this->entries->set_active( $this->entry_id, false ) );
+
+		$events = $this->entries->audit_events( $this->entry_id );
+
+		$this->assertSame( array( 'deactivated', 'reason_changed', 'created' ), wp_list_pluck( $events, 'action' ) );
+		$this->assertSame( 'Blacklist Operator', $events[0]['actor_name'] );
+		$this->assertNotEmpty( $events[0]['actor_id'] );
+	}
+
+	/**
+	 * Deletes personal Audit data and retains a minimal deletion event.
+	 *
+	 * @return void
+	 */
+	public function test_deletion_retains_only_a_minimal_audit_event(): void {
+		$this->assertTrue( $this->entries->delete( $this->entry_id ) );
+		$this->assertSame( array(), $this->entries->all() );
+
+		$audit_table = $GLOBALS['wpdb']->prefix . 'buyer_blacklist_audit_events';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$event = $GLOBALS['wpdb']->get_row( "SELECT action, entry_id, actor_id, actor_name FROM {$audit_table} WHERE action = 'deleted'", ARRAY_A );
+
+		$this->assertSame( 'deleted', $event['action'] );
+		$this->assertNull( $event['entry_id'] );
+		$this->assertNull( $event['actor_id'] );
+		$this->assertNull( $event['actor_name'] );
 	}
 }
