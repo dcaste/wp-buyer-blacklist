@@ -3,10 +3,12 @@ import { createRoot, useEffect, useState } from '@wordpress/element';
 
 type Entry = { id: string; value: string; reason: string; is_active: string; created_at: string };
 type AuditEvent = { action: string; actor_id: string | null; actor_name: string | null; created_at: string };
+type BlockedAttempt = { id: string; identity_value: string; outcome: string; created_at: string };
 
 export function App() {
 	const [ entries, setEntries ] = useState< Entry[] >( [] );
 	const [ events, setEvents ] = useState< AuditEvent[] >( [] );
+	const [ attempts, setAttempts ] = useState< BlockedAttempt[] >( [] );
 	const [ selectedEntry, setSelectedEntry ] = useState< Entry | null >( null );
 	const [ email, setEmail ] = useState( '' );
 	const [ reason, setReason ] = useState( '' );
@@ -15,7 +17,12 @@ export function App() {
 	const inspect = async ( entry: Entry ) => {
 		setSelectedEntry( entry );
 		setReason( entry.reason );
-		setEvents( await apiFetch< AuditEvent[] >( { path: `/wp-buyer-blacklist/v1/email-entries/${ entry.id }` } ) );
+		const [ auditEvents, blockedAttempts ] = await Promise.all( [
+			apiFetch< AuditEvent[] >( { path: `/wp-buyer-blacklist/v1/email-entries/${ entry.id }` } ),
+			apiFetch< BlockedAttempt[] >( { path: `/wp-buyer-blacklist/v1/email-entries/${ entry.id }/blocked-attempts` } ),
+		] );
+		setEvents( auditEvents );
+		setAttempts( blockedAttempts );
 	};
 	useEffect( () => { load(); }, [] );
 	const submit = async ( event: React.FormEvent ) => {
@@ -49,13 +56,14 @@ export function App() {
 			await apiFetch( { path: `/wp-buyer-blacklist/v1/email-entries/${ selectedEntry.id }`, method: 'DELETE', data: { confirm: true } } );
 			setSelectedEntry( null );
 			setEvents( [] );
+			setAttempts( [] );
 			setMessage( 'Blacklist entry deleted.' );
 			load();
 		} catch ( error: any ) {
 			setMessage( error.message );
 		}
 	};
-	return <><h1>Buyer Blacklist</h1><form onSubmit={ submit }><p><label>Email <input aria-label="Email" type="email" required value={ email } onChange={ ( event ) => setEmail( event.target.value ) } /></label></p><p><label>Reason <textarea aria-label="Reason" required value={ reason } onChange={ ( event ) => setReason( event.target.value ) } /></label></p><button type="submit">Add entry</button></form>{ message && <p role="status">{ message }</p> }<table><thead><tr><th>Email</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead><tbody>{ entries.map( ( entry ) => <tr key={ entry.id }><td>{ entry.value }</td><td>{ entry.reason }</td><td>{ entry.is_active === '1' ? 'Active' : 'Inactive' }</td><td><button onClick={ () => inspect( entry ) }>Manage</button></td></tr> ) }</tbody></table>{ selectedEntry && <section><h2>Manage { selectedEntry.value }</h2><p><label>Reason <textarea aria-label="Edit reason" required value={ reason } onChange={ ( event ) => setReason( event.target.value ) } /></label></p><button onClick={ () => update( { reason } ) }>Save reason</button><button onClick={ () => update( { is_active: selectedEntry.is_active !== '1' } ) }>{ selectedEntry.is_active === '1' ? 'Deactivate' : 'Activate' }</button><button onClick={ remove }>Delete entry</button><h3>Audit history</h3><ul>{ events.map( ( event ) => <li key={ `${ event.created_at }-${ event.action }` }>{ event.action } by { event.actor_name ?? 'System' } at { event.created_at }</li> ) }</ul></section> }</>;
+	return <><h1>Buyer Blacklist</h1><form onSubmit={ submit }><p><label>Email <input aria-label="Email" type="email" required value={ email } onChange={ ( event ) => setEmail( event.target.value ) } /></label></p><p><label>Reason <textarea aria-label="Reason" required value={ reason } onChange={ ( event ) => setReason( event.target.value ) } /></label></p><button type="submit">Add entry</button></form>{ message && <p role="status">{ message }</p> }<table><thead><tr><th>Email</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead><tbody>{ entries.map( ( entry ) => <tr key={ entry.id }><td>{ entry.value }</td><td>{ entry.reason }</td><td>{ entry.is_active === '1' ? 'Active' : 'Inactive' }</td><td><button onClick={ () => inspect( entry ) }>Manage</button></td></tr> ) }</tbody></table>{ selectedEntry && <section><h2>Manage { selectedEntry.value }</h2><p><label>Reason <textarea aria-label="Edit reason" required value={ reason } onChange={ ( event ) => setReason( event.target.value ) } /></label></p><button onClick={ () => update( { reason } ) }>Save reason</button><button onClick={ () => update( { is_active: selectedEntry.is_active !== '1' } ) }>{ selectedEntry.is_active === '1' ? 'Deactivate' : 'Activate' }</button><button onClick={ remove }>Delete entry</button><h3>Audit history</h3><ul>{ events.map( ( event ) => <li key={ `${ event.created_at }-${ event.action }` }>{ event.action } by { event.actor_name ?? 'System' } at { event.created_at }</li> ) }</ul><h3>Blocked attempts</h3><ul>{ attempts.map( ( attempt ) => <li key={ attempt.id }>{ attempt.outcome } { attempt.identity_value } at { attempt.created_at }</li> ) }</ul></section> }</>;
 }
 
 const root = document.getElementById( 'wp-buyer-blacklist-admin' );

@@ -14,10 +14,13 @@ test( 'renders the email enrollment form', async () => {
 	expect( container.querySelector( 'input[type="email"]' ) ).not.toBeNull();
 } );
 
-test( 'loads Audit history when an entry is managed', async () => {
+test( 'loads Audit history and Blocked attempts when an entry is managed', async () => {
 	( apiFetch as jest.Mock ).mockImplementation( ( { path } ) => {
 		if ( path === '/wp-buyer-blacklist/v1/email-entries' ) {
 			return Promise.resolve( [ { id: '1', value: 'buyer@example.com', reason: 'Test entry', is_active: '1', created_at: '2026-01-01 00:00:00' } ] );
+		}
+		if ( path === '/wp-buyer-blacklist/v1/email-entries/1/blocked-attempts' ) {
+			return Promise.resolve( [ { id: '1', identity_value: 'buyer@example.com', outcome: 'blocked', created_at: '2026-01-01 00:00:00' } ] );
 		}
 		return Promise.resolve( [ { action: 'created', actor_id: '1', actor_name: 'Admin', created_at: '2026-01-01 00:00:00' } ] );
 	} );
@@ -26,4 +29,6 @@ test( 'loads Audit history when an entry is managed', async () => {
 	await act( async () => { Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Manage' )?.click(); } );
 	expect( container.textContent ).toContain( 'Audit history' );
 	expect( container.textContent ).toContain( 'created by Admin' );
+	expect( container.textContent ).toContain( 'Blocked attempts' );
+	expect( container.textContent ).toContain( 'blocked buyer@example.com' );
 } );

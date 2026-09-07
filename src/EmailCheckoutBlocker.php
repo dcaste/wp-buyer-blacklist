@@ -20,12 +20,21 @@ final class EmailCheckoutBlocker {
 	private ActiveEmailEntryFinder $entries;
 
 	/**
+	 * Blocked attempt persistence.
+	 *
+	 * @var BlockedAttemptRecorder
+	 */
+	private BlockedAttemptRecorder $attempts;
+
+	/**
 	 * Creates the checkout blocker.
 	 *
-	 * @param ActiveEmailEntryFinder $entries Active email entry lookup.
+	 * @param ActiveEmailEntryFinder $entries  Active email entry lookup.
+	 * @param BlockedAttemptRecorder $attempts Blocked attempt persistence.
 	 */
-	public function __construct( ActiveEmailEntryFinder $entries ) {
-		$this->entries = $entries;
+	public function __construct( ActiveEmailEntryFinder $entries, BlockedAttemptRecorder $attempts ) {
+		$this->entries  = $entries;
+		$this->attempts = $attempts;
 	}
 
 	/**
@@ -35,6 +44,12 @@ final class EmailCheckoutBlocker {
 	 * @return bool Whether checkout must be blocked.
 	 */
 	public function blocks( string $email ): bool {
-		return $this->entries->has_active_email( $email );
+		$entry_ids = $this->entries->matching_active_email_entry_ids( $email );
+
+		foreach ( $entry_ids as $entry_id ) {
+			$this->attempts->record_blocked_attempt( $entry_id, $email );
+		}
+
+		return array() !== $entry_ids;
 	}
 }

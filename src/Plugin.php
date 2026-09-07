@@ -36,7 +36,7 @@ final class Plugin {
 	 */
 	public function __construct( EmailEntryRepository $entries ) {
 		$this->entries = $entries;
-		$this->blocker = new EmailCheckoutBlocker( $entries );
+		$this->blocker = new EmailCheckoutBlocker( $entries, $entries );
 	}
 
 	/**
@@ -153,6 +153,15 @@ final class Plugin {
 		);
 		register_rest_route(
 			'wp-buyer-blacklist/v1',
+			'/email-entries/(?P<id>\\d+)/blocked-attempts',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_email_entry_blocked_attempts' ),
+				'permission_callback' => array( $this, 'can_manage_entries' ),
+			)
+		);
+		register_rest_route(
+			'wp-buyer-blacklist/v1',
 			'/email-entries/(?P<id>\\d+)',
 			array(
 				array(
@@ -222,6 +231,16 @@ final class Plugin {
 	 */
 	public function get_email_entry_audit_events( \WP_REST_Request $request ): array {
 		return $this->entries->audit_events( absint( $request['id'] ) );
+	}
+
+	/**
+	 * Gets an entry's Blocked attempts.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return list<array<string, string>>
+	 */
+	public function get_email_entry_blocked_attempts( \WP_REST_Request $request ): array {
+		return $this->entries->blocked_attempts( absint( $request['id'] ) );
 	}
 
 	/**
