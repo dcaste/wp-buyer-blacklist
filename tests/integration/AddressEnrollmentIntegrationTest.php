@@ -72,5 +72,41 @@ class AddressEnrollmentIntegrationTest extends WP_UnitTestCase {
 
 		$this->assertSame( 201, $response->get_status() );
 		$this->assertNotEmpty( $this->entries->matching_active_address_entry_ids( $entry ) );
+
+		$request->set_param( 'address_line_1', '  1   TEST Street ' );
+		$request->set_param( 'address_line_2', ' APT  2 ' );
+		$request->set_param( 'city', ' TESTVILLE ' );
+		$request->set_param( 'state', ' ca ' );
+		$request->set_param( 'country', 'us' );
+		$show_database_errors = $GLOBALS['wpdb']->suppress_errors();
+		$duplicate_response   = rest_get_server()->dispatch( $request );
+		$GLOBALS['wpdb']->suppress_errors( $show_database_errors );
+		$this->assertSame( 409, $duplicate_response->get_status() );
+	}
+
+	/**
+	 * Rejects a country code WooCommerce does not recognize.
+	 *
+	 * @return void
+	 */
+	public function test_rejects_an_unrecognized_country_code(): void {
+		$request = new WP_REST_Request( 'POST', '/wp-buyer-blacklist/v1/address-entries' );
+		foreach (
+			array(
+				'match_type'     => 'shipping_address',
+				'address_line_1' => '1 Test Street',
+				'city'           => 'Testville',
+				'state'          => 'CA',
+				'postcode'       => '90210',
+				'country'        => 'ZZ',
+				'reason'         => 'Test entry',
+			) as $field => $value
+		) {
+			$request->set_param( $field, $value );
+		}
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status() );
 	}
 }
