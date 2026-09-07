@@ -10,7 +10,7 @@ namespace WP_Buyer_Blacklist;
 /**
  * Stores and finds email Blacklist entries.
  */
-final class EmailEntryRepository {
+final class EmailEntryRepository implements ActiveEmailEntryFinder {
 
 	/**
 	 * Current database schema version.
