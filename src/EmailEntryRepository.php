@@ -228,12 +228,9 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 		$result = $this->database->update(
 			$this->table_name,
 			array( 'reason' => $reason ),
-			array(
-				'id'         => $entry_id,
-				'match_type' => 'email',
-			),
+			array( 'id' => $entry_id ),
 			array( '%s' ),
-			array( '%d', '%s' )
+			array( '%d' )
 		);
 
 		return 1 === $result && $this->record_audit_event( $entry_id, 'reason_changed' );
@@ -250,12 +247,9 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 		$result = $this->database->update(
 			$this->table_name,
 			array( 'is_active' => $active ? 1 : 0 ),
-			array(
-				'id'         => $entry_id,
-				'match_type' => 'email',
-			),
+			array( 'id' => $entry_id ),
 			array( '%d' ),
-			array( '%d', '%s' )
+			array( '%d' )
 		);
 
 		return 1 === $result && $this->record_audit_event( $entry_id, $active ? 'activated' : 'deactivated' );
@@ -308,6 +302,28 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 		}
 
 		return false !== $this->database->query( 'COMMIT' );
+	}
+
+	/**
+	 * Finds every active Blacklist entry matching a WooCommerce Customer ID.
+	 *
+	 * @param int $customer_id WooCommerce Customer ID.
+	 * @return list<int> Matching entry identifiers.
+	 */
+	public function matching_active_customer_id_entry_ids( int $customer_id ): array {
+		if ( $customer_id <= 0 ) {
+			return array();
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$query = $this->database->prepare(
+			"SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s AND is_active = %d",
+			'customer_id',
+			hash( 'sha256', (string) $customer_id ),
+			1
+		);
+
+		return array_map( 'intval', (array) $this->database->get_col( $query ) );
 	}
 
 	/**
@@ -389,13 +405,13 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 	}
 
 	/**
-	 * Gets email entries in reverse creation order.
+	 * Gets Blacklist entries in reverse creation order.
 	 *
 	 * @return list<array<string, string>>
 	 */
 	public function all(): array {
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
-		$results = $this->database->get_results( "SELECT id, value, reason, is_active, created_at FROM {$this->table_name} WHERE match_type = 'email' ORDER BY created_at DESC, id DESC", ARRAY_A );
+		$results = $this->database->get_results( "SELECT id, match_type, value, reason, is_active, created_at FROM {$this->table_name} ORDER BY created_at DESC, id DESC", ARRAY_A );
 
 		return is_array( $results ) ? $results : array();
 	}
