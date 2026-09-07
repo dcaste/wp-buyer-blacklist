@@ -14,6 +14,17 @@ test( 'renders the email enrollment form', async () => {
 	expect( container.querySelector( 'input[type="email"]' ) ).not.toBeNull();
 } );
 
+test( 'validates a CSV file before it offers import confirmation', async () => {
+	( apiFetch as jest.Mock ).mockImplementation( ( { path } ) => path === '/wp-buyer-blacklist/v1/csv-import/validate' ? Promise.resolve( { token: 'token', valid: 1, created: null, duplicates: [], rejected: [] } ) : Promise.resolve( [] ) );
+	const container = document.createElement( 'div' );
+	await act( async () => { createRoot( container ).render( <App /> ); } );
+	const fileInput = container.querySelector( 'input[type="file"]' ) as HTMLInputElement;
+	Object.defineProperty( fileInput, 'files', { value: [ { text: () => Promise.resolve( 'match_type,email\nemail,buyer@example.com\n' ) } ] } );
+	await act( async () => { fileInput.dispatchEvent( new Event( 'change', { bubbles: true } ) ); } );
+	expect( apiFetch ).toHaveBeenCalledWith( expect.objectContaining( { path: '/wp-buyer-blacklist/v1/csv-import/validate' } ) );
+	expect( container.textContent ).toContain( 'Confirm import' );
+} );
+
 test( 'renders structured address fields when an address Match type is selected', async () => {
 	const container = document.createElement( 'div' );
 	await act( async () => { createRoot( container ).render( <App /> ); } );
