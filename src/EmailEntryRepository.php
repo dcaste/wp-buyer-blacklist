@@ -268,6 +268,27 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 	 * @return bool Whether the entry was deleted.
 	 */
 	public function delete( int $entry_id ): bool {
+		return $this->remove( $entry_id, 'deleted' );
+	}
+
+	/**
+	 * Erases an identity and its personal data.
+	 *
+	 * @param int $entry_id Entry identifier.
+	 * @return bool Whether the identity was erased.
+	 */
+	public function erase( int $entry_id ): bool {
+		return $this->remove( $entry_id, 'erased' );
+	}
+
+	/**
+	 * Removes an entry and its associated personal data.
+	 *
+	 * @param int    $entry_id Entry identifier.
+	 * @param string $action   Minimal retained Audit event action.
+	 * @return bool Whether the identity was removed.
+	 */
+	private function remove( int $entry_id, string $action ): bool {
 		if ( false === $this->database->query( 'START TRANSACTION' ) ) {
 			return false;
 		}
@@ -278,15 +299,8 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 		$events_deleted = $this->database->query( $this->database->prepare( "DELETE FROM {$audit_table} WHERE entry_id = %d", $entry_id ) );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
 		$attempts_deleted = $this->database->query( $this->database->prepare( "DELETE FROM {$attempts_table} WHERE entry_id = %d", $entry_id ) );
-		$entry_deleted    = $this->database->delete(
-			$this->table_name,
-			array(
-				'id'         => $entry_id,
-				'match_type' => 'email',
-			),
-			array( '%d', '%s' )
-		);
-		$event_created    = 1 === $entry_deleted && $this->record_audit_event( null, 'deleted' );
+		$entry_deleted    = $this->database->delete( $this->table_name, array( 'id' => $entry_id ), array( '%d' ) );
+		$event_created    = 1 === $entry_deleted && $this->record_audit_event( null, $action );
 
 		if ( false === $events_deleted || false === $attempts_deleted || ! $event_created ) {
 			$this->database->query( 'ROLLBACK' );
@@ -387,6 +401,85 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 	}
 
 	/**
+	 * Exports every Blacklist entry as UTF-8 CSV.
+	 *
+	 * @return string CSV document.
+	 */
+	public function export_csv(): string {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- A temporary in-memory stream does not use the filesystem.
+		$stream = fopen( 'php://temp', 'r+' );
+		if ( false === $stream ) {
+			return '';
+		}
+		fputcsv( $stream, array( 'match_type', 'value', 'reason', 'status', 'created_at' ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$entries = $this->database->get_results( "SELECT match_type, value, reason, is_active, created_at FROM {$this->table_name} ORDER BY id ASC", ARRAY_A );
+		foreach ( is_array( $entries ) ? $entries : array() as $entry ) {
+			fputcsv( $stream, array( $entry['match_type'], $entry['value'], $entry['reason'], '1' === $entry['is_active'] ? 'active' : 'inactive', $entry['created_at'] ) );
+		}
+		rewind( $stream );
+		$csv = stream_get_contents( $stream );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closes the temporary in-memory stream.
+		fclose( $stream );
+
+		return false === $csv ? '' : $csv;
+	}
+
+	/**
+	 * Gets one identity dossier.
+	 *
+	 * @param int $entry_id Entry identifier.
+	 * @return array<string, mixed>|null Identity dossier, if it exists.
+	 */
+	public function identity_dossier( int $entry_id ): ?array {
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$entry = $this->database->get_row( $this->database->prepare( "SELECT id, match_type, value, reason, is_active, created_at FROM {$this->table_name} WHERE id = %d", $entry_id ), ARRAY_A );
+		if ( ! is_array( $entry ) ) {
+			return null;
+		}
+		$value              = json_decode( $entry['value'], true );
+		$entry['value']     = is_array( $value ) ? $value : $entry['value'];
+		$entry['is_active'] = '1' === $entry['is_active'];
+
+		return array(
+			'entry'            => $entry,
+			'blocked_attempts' => $this->blocked_attempts( $entry_id ),
+			'audit_events'     => $this->audit_events( $entry_id ),
+		);
+	}
+
+	/**
+	 * Gets dossiers for email identities matched by the WordPress privacy tools.
+	 *
+	 * @param string $email Buyer email address.
+	 * @return list<array<string, mixed>> Identity dossiers.
+	 */
+	public function identity_dossiers_for_email( string $email ): array {
+		try {
+			$entry = EmailEntry::from_email( $email );
+		} catch ( \InvalidArgumentException $exception ) {
+			return array();
+		}
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$ids = $this->database->get_col( $this->database->prepare( "SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s", 'email', $entry->canonical_hash() ) );
+
+		return array_values( array_filter( array_map( fn( $id ) => $this->identity_dossier( (int) $id ), is_array( $ids ) ? $ids : array() ) ) );
+	}
+
+	/**
+	 * Gets retained minimal deletion Audit events.
+	 *
+	 * @return list<array<string, mixed>> Deletion events.
+	 */
+	public function deletion_events(): array {
+		$audit_table = $this->audit_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$events = $this->database->get_results( "SELECT action, created_at FROM {$audit_table} WHERE entry_id IS NULL ORDER BY id DESC", ARRAY_A );
+
+		return is_array( $events ) ? $events : array();
+	}
+
+	/**
 	 * Gets an entry's Audit events in reverse creation order.
 	 *
 	 * @param int $entry_id Entry identifier.
@@ -398,6 +491,21 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 		$results = $this->database->get_results( $this->database->prepare( "SELECT action, actor_id, actor_name, created_at FROM {$audit_table} WHERE entry_id = %d ORDER BY created_at DESC, id DESC", $entry_id ), ARRAY_A );
 
 		return is_array( $results ) ? $results : array();
+	}
+
+	/**
+	 * Removes all plugin data during an explicitly configured uninstall.
+	 *
+	 * @return void
+	 */
+	public function uninstall(): void {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names use only the WordPress table prefix.
+		$this->database->query( "DROP TABLE IF EXISTS {$this->table_name}" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names use only the WordPress table prefix.
+		$this->database->query( "DROP TABLE IF EXISTS {$this->audit_table_name()}" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names use only the WordPress table prefix.
+		$this->database->query( "DROP TABLE IF EXISTS {$this->database->prefix}buyer_blacklist_blocked_attempts" );
+		delete_option( 'wp_buyer_blacklist_database_version' );
 	}
 
 	/**
