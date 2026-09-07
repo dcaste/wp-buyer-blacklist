@@ -61,7 +61,13 @@ final class SourceEnrollment {
 	 */
 	public function add_customer_row_action( array $actions, \WP_User $user ): array {
 		if ( in_array( 'customer', $user->roles, true ) && current_user_can( 'manage_woocommerce' ) ) {
-			$actions['wp_buyer_blacklist_enroll'] = $this->enrollment_link( 'customer', array( $user->ID ), __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ) );
+			$entry_ids = $this->matching_customer_entry_ids( $user->ID );
+			if ( array() === $entry_ids ) {
+				$actions['wp_buyer_blacklist_enroll'] = $this->enrollment_link( 'customer', array( $user->ID ), __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ) );
+			} else {
+				$actions['wp_buyer_blacklist_badge']  = '<span class="wp-ui-text-notification">' . esc_html__( 'Blacklisted', 'wp-buyer-blacklist' ) . '</span>';
+				$actions['wp_buyer_blacklist_enroll'] = '<a href="' . esc_url( add_query_arg( 'entry_ids', $entry_ids, admin_url( 'admin.php?page=wp-buyer-blacklist' ) ) ) . '">' . esc_html__( 'Manage Blacklist entries', 'wp-buyer-blacklist' ) . '</a>';
+			}
 		}
 
 		return $actions;
@@ -316,6 +322,38 @@ final class SourceEnrollment {
 		} catch ( InvalidArgumentException $exception ) {
 			return 'unavailable';
 		}
+	}
+
+	/**
+	 * Finds active entries that match a WooCommerce Customer.
+	 *
+	 * @param int $customer_id WooCommerce Customer ID.
+	 * @return list<int> Matching entry identifiers.
+	 */
+	private function matching_customer_entry_ids( int $customer_id ): array {
+		$customer = new \WC_Customer( $customer_id );
+		$ids      = array_merge(
+			$this->entries->matching_active_customer_id_entry_ids( $customer_id ),
+			$this->entries->matching_active_email_entry_ids( $customer->get_email() )
+		);
+
+		foreach ( array( 'billing_address', 'shipping_address' ) as $match_type ) {
+			$fields = array(
+				'address_line_1' => 'billing_address' === $match_type ? $customer->get_billing_address_1() : $customer->get_shipping_address_1(),
+				'address_line_2' => 'billing_address' === $match_type ? $customer->get_billing_address_2() : $customer->get_shipping_address_2(),
+				'city'           => 'billing_address' === $match_type ? $customer->get_billing_city() : $customer->get_shipping_city(),
+				'state'          => 'billing_address' === $match_type ? $customer->get_billing_state() : $customer->get_shipping_state(),
+				'postcode'       => 'billing_address' === $match_type ? $customer->get_billing_postcode() : $customer->get_shipping_postcode(),
+				'country'        => 'billing_address' === $match_type ? $customer->get_billing_country() : $customer->get_shipping_country(),
+			);
+			try {
+				$ids = array_merge( $ids, $this->entries->matching_active_address_entry_ids( AddressEntry::from_fields( $match_type, $fields, WC()->countries->get_countries() ) ) );
+			} catch ( InvalidArgumentException $exception ) {
+				continue;
+			}
+		}
+
+		return array_values( array_unique( $ids ) );
 	}
 
 	/**

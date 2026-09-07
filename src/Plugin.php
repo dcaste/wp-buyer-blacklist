@@ -88,6 +88,15 @@ final class Plugin {
 				'default'           => false,
 			)
 		);
+		register_setting(
+			'wp_buyer_blacklist',
+			'wp_buyer_blacklist_buyer_message',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_textarea_field',
+				'default'           => $this->default_buyer_block_message(),
+			)
+		);
 	}
 
 	/**
@@ -116,19 +125,33 @@ final class Plugin {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This read-only redirect status does not change plugin data.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This selects the tab to render and does not change plugin data.
+		$tab = isset( $_GET['tab'] ) && is_string( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'manage';
+		if ( ! in_array( $tab, array( 'manage', 'import-export', 'settings' ), true ) || ( 'settings' === $tab && ! $this->can_manage_privacy_data() ) ) {
+			$tab = 'manage';
+		}
 		?>
 		<div class="wrap">
-			<?php if ( $this->can_manage_privacy_data() ) : ?>
-				<p><a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_export' ), 'wp_buyer_blacklist_export' ) ); ?>"><?php esc_html_e( 'Export Blacklist CSV', 'wp-buyer-blacklist' ); ?></a></p>
+			<h1><?php esc_html_e( 'Buyer Blacklist', 'wp-buyer-blacklist' ); ?></h1>
+			<nav class="nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Buyer Blacklist sections', 'wp-buyer-blacklist' ); ?>">
+				<a class="nav-tab <?php echo 'manage' === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-buyer-blacklist' ) ); ?>"><?php esc_html_e( 'Manage entries', 'wp-buyer-blacklist' ); ?></a>
+				<a class="nav-tab <?php echo 'import-export' === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-buyer-blacklist&tab=import-export' ) ); ?>"><?php esc_html_e( 'Import and export', 'wp-buyer-blacklist' ); ?></a>
+				<?php
+				if ( $this->can_manage_privacy_data() ) :
+					?>
+					<a class="nav-tab <?php echo 'settings' === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-buyer-blacklist&tab=settings' ) ); ?>"><?php esc_html_e( 'Settings', 'wp-buyer-blacklist' ); ?></a><?php endif; ?>
+			</nav>
+			<?php if ( 'settings' === $tab ) : ?>
 				<form action="options.php" method="post">
 					<?php settings_fields( 'wp_buyer_blacklist' ); ?>
-					<input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" />
-					<label><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ); ?> /> <?php esc_html_e( 'Delete all Blacklist data when the plugin is uninstalled.', 'wp-buyer-blacklist' ); ?></label>
-					<?php submit_button( __( 'Save privacy setting', 'wp-buyer-blacklist' ), 'secondary', 'submit', false ); ?>
+					<table class="form-table" role="presentation"><tbody><tr><th scope="row"><label for="wp-buyer-blacklist-buyer-message"><?php esc_html_e( 'Buyer-facing block message', 'wp-buyer-blacklist' ); ?></label></th><td><textarea class="large-text" id="wp-buyer-blacklist-buyer-message" name="wp_buyer_blacklist_buyer_message" rows="3"><?php echo esc_textarea( get_option( 'wp_buyer_blacklist_buyer_message', $this->default_buyer_block_message() ) ); ?></textarea></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Uninstall cleanup', 'wp-buyer-blacklist' ); ?></th><td><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" /><label><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ); ?> /> <?php esc_html_e( 'Delete all Blacklist data when the plugin is uninstalled.', 'wp-buyer-blacklist' ); ?></label></td></tr>
+					</tbody></table>
+					<?php submit_button(); ?>
 				</form>
+			<?php else : ?>
+				<div id="wp-buyer-blacklist-admin" data-tab="<?php echo esc_attr( $tab ); ?>" data-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_export' ), 'wp_buyer_blacklist_export' ) ); ?>"></div>
 			<?php endif; ?>
-			<div id="wp-buyer-blacklist-admin"></div>
 		</div>
 		<?php
 	}
