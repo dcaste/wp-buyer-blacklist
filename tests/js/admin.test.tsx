@@ -14,6 +14,18 @@ test( 'renders the email enrollment form', async () => {
 	expect( container.querySelector( 'input[type="email"]' ) ).not.toBeNull();
 } );
 
+test( 'renders structured address fields when an address Match type is selected', async () => {
+	const container = document.createElement( 'div' );
+	await act( async () => { createRoot( container ).render( <App /> ); } );
+	const matchType = container.querySelector( 'select[aria-label="Match type"]' ) as HTMLSelectElement;
+	await act( async () => {
+		matchType.value = 'billing_address';
+		matchType.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+	} );
+	expect( container.querySelector( 'input[aria-label="Address line 1"]' ) ).not.toBeNull();
+	expect( container.querySelector( 'input[aria-label="Country"]' ) ).not.toBeNull();
+} );
+
 test( 'loads Audit history and Blocked attempts when an entry is managed', async () => {
 	( apiFetch as jest.Mock ).mockImplementation( ( { path } ) => {
 		if ( path === '/wp-buyer-blacklist/v1/email-entries' ) {

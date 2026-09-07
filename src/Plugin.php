@@ -198,6 +198,17 @@ final class Plugin {
 		);
 		register_rest_route(
 			'wp-buyer-blacklist/v1',
+			'/address-entries',
+			array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'create_address_entry' ),
+					'permission_callback' => array( $this, 'can_manage_entries' ),
+				),
+			)
+		);
+		register_rest_route(
+			'wp-buyer-blacklist/v1',
 			'/email-entries/(?P<id>\\d+)/blocked-attempts',
 			array(
 				'methods'             => 'GET',
@@ -266,6 +277,36 @@ final class Plugin {
 			return new \WP_Error( 'wp_buyer_blacklist_duplicate', __( 'That email already has a Blacklist entry.', 'wp-buyer-blacklist' ), array( 'status' => 409 ) );
 		}
 		return new \WP_REST_Response( array( 'message' => __( 'Email entry created.', 'wp-buyer-blacklist' ) ), 201 );
+	}
+
+	/**
+	 * Creates an address entry through the REST API.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function create_address_entry( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$reason = $this->reason_from_request( $request );
+		if ( is_wp_error( $reason ) ) {
+			return $reason;
+		}
+
+		$fields = array();
+		foreach ( array( 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country' ) as $field ) {
+			$value            = $request->get_param( $field );
+			$fields[ $field ] = is_string( $value ) ? $value : '';
+		}
+
+		try {
+			$entry = AddressEntry::from_fields( (string) $request->get_param( 'match_type' ), $fields, WC()->countries->get_countries() );
+		} catch ( InvalidArgumentException $exception ) {
+			return new \WP_Error( 'wp_buyer_blacklist_invalid_address', __( 'Enter a complete address with a valid country.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
+		}
+		if ( ! $this->entries->create_address( $entry, $reason ) ) {
+			return new \WP_Error( 'wp_buyer_blacklist_duplicate', __( 'That address already has a Blacklist entry.', 'wp-buyer-blacklist' ), array( 'status' => 409 ) );
+		}
+
+		return new \WP_REST_Response( array( 'message' => __( 'Address entry created.', 'wp-buyer-blacklist' ) ), 201 );
 	}
 
 	/**
