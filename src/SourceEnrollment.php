@@ -65,7 +65,7 @@ final class SourceEnrollment {
 			if ( array() === $entry_ids ) {
 				$actions['wp_buyer_blacklist_enroll'] = $this->enrollment_link( 'customer', array( $user->ID ), __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ) );
 			} else {
-				$actions['wp_buyer_blacklist_badge']  = '<span class="wp-ui-notification">' . esc_html__( 'Blacklisted', 'wp-buyer-blacklist' ) . '</span>';
+				$actions['wp_buyer_blacklist_badge']  = '<span style="background:#ffebe9;border:1px solid #ff818266;border-radius:2em;color:#cf222e;font-size:12px;font-weight:500;padding:.15em .5em;white-space:nowrap">' . esc_html__( 'Blacklisted', 'wp-buyer-blacklist' ) . '</span>';
 				$actions['wp_buyer_blacklist_enroll'] = '<a href="' . esc_url( add_query_arg( 'entry_ids', $entry_ids, admin_url( 'admin.php?page=wp-buyer-blacklist' ) ) ) . '">' . esc_html__( 'Manage Blacklist entries', 'wp-buyer-blacklist' ) . '</a>';
 			}
 		}
