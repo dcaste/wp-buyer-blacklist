@@ -125,6 +125,32 @@ final class EmailEntryRepository implements ActiveEmailEntryFinder, BlockedAttem
 	}
 
 	/**
+	 * Creates an active address Blacklist entry.
+	 *
+	 * @param AddressEntry $entry  Address identity to store.
+	 * @param string       $reason Operator-provided reason.
+	 * @return bool Whether an entry was created.
+	 */
+	public function create_address( AddressEntry $entry, string $reason ): bool {
+		$value  = wp_json_encode( $entry->canonical_value() );
+		$result = $this->database->insert(
+			$this->table_name,
+			array(
+				'match_type'      => $entry->match_type(),
+				'value'           => $value,
+				'canonical_value' => $value,
+				'canonical_hash'  => $entry->canonical_hash(),
+				'reason'          => $reason,
+				'is_active'       => 1,
+				'created_at'      => current_time( 'mysql', true ),
+			),
+			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
+		);
+
+		return 1 === $result && $this->record_audit_event( (int) $this->database->insert_id, 'created' );
+	}
+
+	/**
 	 * Updates an entry reason.
 	 *
 	 * @param int    $entry_id Entry identifier.
@@ -220,6 +246,25 @@ final class EmailEntryRepository implements ActiveEmailEntryFinder, BlockedAttem
 		$query     = $this->database->prepare(
 			"SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s AND is_active = %d",
 			'email',
+			$entry->canonical_hash(),
+			1
+		);
+		$entry_ids = $this->database->get_col( $query );
+
+		return array_map( 'intval', is_array( $entry_ids ) ? $entry_ids : array() );
+	}
+
+	/**
+	 * Finds every active entry matching a complete address.
+	 *
+	 * @param AddressEntry $entry Address identity.
+	 * @return list<int> Matching entry identifiers.
+	 */
+	public function matching_active_address_entry_ids( AddressEntry $entry ): array {
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$query     = $this->database->prepare(
+			"SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s AND is_active = %d",
+			$entry->match_type(),
 			$entry->canonical_hash(),
 			1
 		);
