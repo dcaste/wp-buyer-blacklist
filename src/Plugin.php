@@ -93,10 +93,22 @@ final class Plugin {
 			'wp_buyer_blacklist_buyer_message',
 			array(
 				'type'              => 'string',
-				'sanitize_callback' => 'sanitize_textarea_field',
+				'sanitize_callback' => array( $this, 'sanitize_buyer_block_message' ),
 				'default'           => $this->default_buyer_block_message(),
 			)
 		);
+	}
+
+	/**
+	 * Sanitizes the Buyer block message.
+	 *
+	 * @param mixed $message Buyer block message.
+	 * @return string Sanitized Buyer block message.
+	 */
+	public function sanitize_buyer_block_message( mixed $message ): string {
+		$message = sanitize_textarea_field( $message );
+
+		return '' === trim( $message ) ? $this->default_buyer_block_message() : $message;
 	}
 
 	/**
@@ -144,7 +156,7 @@ final class Plugin {
 			<?php if ( 'settings' === $tab ) : ?>
 				<form action="options.php" method="post">
 					<?php settings_fields( 'wp_buyer_blacklist' ); ?>
-					<table class="form-table" role="presentation"><tbody><tr><th scope="row"><label for="wp-buyer-blacklist-buyer-message"><?php esc_html_e( 'Buyer-facing block message', 'wp-buyer-blacklist' ); ?></label></th><td><textarea class="large-text" id="wp-buyer-blacklist-buyer-message" name="wp_buyer_blacklist_buyer_message" rows="3"><?php echo esc_textarea( get_option( 'wp_buyer_blacklist_buyer_message', $this->default_buyer_block_message() ) ); ?></textarea></td></tr>
+					<table class="form-table" role="presentation"><tbody><tr><th scope="row"><label for="wp-buyer-blacklist-buyer-message"><?php esc_html_e( 'Buyer-facing block message', 'wp-buyer-blacklist' ); ?></label></th><td><textarea class="large-text" id="wp-buyer-blacklist-buyer-message" name="wp_buyer_blacklist_buyer_message" rows="3"><?php echo esc_textarea( get_option( 'wp_buyer_blacklist_buyer_message', $this->default_buyer_block_message() ) ); ?></textarea><p class="description"><?php esc_html_e( 'Leave this blank to restore the default message.', 'wp-buyer-blacklist' ); ?></p></td></tr>
 					<tr><th scope="row"><?php esc_html_e( 'Uninstall cleanup', 'wp-buyer-blacklist' ); ?></th><td><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" /><label><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ); ?> /> <?php esc_html_e( 'Delete all Blacklist data when the plugin is uninstalled.', 'wp-buyer-blacklist' ); ?></label></td></tr>
 					</tbody></table>
 					<?php submit_button(); ?>

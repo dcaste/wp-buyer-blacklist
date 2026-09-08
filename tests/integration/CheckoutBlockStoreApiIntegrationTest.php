@@ -47,10 +47,15 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 	/**
 	 * Stops Checkout Block and Store API checkout before payment.
 	 *
+	 * @dataProvider buyer_block_messages
+	 *
+	 * @param string $message          Buyer block message to save.
+	 * @param string $expected_message Expected Buyer block message.
 	 * @return void
 	 */
-	public function test_blocks_matching_email_with_only_the_configured_buyer_message(): void {
-		update_option( 'wp_buyer_blacklist_buyer_message', 'Configured buyer message' );
+	public function test_blocks_matching_email_with_only_the_configured_buyer_message( string $message, string $expected_message ): void {
+		do_action( 'admin_init' );
+		update_option( 'wp_buyer_blacklist_buyer_message', sanitize_option( 'wp_buyer_blacklist_buyer_message', $message ) );
 		$product = new WC_Product_Simple();
 		$product->set_regular_price( '0' );
 		$product->set_virtual( true );
@@ -80,7 +85,7 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( 'Configured buyer message', $data['message'] );
+		$this->assertSame( $expected_message, $data['message'] );
 		$this->assertStringNotContainsString( 'buyer@example.com', $data['message'] );
 		$this->assertNotEmpty(
 			wc_get_orders(
@@ -90,6 +95,38 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 				)
 			)
 		);
+	}
+
+	/**
+	 * Provides configured and default Buyer block messages.
+	 *
+	 * @return array<string, array{string, string}>
+	 */
+	public function buyer_block_messages(): array {
+		$default = 'We’re unable to process your order. Please contact us for assistance.';
+
+		return array(
+			'custom message'     => array( 'Configured buyer message', 'Configured buyer message' ),
+			'blank message'      => array( '', $default ),
+			'whitespace message' => array( " \n\t ", $default ),
+		);
+	}
+
+	/**
+	 * Restores the default Buyer message when a blank value is saved.
+	 *
+	 * @return void
+	 */
+	public function test_restores_the_default_buyer_message_when_a_blank_value_is_saved(): void {
+		do_action( 'admin_init' );
+
+		foreach ( array( '', " \n\t " ) as $message ) {
+			update_option( 'wp_buyer_blacklist_buyer_message', sanitize_option( 'wp_buyer_blacklist_buyer_message', $message ) );
+			$this->assertSame( 'We’re unable to process your order. Please contact us for assistance.', get_option( 'wp_buyer_blacklist_buyer_message' ) );
+		}
+
+		update_option( 'wp_buyer_blacklist_buyer_message', sanitize_option( 'wp_buyer_blacklist_buyer_message', 'Configured buyer message' ) );
+		$this->assertSame( 'Configured buyer message', get_option( 'wp_buyer_blacklist_buyer_message' ) );
 	}
 
 	/**
