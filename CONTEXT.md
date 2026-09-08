@@ -12,6 +12,10 @@ _Avoid_: Customer, client, account, user
 A record for one Buyer identity that can block purchase when active. It has exactly one Match type, a reason, and an active or inactive status; it has no expiry.
 _Avoid_: Blacklist record, ban
 
+**Blacklist operator**:
+An Administrator or a user with WooCommerce management permission whom an Administrator allows to manage Blacklist entries. An operator cannot delete, erase, or export Blacklist data.
+_Avoid_: Store manager, moderator
+
 **Match type**:
 The one identifier category used by a Blacklist entry: email, WooCommerce customer ID, billing address, or shipping address.
 _Avoid_: Identifier combination, matching rule, signal set
