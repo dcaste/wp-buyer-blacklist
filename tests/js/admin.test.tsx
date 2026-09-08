@@ -70,4 +70,7 @@ test( 'loads Audit history and Blocked attempts when an entry is managed', async
 	expect( container.textContent ).toContain( 'Blocked attempts' );
 	expect( container.textContent ).toContain( 'blocked buyer@example.com' );
 	expect( container.querySelector( 'a[href="/wp-json/wp-buyer-blacklist/v1/email-entries/1/dossier"]' )?.textContent ).toBe( 'Export dossier' );
+	expect( container.querySelector( 'dialog' ) ).not.toBeNull();
+	expect( Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Manage' )?.getAttribute( 'commandfor' ) ).toBe( 'wp-buyer-blacklist-entry-dialog' );
+	expect( container.textContent ).toContain( 'Close' );
 } );

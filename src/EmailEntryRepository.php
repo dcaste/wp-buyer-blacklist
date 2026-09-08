@@ -327,6 +327,25 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 	}
 
 	/**
+	 * Finds every Blacklist entry with a canonical identity value.
+	 *
+	 * @param string $match_type     Entry Match type.
+	 * @param string $canonical_hash Canonical identity hash.
+	 * @return list<array{id: string, is_active: string}> Matching entries.
+	 */
+	public function matching_entries( string $match_type, string $canonical_hash ): array {
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$query   = $this->database->prepare(
+			"SELECT id, is_active FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s",
+			$match_type,
+			$canonical_hash
+		);
+		$entries = $this->database->get_results( $query, ARRAY_A );
+
+		return is_array( $entries ) ? $entries : array();
+	}
+
+	/**
 	 * Finds every active Blacklist entry matching a Buyer email.
 	 *
 	 * @param string $email Buyer email address.
