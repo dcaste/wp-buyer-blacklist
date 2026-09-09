@@ -1,0 +1,5 @@
+match_type,email,customer_id,address_line_1,address_line_2,city,state,postcode,country,reason,status
+email,blocked@example.test,,,,,,,,Example email entry,active
+customer_id,,12345,,,,,,,Example customer ID entry,active
+billing_address,,,100 Example Street,,Exampleville,CA,90210,US,Example billing address entry,active
+shipping_address,,,200 Sample Avenue,Suite 4,Sampleton,NY,10001,US,Example shipping address entry,active

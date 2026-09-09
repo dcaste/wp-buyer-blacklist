@@ -40,6 +40,17 @@ test( 'validates a CSV file before it offers import confirmation', async () => {
 	container.remove();
 } );
 
+test( 'offers a downloadable CSV import example', async () => {
+	const container = document.createElement( 'div' );
+	container.id = 'wp-buyer-blacklist-admin';
+	container.dataset.tab = 'import-export';
+	container.dataset.exampleCsvUrl = '/wp-content/plugins/wp-buyer-blacklist/assets/buyer-blacklist-example.csv';
+	document.body.append( container );
+	await act( async () => { createRoot( container ).render( <App /> ); } );
+	expect( container.querySelector( 'a[href="/wp-content/plugins/wp-buyer-blacklist/assets/buyer-blacklist-example.csv"]' )?.textContent ).toBe( 'Download example CSV' );
+	container.remove();
+} );
+
 test( 'renders structured address fields when an address Match type is selected', async () => {
 	const container = document.createElement( 'div' );
 	await act( async () => { createRoot( container ).render( <App /> ); } );

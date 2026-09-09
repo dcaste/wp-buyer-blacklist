@@ -163,7 +163,7 @@ final class Plugin {
 					<?php submit_button(); ?>
 				</form>
 			<?php else : ?>
-				<div id="wp-buyer-blacklist-admin" data-tab="<?php echo esc_attr( $tab ); ?>" data-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_export' ), 'wp_buyer_blacklist_export' ) ); ?>" data-dossier-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_dossier_export' ), 'wp_buyer_blacklist_dossier_export' ) ); ?>"></div>
+				<div id="wp-buyer-blacklist-admin" data-tab="<?php echo esc_attr( $tab ); ?>" data-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_export' ), 'wp_buyer_blacklist_export' ) ); ?>" data-example-csv-url="<?php echo esc_url( WP_BUYER_BLACKLIST_URL . 'assets/buyer-blacklist-example.csv' ); ?>" data-dossier-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_dossier_export' ), 'wp_buyer_blacklist_dossier_export' ) ); ?>"></div>
 			<?php endif; ?>
 		</div>
 		<?php
