@@ -100,8 +100,9 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Blacklisted', $output );
 		$this->assertStringContainsString( 'Manage Blacklist entries', $output );
-		$this->assertStringContainsString( 'page=wp-buyer-blacklist', $output );
-		$this->assertStringContainsString( 'entry_ids', $output );
+		$this->assertStringContainsString( 'wp-buyer-blacklist-status-badge is-active', $output );
+		$this->assertStringContainsString( 'wp-buyer-blacklist-manage-customer', $output );
+		$this->assertStringNotContainsString( 'page=wp-buyer-blacklist', $output );
 	}
 
 	/**
@@ -128,6 +129,30 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Inactive', $output );
 		$this->assertStringContainsString( 'Manage Blacklist entries', $output );
+	}
+
+	/**
+	 * Includes every matching entry in the Users-list manager selector.
+	 *
+	 * @return void
+	 */
+	public function test_lists_multiple_matching_entries_for_management(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$customer_id = self::factory()->user->create(
+			array(
+				'role'       => 'customer',
+				'user_email' => 'multiple@example.com',
+			)
+		);
+		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $GLOBALS['wpdb'] );
+		$repository->create( \WP_Buyer_Blacklist\EmailEntry::from_email( 'multiple@example.com' ), 'Email match' );
+		$repository->create_customer_id( \WP_Buyer_Blacklist\CustomerIdEntry::from_customer_id( $customer_id ), 'Customer ID match' );
+
+		$output = apply_filters( 'manage_users_custom_column', '', 'wp_buyer_blacklist', $customer_id );
+
+		$this->assertStringContainsString( 'data-entries=', $output );
+		$this->assertStringContainsString( 'Email match', $output );
+		$this->assertStringContainsString( 'Customer ID match', $output );
 	}
 
 	/**
