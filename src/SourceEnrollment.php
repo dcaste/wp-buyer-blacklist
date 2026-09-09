@@ -118,7 +118,7 @@ final class SourceEnrollment {
 		}
 		?>
 		<dialog id="wp-buyer-blacklist-enroll-customer-dialog" aria-labelledby="wp-buyer-blacklist-enroll-customer-title">
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<form class="wp-buyer-blacklist-enrollment-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<h2 id="wp-buyer-blacklist-enroll-customer-title"><?php esc_html_e( 'Enroll Buyer in Blacklist', 'wp-buyer-blacklist' ); ?></h2>
 				<?php wp_nonce_field( 'wp_buyer_blacklist_enroll_customer' ); ?>
 				<input type="hidden" name="action" value="wp_buyer_blacklist_enroll_customer">
@@ -131,8 +131,8 @@ final class SourceEnrollment {
 					<dt><?php esc_html_e( 'Billing address', 'wp-buyer-blacklist' ); ?></dt><dd data-buyer-field="billing_address"></dd>
 					<dt><?php esc_html_e( 'Shipping address', 'wp-buyer-blacklist' ); ?></dt><dd data-buyer-field="shipping_address"></dd>
 				</dl>
-				<p><label for="wp-buyer-blacklist-customer-match-type"><?php esc_html_e( 'Match type', 'wp-buyer-blacklist' ); ?></label> <select id="wp-buyer-blacklist-customer-match-type" name="match_type" required></select></p>
-				<p><label for="wp-buyer-blacklist-customer-reason"><?php esc_html_e( 'Reason', 'wp-buyer-blacklist' ); ?></label><br><textarea id="wp-buyer-blacklist-customer-reason" name="reason" required></textarea></p>
+				<p><label for="wp-buyer-blacklist-customer-match-type"><?php esc_html_e( 'Match type', 'wp-buyer-blacklist' ); ?></label><select id="wp-buyer-blacklist-customer-match-type" name="match_type" required></select></p>
+				<p><label for="wp-buyer-blacklist-customer-reason"><?php esc_html_e( 'Reason', 'wp-buyer-blacklist' ); ?></label><textarea class="large-text" id="wp-buyer-blacklist-customer-reason" name="reason" required></textarea></p>
 				<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Create entry', 'wp-buyer-blacklist' ); ?></button> <button type="button" class="button" data-close-dialog><?php esc_html_e( 'Cancel', 'wp-buyer-blacklist' ); ?></button></p>
 			</form>
 		</dialog>
@@ -393,14 +393,14 @@ final class SourceEnrollment {
 			return;
 		}
 		?>
-		<div class="wrap"><h1><?php esc_html_e( 'Enroll in Blacklist', 'wp-buyer-blacklist' ); ?></h1><?php $this->render_result(); ?><form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+		<div class="wrap"><h1><?php esc_html_e( 'Enroll in Blacklist', 'wp-buyer-blacklist' ); ?></h1><?php $this->render_result(); ?><form class="wp-buyer-blacklist-enrollment-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<?php wp_nonce_field( 'wp_buyer_blacklist_enroll_source' ); ?><input type="hidden" name="action" value="wp_buyer_blacklist_enroll_source"><input type="hidden" name="source_type" value="<?php echo esc_attr( $source_type ); ?>">
 			<?php
 			foreach ( $ids as $id ) :
 				?>
 				<input type="hidden" name="source_ids[]" value="<?php echo esc_attr( (string) $id ); ?>"><?php endforeach; ?>
-			<p><label><?php esc_html_e( 'Match type', 'wp-buyer-blacklist' ); ?> <select name="match_type"><option value="email"><?php esc_html_e( 'Email', 'wp-buyer-blacklist' ); ?></option><option value="customer_id"><?php esc_html_e( 'Customer ID', 'wp-buyer-blacklist' ); ?></option><option value="billing_address"><?php esc_html_e( 'Billing address', 'wp-buyer-blacklist' ); ?></option><option value="shipping_address"><?php esc_html_e( 'Shipping address', 'wp-buyer-blacklist' ); ?></option></select></label></p>
-			<p><label><?php esc_html_e( 'Reason', 'wp-buyer-blacklist' ); ?> <textarea name="reason" required></textarea></label></p><p><?php esc_html_e( 'Email and Customer ID need a value. Addresses need every address field. Sources without the selected value are skipped.', 'wp-buyer-blacklist' ); ?></p><p><button type="submit" class="button button-primary"><?php esc_html_e( 'Create entries', 'wp-buyer-blacklist' ); ?></button></p>
+			<p><label><?php esc_html_e( 'Match type', 'wp-buyer-blacklist' ); ?><select name="match_type"><option value="email"><?php esc_html_e( 'Email', 'wp-buyer-blacklist' ); ?></option><option value="customer_id"><?php esc_html_e( 'Customer ID', 'wp-buyer-blacklist' ); ?></option><option value="billing_address"><?php esc_html_e( 'Billing address', 'wp-buyer-blacklist' ); ?></option><option value="shipping_address"><?php esc_html_e( 'Shipping address', 'wp-buyer-blacklist' ); ?></option></select></label></p>
+			<p><label><?php esc_html_e( 'Reason', 'wp-buyer-blacklist' ); ?><textarea class="large-text" name="reason" required></textarea></label></p><p><?php esc_html_e( 'Email and Customer ID need a value. Addresses need every address field. Sources without the selected value are skipped.', 'wp-buyer-blacklist' ); ?></p><p><button type="submit" class="button button-primary"><?php esc_html_e( 'Create entries', 'wp-buyer-blacklist' ); ?></button></p>
 		</form></div>
 		<?php
 	}
