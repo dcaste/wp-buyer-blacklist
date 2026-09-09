@@ -44,6 +44,13 @@ final class Plugin {
 	private SourceEnrollment $source_enrollment;
 
 	/**
+	 * Blacklist operator access policy.
+	 *
+	 * @var OperatorAccess
+	 */
+	private OperatorAccess $operator_access;
+
+	/**
 	 * Creates the plugin.
 	 *
 	 * @param EmailEntryRepository $entries Email entry storage.
@@ -52,7 +59,8 @@ final class Plugin {
 		$this->entries           = $entries;
 		$this->blocker           = new EmailCheckoutBlocker( $entries, $entries );
 		$this->address_blocker   = new AddressCheckoutBlocker( $entries );
-		$this->source_enrollment = new SourceEnrollment( $entries );
+		$this->operator_access   = new OperatorAccess();
+		$this->source_enrollment = new SourceEnrollment( $entries, $this->operator_access );
 	}
 
 	/**
@@ -80,6 +88,15 @@ final class Plugin {
 	 * @return void
 	 */
 	public function register_settings(): void {
+		register_setting(
+			'wp_buyer_blacklist',
+			'wp_buyer_blacklist_allow_woocommerce_managers',
+			array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				'default'           => true,
+			)
+		);
 		register_setting(
 			'wp_buyer_blacklist',
 			'wp_buyer_blacklist_delete_data_on_uninstall',
@@ -122,7 +139,7 @@ final class Plugin {
 			'woocommerce',
 			__( 'Buyer Blacklist', 'wp-buyer-blacklist' ),
 			__( 'Buyer Blacklist', 'wp-buyer-blacklist' ),
-			'manage_woocommerce',
+			$this->operator_access->menu_capability(),
 			'wp-buyer-blacklist',
 			array( $this, 'render_admin_page' )
 		);
@@ -134,7 +151,7 @@ final class Plugin {
 	 * @return void
 	 */
 	public function render_admin_page(): void {
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( ! $this->can_manage_entries() ) {
 			return;
 		}
 
@@ -158,6 +175,7 @@ final class Plugin {
 				<form action="options.php" method="post">
 					<?php settings_fields( 'wp_buyer_blacklist' ); ?>
 					<table class="form-table" role="presentation"><tbody><tr><th scope="row"><label for="wp-buyer-blacklist-buyer-message"><?php esc_html_e( 'Buyer-facing block message', 'wp-buyer-blacklist' ); ?></label></th><td><textarea class="large-text" id="wp-buyer-blacklist-buyer-message" name="wp_buyer_blacklist_buyer_message" rows="3"><?php echo esc_textarea( get_option( 'wp_buyer_blacklist_buyer_message', $this->default_buyer_block_message() ) ); ?></textarea><p class="description"><?php esc_html_e( 'Leave this blank to restore the default message.', 'wp-buyer-blacklist' ); ?></p></td></tr>
+					<tr><th scope="row"><label for="wp-buyer-blacklist-allow-woocommerce-managers"><?php esc_html_e( 'Allow WooCommerce managers to manage Blacklist entries', 'wp-buyer-blacklist' ); ?></label></th><td><input name="wp_buyer_blacklist_allow_woocommerce_managers" type="hidden" value="0" /><label><input id="wp-buyer-blacklist-allow-woocommerce-managers" name="wp_buyer_blacklist_allow_woocommerce_managers" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_allow_woocommerce_managers', true ) ); ?> /> <?php esc_html_e( 'Allow users with the WooCommerce management capability to manage entries, import CSV, and view blocked attempts.', 'wp-buyer-blacklist' ); ?></label></td></tr>
 					<tr><th scope="row"><?php esc_html_e( 'Uninstall cleanup', 'wp-buyer-blacklist' ); ?></th><td><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" /><label><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ); ?> /> <?php esc_html_e( 'Delete all Blacklist data when the plugin is uninstalled.', 'wp-buyer-blacklist' ); ?></label></td></tr>
 					</tbody></table>
 					<?php submit_button(); ?>
@@ -349,7 +367,7 @@ final class Plugin {
 	 * @return bool
 	 */
 	public function can_manage_entries(): bool {
-		return current_user_can( 'manage_woocommerce' );
+		return $this->operator_access->can_manage_entries();
 	}
 
 	/**
