@@ -66,4 +66,29 @@ class CsvImportTest extends TestCase {
 			$result['rejected']
 		);
 	}
+
+	/**
+	 * Preserves an explicit status and defaults a missing status to active.
+	 *
+	 * @return void
+	 */
+	public function test_validates_import_status(): void {
+		$result = CsvImport::validate(
+			"match_type,email,status\nemail,active@example.com,active\nemail,inactive@example.com,inactive\nemail,default@example.com,\nemail,invalid@example.com,disabled\n",
+			array()
+		);
+
+		$this->assertSame( true, $result['accepted'][0]['is_active'] );
+		$this->assertSame( false, $result['accepted'][1]['is_active'] );
+		$this->assertSame( true, $result['accepted'][2]['is_active'] );
+		$this->assertSame(
+			array(
+				array(
+					'row'    => 5,
+					'reason' => 'Choose a valid status.',
+				),
+			),
+			$result['rejected']
+		);
+	}
 }

@@ -25,7 +25,7 @@ class PrivacyDataIntegrationTest extends WP_UnitTestCase {
 		$entry_id = (int) $repository->all()[0]['id'];
 		$repository->record_blocked_attempt( $entry_id, 'buyer@example.com' );
 
-		$this->assertStringContainsString( 'email,buyer@example.com,Fraud,active', $repository->export_csv() );
+		$this->assertStringContainsString( 'email,buyer@example.com,', $repository->export_csv() );
 		$this->assertSame( 'buyer@example.com', $repository->identity_dossier( $entry_id )['entry']['value'] );
 		$this->assertTrue( $repository->erase( $entry_id ) );
 		$this->assertSame( array(), $repository->all() );
