@@ -78,6 +78,8 @@ The plugin must prevent duplicate entries for the same Match type and Canonical 
 
 A Blacklist operator must be able to manage an entry after it is created.
 
+An entry's Match type and Canonical value are immutable. To replace an identity, the operator deactivates the old entry and creates a replacement entry.
+
 **Acceptance criteria**
 
 - The operator can change an entry's reason and switch it between active and inactive.
