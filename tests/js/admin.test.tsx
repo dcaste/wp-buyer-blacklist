@@ -72,6 +72,9 @@ test( 'loads Audit history and Blocked attempts when an entry is managed', async
 		if ( path === '/wp-buyer-blacklist/v1/email-entries/1/blocked-attempts' ) {
 			return Promise.resolve( [ { id: '1', identity_value: 'buyer@example.com', outcome: 'blocked', created_at: '2026-01-01 00:00:00' } ] );
 		}
+		if ( path === '/wp-buyer-blacklist/v1/email-entries/1/buyer-context' ) {
+			return Promise.resolve( { buyer: { id: 1, name: 'Ada Lovelace', email: 'buyer@example.com', billing_address: { address_line_1: '1 Test Street', address_line_2: '', city: 'Testville', state: 'CA', postcode: '90210', country: 'US' }, shipping_address: { address_line_1: '2 Test Street', address_line_2: '', city: 'Testville', state: 'CA', postcode: '90210', country: 'US' } } } );
+		}
 		return Promise.resolve( [ { action: 'created', actor_id: '1', actor_name: 'Admin', created_at: '2026-01-01 00:00:00' } ] );
 	} );
 	const container = document.createElement( 'div' );
@@ -83,6 +86,8 @@ test( 'loads Audit history and Blocked attempts when an entry is managed', async
 	expect( container.textContent ).toContain( 'Audit history' );
 	expect( container.textContent ).toContain( 'created by Admin' );
 	expect( container.textContent ).toContain( 'Blocked attempts' );
+	expect( container.textContent ).toContain( 'Billing address: 1 Test Street, Testville, CA, 90210, US' );
+	expect( container.textContent ).toContain( 'Shipping address: 2 Test Street, Testville, CA, 90210, US' );
 	expect( container.textContent ).toContain( 'blocked buyer@example.com' );
 	expect( container.querySelector( 'a[href="/wp-admin/admin-post.php?action=wp_buyer_blacklist_dossier_export&_wpnonce=nonce&entry_id=1"]' )?.textContent ).toBe( 'Export dossier' );
 	expect( container.querySelector( 'dialog' ) ).not.toBeNull();

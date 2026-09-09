@@ -331,6 +331,15 @@ final class Plugin {
 		);
 		register_rest_route(
 			'wp-buyer-blacklist/v1',
+			'/email-entries/(?P<id>\\d+)/buyer-context',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_buyer_context' ),
+				'permission_callback' => array( $this, 'can_manage_entries' ),
+			)
+		);
+		register_rest_route(
+			'wp-buyer-blacklist/v1',
 			'/email-entries/(?P<id>\\d+)/dossier',
 			array(
 				'methods'             => 'GET',
@@ -729,6 +738,57 @@ final class Plugin {
 	 */
 	public function get_email_entry_blocked_attempts( \WP_REST_Request $request ): array {
 		return $this->entries->blocked_attempts( absint( $request['id'] ) );
+	}
+
+	/**
+	 * Gets current Buyer data when an entry identifies one registered Buyer.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array<string, mixed>|WP_Error Buyer context or not-found error.
+	 */
+	public function get_buyer_context( \WP_REST_Request $request ): array|WP_Error {
+		$dossier = $this->entries->identity_dossier( absint( $request['id'] ) );
+		if ( null === $dossier ) {
+			return new \WP_Error( 'wp_buyer_blacklist_not_found', __( 'The Blacklist entry could not be found.', 'wp-buyer-blacklist' ), array( 'status' => 404 ) );
+		}
+
+		$entry = $dossier['entry'];
+		$user  = 'customer_id' === $entry['match_type'] ? get_userdata( absint( $entry['value'] ) ) : ( 'email' === $entry['match_type'] ? get_user_by( 'email', $entry['value'] ) : false );
+		if ( ! $user instanceof \WP_User ) {
+			return array(
+				'buyer'   => null,
+				'message' => __( 'No uniquely identified registered Buyer.', 'wp-buyer-blacklist' ),
+			);
+		}
+
+		$customer = new \WC_Customer( $user->ID );
+		return array(
+			'buyer' => array(
+				'id'               => $user->ID,
+				'name'             => trim( $user->first_name . ' ' . $user->last_name ),
+				'email'            => $user->user_email,
+				'billing_address'  => $this->customer_address( $customer, 'billing' ),
+				'shipping_address' => $this->customer_address( $customer, 'shipping' ),
+			),
+		);
+	}
+
+	/**
+	 * Gets a current customer address.
+	 *
+	 * @param \WC_Customer $customer Customer.
+	 * @param string       $prefix   Address prefix.
+	 * @return array<string, string> Address fields.
+	 */
+	private function customer_address( \WC_Customer $customer, string $prefix ): array {
+		return array(
+			'address_line_1' => $customer->{"get_{$prefix}_address_1"}(),
+			'address_line_2' => $customer->{"get_{$prefix}_address_2"}(),
+			'city'           => $customer->{"get_{$prefix}_city"}(),
+			'state'          => $customer->{"get_{$prefix}_state"}(),
+			'postcode'       => $customer->{"get_{$prefix}_postcode"}(),
+			'country'        => $customer->{"get_{$prefix}_country"}(),
+		);
 	}
 
 	/**
