@@ -17,11 +17,12 @@ test( 'renders WordPress-style Manage entries controls', async () => {
 } );
 
 test( 'paginates entries in groups of 20', async () => {
-	( apiFetch as jest.Mock ).mockResolvedValue( Array.from( { length: 21 }, ( _, index ) => ( { id: String( index ), value: `buyer${ index }@example.com`, reason: 'Test entry', is_active: '1', match_type: 'email', created_at: '' } ) ) );
+	( apiFetch as jest.Mock ).mockResolvedValue( Array.from( { length: 21 }, ( _, index ) => ( { id: String( index ), value: `buyer${ index }@example.com`, reason: 'Test entry', is_active: index === 0 ? '0' : '1', match_type: 'email', created_at: '' } ) ) );
 	const container = document.createElement( 'div' );
 	await act( async () => { createRoot( container ).render( <App /> ); } );
 	expect( container.querySelectorAll( 'tbody tr' ) ).toHaveLength( 20 );
-	expect( container.querySelector( 'span[style*="border-radius"]' ) ).not.toBeNull();
+	expect( container.querySelectorAll( 'span[style*="border-radius"]' ) ).toHaveLength( 1 );
+	expect( container.querySelector( '.tablenav-pages' )?.getAttribute( 'style' ) ).toContain( 'float: left' );
 	expect( container.textContent ).toContain( 'Next' );
 } );
 
@@ -86,6 +87,9 @@ test( 'loads Audit history and Blocked attempts when an entry is managed', async
 	expect( container.querySelector( 'a[href="/wp-admin/admin-post.php?action=wp_buyer_blacklist_dossier_export&_wpnonce=nonce&entry_id=1"]' )?.textContent ).toBe( 'Export dossier' );
 	expect( container.querySelector( 'dialog' ) ).not.toBeNull();
 	expect( Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Manage' )?.getAttribute( 'commandfor' ) ).toBe( 'wp-buyer-blacklist-entry-dialog' );
+	const deleteButton = container.querySelector( '.wp-buyer-blacklist-delete-entry' );
+	expect( deleteButton?.getAttribute( 'style' ) ).toContain( 'color: rgb(179, 45, 46)' );
+	expect( deleteButton?.parentElement?.getAttribute( 'style' ) ).toContain( 'text-align: right' );
 	expect( container.textContent ).toContain( 'Close' );
 	container.remove();
 } );
