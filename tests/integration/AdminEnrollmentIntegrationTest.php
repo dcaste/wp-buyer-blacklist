@@ -28,6 +28,45 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Renders the Users-list modal with the current Buyer data fields.
+	 *
+	 * @return void
+	 */
+	public function test_renders_a_customer_enrollment_modal(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$customer_id = self::factory()->user->create(
+			array(
+				'role'       => 'customer',
+				'first_name' => 'Ada',
+				'last_name'  => 'Lovelace',
+				'user_email' => 'buyer@example.com',
+			)
+		);
+		update_user_meta( $customer_id, 'billing_address_1', '1 Test Street' );
+		update_user_meta( $customer_id, 'billing_city', 'Testville' );
+		update_user_meta( $customer_id, 'billing_state', 'CA' );
+		update_user_meta( $customer_id, 'billing_postcode', '90210' );
+		update_user_meta( $customer_id, 'billing_country', 'US' );
+		$button = apply_filters( 'manage_users_custom_column', '', 'wp_buyer_blacklist', $customer_id );
+
+		ob_start();
+		// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- WordPress defines this Users-screen footer hook with a hyphen and period.
+		do_action( 'admin_footer-users.php' );
+		$modal = ob_get_clean();
+
+		$this->assertStringContainsString( '<button', $button );
+		$this->assertStringContainsString( 'data-buyer=', $button );
+		$this->assertStringContainsString( 'buyer@example.com', $button );
+		$this->assertStringContainsString( '1 Test Street', $button );
+		$this->assertStringContainsString( '<dialog', $modal );
+		$this->assertStringContainsString( 'WordPress user ID', $modal );
+		$this->assertStringContainsString( 'Billing address', $modal );
+		$this->assertStringContainsString( 'Shipping address', $modal );
+		$this->assertStringContainsString( 'name="match_type"', $modal );
+		$this->assertStringContainsString( 'name="reason" required', $modal );
+	}
+
+	/**
 	 * Leaves the column empty for users who are not WooCommerce Customers.
 	 *
 	 * @return void
@@ -106,5 +145,69 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'wp_buyer_blacklist_enroll', apply_filters( 'bulk_actions-edit-shop_order', array() ) );
 		$this->assertArrayHasKey( 'wp_buyer_blacklist_enroll', apply_filters( 'woocommerce_order_actions', array(), $order ) );
 		$this->assertArrayHasKey( 'wp_buyer_blacklist_enroll', apply_filters( 'woocommerce_admin_order_actions', array(), $order ) );
+	}
+
+	/**
+	 * Creates one entry from the current Customer data and records its Audit event.
+	 *
+	 * @return void
+	 */
+	public function test_enrolls_a_customer_with_one_selected_match_type(): void {
+		global $wpdb;
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$customer_id = self::factory()->user->create(
+			array(
+				'role'       => 'customer',
+				'user_email' => 'buyer@example.com',
+			)
+		);
+		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
+		$enrollment  = new \WP_Buyer_Blacklist\SourceEnrollment( $repository, new \WP_Buyer_Blacklist\OperatorAccess() );
+
+		$this->assertSame( 'created', $enrollment->enroll_customer( $customer_id, 'email', 'Fraud' ) );
+		$entry = $repository->all()[0];
+
+		$this->assertSame( 'email', $entry['match_type'] );
+		$this->assertSame( 'buyer@example.com', $entry['value'] );
+		$this->assertSame( 'created', $repository->audit_events( (int) $entry['id'] )[0]['action'] );
+	}
+
+	/**
+	 * Rejects an entry whose selected identity already exists.
+	 *
+	 * @return void
+	 */
+	public function test_reports_a_duplicate_customer_identity(): void {
+		global $wpdb;
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$customer_id = self::factory()->user->create(
+			array(
+				'role'       => 'customer',
+				'user_email' => 'buyer@example.com',
+			)
+		);
+		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
+		$enrollment  = new \WP_Buyer_Blacklist\SourceEnrollment( $repository, new \WP_Buyer_Blacklist\OperatorAccess() );
+
+		$this->assertSame( 'created', $enrollment->enroll_customer( $customer_id, 'email', 'Fraud' ) );
+		$this->assertSame( 'duplicate', $enrollment->enroll_customer( $customer_id, 'email', 'Fraud' ) );
+		$this->assertCount( 1, $repository->all() );
+	}
+
+	/**
+	 * Denies a WooCommerce manager when the operator setting is disabled.
+	 *
+	 * @return void
+	 */
+	public function test_denies_customer_enrollment_without_operator_access(): void {
+		global $wpdb;
+		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', false );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
+		$customer_id = self::factory()->user->create( array( 'role' => 'customer' ) );
+		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
+		$enrollment  = new \WP_Buyer_Blacklist\SourceEnrollment( $repository, new \WP_Buyer_Blacklist\OperatorAccess() );
+
+		$this->assertSame( 'denied', $enrollment->enroll_customer( $customer_id, 'customer_id', 'Fraud' ) );
+		$this->assertSame( array(), $repository->all() );
 	}
 }

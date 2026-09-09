@@ -47,6 +47,8 @@ final class SourceEnrollment {
 	public function register(): void {
 		add_filter( 'manage_users_columns', array( $this, 'add_customer_column' ) );
 		add_filter( 'manage_users_custom_column', array( $this, 'render_customer_column' ), 10, 3 );
+		add_action( 'admin_footer-users.php', array( $this, 'render_customer_enrollment_modal' ) );
+		add_action( 'admin_notices', array( $this, 'render_customer_enrollment_notice' ) );
 		add_filter( 'bulk_actions-users', array( $this, 'add_customer_bulk_action' ) );
 		add_filter( 'handle_bulk_actions-users', array( $this, 'handle_customer_bulk_action' ), 10, 3 );
 		add_action( 'show_user_profile', array( $this, 'render_customer_detail_action' ) );
@@ -60,6 +62,7 @@ final class SourceEnrollment {
 		add_filter( 'handle_bulk_actions-woocommerce_page_wc-orders', array( $this, 'handle_order_bulk_action' ), 10, 3 );
 		add_action( 'admin_menu', array( $this, 'register_page' ) );
 		add_action( 'admin_post_wp_buyer_blacklist_enroll_source', array( $this, 'create_entries' ) );
+		add_action( 'admin_post_wp_buyer_blacklist_enroll_customer', array( $this, 'create_customer_entry' ) );
 	}
 
 	/**
@@ -93,7 +96,7 @@ final class SourceEnrollment {
 
 		$entries = $this->matching_customer_entries( $user_id );
 		if ( array() === $entries ) {
-			return $this->enrollment_link( 'customer', array( $user_id ), __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ) );
+			return '<button type="button" class="button-link wp-buyer-blacklist-enroll-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '">' . esc_html__( 'Enroll in Blacklist', 'wp-buyer-blacklist' ) . '</button>';
 		}
 
 		$entry_ids = array_column( $entries, 'id' );
@@ -102,6 +105,152 @@ final class SourceEnrollment {
 		$url       = add_query_arg( 'entry_ids', $entry_ids, admin_url( 'admin.php?page=wp-buyer-blacklist' ) );
 
 		return esc_html( $status ) . ' <a href="' . esc_url( $url ) . '">' . esc_html__( 'Manage Blacklist entries', 'wp-buyer-blacklist' ) . '</a>';
+	}
+
+	/**
+	 * Renders the Users-list enrollment modal.
+	 *
+	 * @return void
+	 */
+	public function render_customer_enrollment_modal(): void {
+		if ( ! $this->operator_access->can_manage_entries() ) {
+			return;
+		}
+		?>
+		<dialog id="wp-buyer-blacklist-enroll-customer-dialog" aria-labelledby="wp-buyer-blacklist-enroll-customer-title">
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<h2 id="wp-buyer-blacklist-enroll-customer-title"><?php esc_html_e( 'Enroll Buyer in Blacklist', 'wp-buyer-blacklist' ); ?></h2>
+				<?php wp_nonce_field( 'wp_buyer_blacklist_enroll_customer' ); ?>
+				<input type="hidden" name="action" value="wp_buyer_blacklist_enroll_customer">
+				<input type="hidden" name="customer_id" value="">
+				<h3><?php esc_html_e( 'Current Buyer', 'wp-buyer-blacklist' ); ?></h3>
+				<dl>
+					<dt><?php esc_html_e( 'Name', 'wp-buyer-blacklist' ); ?></dt><dd data-buyer-field="name"></dd>
+					<dt><?php esc_html_e( 'WordPress user ID', 'wp-buyer-blacklist' ); ?></dt><dd data-buyer-field="id"></dd>
+					<dt><?php esc_html_e( 'Email', 'wp-buyer-blacklist' ); ?></dt><dd data-buyer-field="email"></dd>
+					<dt><?php esc_html_e( 'Billing address', 'wp-buyer-blacklist' ); ?></dt><dd data-buyer-field="billing_address"></dd>
+					<dt><?php esc_html_e( 'Shipping address', 'wp-buyer-blacklist' ); ?></dt><dd data-buyer-field="shipping_address"></dd>
+				</dl>
+				<p><label for="wp-buyer-blacklist-customer-match-type"><?php esc_html_e( 'Match type', 'wp-buyer-blacklist' ); ?></label> <select id="wp-buyer-blacklist-customer-match-type" name="match_type" required></select></p>
+				<p><label for="wp-buyer-blacklist-customer-reason"><?php esc_html_e( 'Reason', 'wp-buyer-blacklist' ); ?></label><br><textarea id="wp-buyer-blacklist-customer-reason" name="reason" required></textarea></p>
+				<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Create entry', 'wp-buyer-blacklist' ); ?></button> <button type="button" class="button" data-close-dialog><?php esc_html_e( 'Cancel', 'wp-buyer-blacklist' ); ?></button></p>
+			</form>
+		</dialog>
+		<script>
+			( function() {
+				const dialog = document.getElementById( 'wp-buyer-blacklist-enroll-customer-dialog' );
+				if ( ! dialog ) return;
+				document.querySelectorAll( '.wp-buyer-blacklist-enroll-customer' ).forEach( ( button ) => button.addEventListener( 'click', () => {
+					const buyer = JSON.parse( button.dataset.buyer || '{}' );
+					if ( ! buyer.id ) return;
+					dialog.querySelector( '[name="customer_id"]' ).value = buyer.id;
+					Object.entries( { name: buyer.name, id: buyer.id, email: buyer.email, billing_address: buyer.billing_address, shipping_address: buyer.shipping_address } ).forEach( ( [ field, value ] ) => { dialog.querySelector( `[data-buyer-field="${ field }"]` ).textContent = value; } );
+					const matchType = dialog.querySelector( '[name="match_type"]' );
+					matchType.replaceChildren();
+					Object.entries( { email: 'Email', customer_id: 'Customer ID', billing_address: 'Billing address', shipping_address: 'Shipping address' } ).forEach( ( [ value, label ] ) => { const option = new Option( buyer.match_types[ value ] ? label : `${ label } (unavailable)`, value, false, value === 'email' && buyer.match_types.email ); option.disabled = ! buyer.match_types[ value ]; matchType.add( option ); } );
+					if ( ! matchType.value ) matchType.selectedIndex = Array.from( matchType.options ).findIndex( ( option ) => ! option.disabled );
+					dialog.showModal();
+				} ) );
+				dialog.querySelector( '[data-close-dialog]' ).addEventListener( 'click', () => dialog.close() );
+			} )();
+		</script>
+		<?php
+	}
+
+	/**
+	 * Creates an entry from a current WooCommerce Customer.
+	 *
+	 * @param int    $customer_id WordPress user ID.
+	 * @param string $match_type  Selected Match type.
+	 * @param string $reason      Operator reason.
+	 * @return string created, duplicate, unavailable, or denied.
+	 */
+	public function enroll_customer( int $customer_id, string $match_type, string $reason ): string {
+		if ( ! $this->operator_access->can_manage_entries() ) {
+			return 'denied';
+		}
+
+		$user = get_userdata( $customer_id );
+		if ( ! $user instanceof \WP_User || ! in_array( 'customer', $user->roles, true ) ) {
+			return 'unavailable';
+		}
+
+		return $this->create_entry( 'customer', $customer_id, $match_type, $reason );
+	}
+
+	/**
+	 * Handles the Users-list enrollment form submission.
+	 *
+	 * @return void
+	 */
+	public function create_customer_entry(): void {
+		if ( ! $this->operator_access->can_manage_entries() ) {
+			wp_die( esc_html__( 'You cannot enroll Blacklist entries.', 'wp-buyer-blacklist' ), 403 );
+		}
+
+		check_admin_referer( 'wp_buyer_blacklist_enroll_customer' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_admin_referer above validates this form submission.
+		$customer_id = isset( $_POST['customer_id'] ) ? absint( $_POST['customer_id'] ) : 0;
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_admin_referer above validates this form submission.
+		$match_type = isset( $_POST['match_type'] ) && is_string( $_POST['match_type'] ) ? sanitize_key( wp_unslash( $_POST['match_type'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_admin_referer above validates this form submission.
+		$reason = isset( $_POST['reason'] ) && is_string( $_POST['reason'] ) ? sanitize_textarea_field( wp_unslash( $_POST['reason'] ) ) : '';
+		$result = $this->enroll_customer( $customer_id, $match_type, $reason );
+
+		wp_safe_redirect( add_query_arg( 'wp_buyer_blacklist_enrollment', $result, admin_url( 'users.php' ) ) );
+		exit;
+	}
+
+	/**
+	 * Renders the result of a Users-list enrollment submission.
+	 *
+	 * @return void
+	 */
+	public function render_customer_enrollment_notice(): void {
+		global $pagenow;
+		if ( 'users.php' !== $pagenow ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This query parameter only displays the prior submission result.
+		$result   = isset( $_GET['wp_buyer_blacklist_enrollment'] ) && is_string( $_GET['wp_buyer_blacklist_enrollment'] ) ? sanitize_key( wp_unslash( $_GET['wp_buyer_blacklist_enrollment'] ) ) : '';
+		$messages = array(
+			'created'     => array( 'success', __( 'Blacklist entry created.', 'wp-buyer-blacklist' ) ),
+			'duplicate'   => array( 'warning', __( 'A Blacklist entry with that Match type and value already exists.', 'wp-buyer-blacklist' ) ),
+			'unavailable' => array( 'error', __( 'The selected Match type has no usable current value for this Buyer.', 'wp-buyer-blacklist' ) ),
+		);
+		if ( ! isset( $messages[ $result ] ) ) {
+			return;
+		}
+
+		printf( '<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>', esc_attr( $messages[ $result ][0] ), esc_html( $messages[ $result ][1] ) );
+	}
+
+	/**
+	 * Builds the current Buyer data shown in the Users-list modal.
+	 *
+	 * @param int $customer_id WordPress user ID.
+	 * @return array<string, mixed>
+	 */
+	private function customer_modal_data( int $customer_id ): array {
+		$user     = get_userdata( $customer_id );
+		$customer = new \WC_Customer( $customer_id );
+		$billing  = $this->source_address( $customer, 'billing_address' );
+		$shipping = $this->source_address( $customer, 'shipping_address' );
+
+		return array(
+			'id'               => $customer_id,
+			'name'             => $user instanceof \WP_User ? $user->display_name : '',
+			'email'            => $customer->get_email(),
+			'billing_address'  => $this->format_address( $billing ),
+			'shipping_address' => $this->format_address( $shipping ),
+			'match_types'      => array(
+				'email'            => $this->is_valid_email( $customer->get_email() ),
+				'customer_id'      => $customer_id > 0,
+				'billing_address'  => $this->is_valid_address( 'billing_address', $billing ),
+				'shipping_address' => $this->is_valid_address( 'shipping_address', $shipping ),
+			),
+		);
 	}
 
 	/**
@@ -348,17 +497,69 @@ final class SourceEnrollment {
 				$customer_id = $source instanceof \WC_Order ? $source->get_customer_id() : $source->get_id();
 				return $this->entries->create_customer_id( CustomerIdEntry::from_customer_id( $customer_id ), $reason ) ? 'created' : 'duplicate';
 			}
-			$fields = array(
-				'address_line_1' => 'billing_address' === $match_type ? $source->get_billing_address_1() : $source->get_shipping_address_1(),
-				'address_line_2' => 'billing_address' === $match_type ? $source->get_billing_address_2() : $source->get_shipping_address_2(),
-				'city'           => 'billing_address' === $match_type ? $source->get_billing_city() : $source->get_shipping_city(),
-				'state'          => 'billing_address' === $match_type ? $source->get_billing_state() : $source->get_shipping_state(),
-				'postcode'       => 'billing_address' === $match_type ? $source->get_billing_postcode() : $source->get_shipping_postcode(),
-				'country'        => 'billing_address' === $match_type ? $source->get_billing_country() : $source->get_shipping_country(),
-			);
+			$fields = $this->source_address( $source, $match_type );
 			return $this->entries->create_address( AddressEntry::from_fields( $match_type, $fields, WC()->countries->get_countries() ), $reason ) ? 'created' : 'duplicate';
 		} catch ( InvalidArgumentException $exception ) {
 			return 'unavailable';
+		}
+	}
+
+	/**
+	 * Gets one source address in Blacklist field names.
+	 *
+	 * @param \WC_Customer|\WC_Order $source     Customer or Order source.
+	 * @param string                 $match_type Address Match type.
+	 * @return array<string, string>
+	 */
+	private function source_address( \WC_Customer|\WC_Order $source, string $match_type ): array {
+		return array(
+			'address_line_1' => 'billing_address' === $match_type ? $source->get_billing_address_1() : $source->get_shipping_address_1(),
+			'address_line_2' => 'billing_address' === $match_type ? $source->get_billing_address_2() : $source->get_shipping_address_2(),
+			'city'           => 'billing_address' === $match_type ? $source->get_billing_city() : $source->get_shipping_city(),
+			'state'          => 'billing_address' === $match_type ? $source->get_billing_state() : $source->get_shipping_state(),
+			'postcode'       => 'billing_address' === $match_type ? $source->get_billing_postcode() : $source->get_shipping_postcode(),
+			'country'        => 'billing_address' === $match_type ? $source->get_billing_country() : $source->get_shipping_country(),
+		);
+	}
+
+	/**
+	 * Formats an Address for display.
+	 *
+	 * @param array<string, string> $address Address fields.
+	 * @return string
+	 */
+	private function format_address( array $address ): string {
+		return implode( ', ', array_filter( $address ) );
+	}
+
+	/**
+	 * Checks whether an email can create an entry.
+	 *
+	 * @param string $email Buyer email address.
+	 * @return bool
+	 */
+	private function is_valid_email( string $email ): bool {
+		try {
+			EmailEntry::from_email( $email );
+			return true;
+		} catch ( InvalidArgumentException $exception ) {
+			return false;
+		}
+	}
+
+	/**
+	 * Checks whether an Address can create an entry.
+	 *
+	 * @param string                $match_type Address Match type.
+	 * @param array<string, string> $address   Address fields.
+	 * @return bool
+	 */
+	private function is_valid_address( string $match_type, array $address ): bool {
+		try {
+			AddressEntry::from_fields( $match_type, $address, WC()->countries->get_countries() );
+			return true;
+		} catch ( InvalidArgumentException $exception ) {
+			return false;
 		}
 	}
 
@@ -384,14 +585,7 @@ final class SourceEnrollment {
 		}
 
 		foreach ( array( 'billing_address', 'shipping_address' ) as $match_type ) {
-			$fields = array(
-				'address_line_1' => 'billing_address' === $match_type ? $customer->get_billing_address_1() : $customer->get_shipping_address_1(),
-				'address_line_2' => 'billing_address' === $match_type ? $customer->get_billing_address_2() : $customer->get_shipping_address_2(),
-				'city'           => 'billing_address' === $match_type ? $customer->get_billing_city() : $customer->get_shipping_city(),
-				'state'          => 'billing_address' === $match_type ? $customer->get_billing_state() : $customer->get_shipping_state(),
-				'postcode'       => 'billing_address' === $match_type ? $customer->get_billing_postcode() : $customer->get_shipping_postcode(),
-				'country'        => 'billing_address' === $match_type ? $customer->get_billing_country() : $customer->get_shipping_country(),
-			);
+			$fields = $this->source_address( $customer, $match_type );
 			try {
 				$address = AddressEntry::from_fields( $match_type, $fields, WC()->countries->get_countries() );
 				$entries = array_merge( $entries, $this->entries->matching_entries( $match_type, $address->canonical_hash() ) );
