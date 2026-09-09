@@ -139,11 +139,12 @@ A Blacklist operator must be able to run a repeatable, manually initiated CSV im
 
 - The importer accepts a UTF-8, comma-separated file with a header row.
 - UTF-8 files with or without a byte-order mark and with LF or CRLF line endings are accepted. Completely empty rows are ignored.
-- It supports `match_type`, `email`, `customer_id`, `address_line_1`, `address_line_2`, `city`, `state`, `postcode`, `country`, and `reason`; column order is arbitrary and unknown columns are ignored.
+- It supports `match_type`, `email`, `customer_id`, `address_line_1`, `address_line_2`, `city`, `state`, `postcode`, `country`, `reason`, and `status`; column order is arbitrary and unknown columns are ignored.
 - `match_type` is required and is `email`, `customer_id`, `billing_address`, or `shipping_address`.
 - Email rows require `email`; customer-ID rows require `customer_id`; address rows require `address_line_1`, `city`, `state`, `postcode`, and `country`, with `address_line_2` optional.
 - A missing or blank `reason` becomes `Imported blacklist entry`.
-- A valid row creates an active entry using its stated Match type and type-specific canonicalization.
+- `status` is optional. Its accepted values are `active` and `inactive`; a missing or blank value defaults to `active`.
+- A valid row creates an entry with its stated Match type, status, and type-specific canonicalization.
 
 #### REQ-CSV-02 — Import validation and result
 

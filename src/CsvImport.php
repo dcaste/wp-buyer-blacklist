@@ -79,6 +79,15 @@ final class CsvImport {
 				continue;
 			}
 
+			try {
+				$entry['is_active'] = self::is_active( $fields['status'] );
+			} catch ( InvalidArgumentException $exception ) {
+				$result['rejected'][] = array(
+					'row'    => $row,
+					'reason' => $exception->getMessage(),
+				);
+				continue;
+			}
 			$key = $entry['match_type'] . ':' . $entry['canonical_hash'];
 			if ( isset( $seen[ $key ] ) ) {
 				$result['duplicates'][] = array(
@@ -111,7 +120,7 @@ final class CsvImport {
 			if ( 0 === $index ) {
 				$name = preg_replace( '/^\xEF\xBB\xBF/', '', $name );
 			}
-			if ( in_array( $name, array( 'match_type', 'email', 'customer_id', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'reason' ), true ) && ! isset( $headers[ $name ] ) ) {
+			if ( in_array( $name, array( 'match_type', 'email', 'customer_id', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'reason', 'status' ), true ) && ! isset( $headers[ $name ] ) ) {
 				$headers[ $name ] = $index;
 			}
 		}
@@ -144,11 +153,31 @@ final class CsvImport {
 	 */
 	private static function fields( array $headers, array $values ): array {
 		$fields = array();
-		foreach ( array( 'match_type', 'email', 'customer_id', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'reason' ) as $field ) {
+		foreach ( array( 'match_type', 'email', 'customer_id', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'reason', 'status' ) as $field ) {
 			$fields[ $field ] = isset( $headers[ $field ], $values[ $headers[ $field ] ] ) ? (string) $values[ $headers[ $field ] ] : '';
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * Converts an optional CSV status to an active flag.
+	 *
+	 * @param string $status CSV status.
+	 * @return bool Whether the entry is active.
+	 * @throws InvalidArgumentException When the status is unsupported.
+	 */
+	private static function is_active( string $status ): bool {
+		$status = trim( $status );
+		if ( '' === $status || 'active' === $status ) {
+			return true;
+		}
+		if ( 'inactive' === $status ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- The REST response serializes this translated validation message.
+		throw new InvalidArgumentException( __( 'Choose a valid status.', 'wp-buyer-blacklist' ) );
 	}
 
 	/**
