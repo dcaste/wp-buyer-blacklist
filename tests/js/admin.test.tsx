@@ -87,7 +87,9 @@ test( 'loads Audit history and Blocked attempts when an entry is managed', async
 	expect( container.querySelector( 'a[href="/wp-admin/admin-post.php?action=wp_buyer_blacklist_dossier_export&_wpnonce=nonce&entry_id=1"]' )?.textContent ).toBe( 'Export dossier' );
 	expect( container.querySelector( 'dialog' ) ).not.toBeNull();
 	expect( Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Manage' )?.getAttribute( 'commandfor' ) ).toBe( 'wp-buyer-blacklist-entry-dialog' );
-	expect( container.querySelector( '.wp-buyer-blacklist-delete-entry' )?.className ).toContain( 'button' );
+	const deleteButton = container.querySelector( '.wp-buyer-blacklist-delete-entry' );
+	expect( deleteButton?.getAttribute( 'style' ) ).toContain( 'color: rgb(179, 45, 46)' );
+	expect( deleteButton?.parentElement?.getAttribute( 'style' ) ).toContain( 'text-align: right' );
 	expect( container.textContent ).toContain( 'Close' );
 	container.remove();
 } );
