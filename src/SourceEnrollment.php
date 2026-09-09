@@ -98,13 +98,18 @@ final class SourceEnrollment {
 		if ( array() === $entries ) {
 			return '<button type="button" class="button-link wp-buyer-blacklist-enroll-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '">' . esc_html__( 'Enroll in Blacklist', 'wp-buyer-blacklist' ) . '</button>';
 		}
-
 		$entry_ids = array_column( $entries, 'id' );
-		$active    = in_array( '1', array_column( $entries, 'is_active' ), true );
-		$status    = $active ? __( 'Blacklisted', 'wp-buyer-blacklist' ) : __( 'Inactive', 'wp-buyer-blacklist' );
-		$url       = add_query_arg( 'entry_ids', $entry_ids, admin_url( 'admin.php?page=wp-buyer-blacklist' ) );
+		$entries   = array_values(
+			array_filter(
+				$this->entries->all(),
+				static fn( array $entry ): bool => in_array( $entry['id'], $entry_ids, true )
+			)
+		);
 
-		return esc_html( $status ) . ' <a href="' . esc_url( $url ) . '">' . esc_html__( 'Manage Blacklist entries', 'wp-buyer-blacklist' ) . '</a>';
+		$active = in_array( '1', array_column( $entries, 'is_active' ), true );
+		$status = $active ? __( 'Blacklisted', 'wp-buyer-blacklist' ) : __( 'Inactive', 'wp-buyer-blacklist' );
+
+		return '<span class="wp-buyer-blacklist-status-badge ' . ( $active ? 'is-active' : 'is-inactive' ) . '">' . esc_html( $status ) . '</span><br><button type="button" class="button-link wp-buyer-blacklist-manage-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '" data-entries="' . esc_attr( wp_json_encode( $entries ) ) . '">' . esc_html__( 'Manage Blacklist entries', 'wp-buyer-blacklist' ) . '</button>';
 	}
 
 	/**
@@ -136,9 +141,18 @@ final class SourceEnrollment {
 				<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Create entry', 'wp-buyer-blacklist' ); ?></button> <button type="button" class="button" data-close-dialog><?php esc_html_e( 'Cancel', 'wp-buyer-blacklist' ); ?></button></p>
 			</form>
 		</dialog>
+		<dialog id="wp-buyer-blacklist-manage-customer-dialog" aria-labelledby="wp-buyer-blacklist-manage-customer-title">
+			<h2 id="wp-buyer-blacklist-manage-customer-title"><?php esc_html_e( 'Manage Blacklist entry', 'wp-buyer-blacklist' ); ?></h2>
+			<p><label for="wp-buyer-blacklist-matching-entry"><?php esc_html_e( 'Matching Blacklist entry', 'wp-buyer-blacklist' ); ?></label><select id="wp-buyer-blacklist-matching-entry"></select></p>
+			<div data-buyer-context></div>
+			<p><label for="wp-buyer-blacklist-manage-reason"><?php esc_html_e( 'Reason', 'wp-buyer-blacklist' ); ?></label><textarea class="large-text" id="wp-buyer-blacklist-manage-reason" required></textarea></p>
+			<p><button type="button" class="button button-primary" data-save-entry><?php esc_html_e( 'Save reason', 'wp-buyer-blacklist' ); ?></button> <button type="button" class="button" data-toggle-entry></button> <button type="button" class="button" data-close-manage-dialog><?php esc_html_e( 'Close', 'wp-buyer-blacklist' ); ?></button></p>
+			<p role="status" data-manage-result></p>
+		</dialog>
 		<script>
 			( function() {
 				const dialog = document.getElementById( 'wp-buyer-blacklist-enroll-customer-dialog' );
+				const manageDialog = document.getElementById( 'wp-buyer-blacklist-manage-customer-dialog' );
 				if ( ! dialog ) return;
 				document.querySelectorAll( '.wp-buyer-blacklist-enroll-customer' ).forEach( ( button ) => button.addEventListener( 'click', () => {
 					const buyer = JSON.parse( button.dataset.buyer || '{}' );
@@ -152,6 +166,32 @@ final class SourceEnrollment {
 					dialog.showModal();
 				} ) );
 				dialog.querySelector( '[data-close-dialog]' ).addEventListener( 'click', () => dialog.close() );
+				if ( ! manageDialog ) return;
+				let entries = [];
+				const selector = manageDialog.querySelector( 'select' );
+				const reason = manageDialog.querySelector( 'textarea' );
+				const result = manageDialog.querySelector( '[data-manage-result]' );
+				const selected = () => entries.find( ( entry ) => String( entry.id ) === selector.value );
+				const renderEntry = async () => {
+					const entry = selected();
+					if ( ! entry ) return;
+					reason.value = entry.reason;
+					manageDialog.querySelector( '[data-toggle-entry]' ).textContent = entry.is_active === '1' ? 'Deactivate' : 'Activate';
+					result.textContent = '';
+					try {
+						const context = await window.wp.apiFetch( { path: `/wp-buyer-blacklist/v1/email-entries/${ entry.id }/buyer-context` } );
+						manageDialog.querySelector( '[data-buyer-context]' ).textContent = context.buyer ? `Current Buyer: ${ context.buyer.name } (#${ context.buyer.id })` : context.message;
+					} catch ( error ) { manageDialog.querySelector( '[data-buyer-context]' ).textContent = ''; }
+				};
+				document.querySelectorAll( '.wp-buyer-blacklist-manage-customer' ).forEach( ( button ) => button.addEventListener( 'click', () => {
+					entries = JSON.parse( button.dataset.entries || '[]' );
+					selector.replaceChildren( ...entries.map( ( entry ) => new Option( `${ entry.match_type }: ${ entry.value } (${ entry.is_active === '1' ? 'Active' : 'Inactive' })`, entry.id ) ) );
+					renderEntry(); manageDialog.showModal();
+				} ) );
+				selector.addEventListener( 'change', renderEntry );
+				manageDialog.querySelector( '[data-save-entry]' ).addEventListener( 'click', async () => { const entry = selected(); try { await window.wp.apiFetch( { path: `/wp-buyer-blacklist/v1/email-entries/${ entry.id }`, method: 'PATCH', data: { reason: reason.value } } ); entry.reason = reason.value; result.textContent = 'Blacklist entry updated.'; } catch ( error ) { result.textContent = error.message; } } );
+				manageDialog.querySelector( '[data-toggle-entry]' ).addEventListener( 'click', async () => { const entry = selected(); try { await window.wp.apiFetch( { path: `/wp-buyer-blacklist/v1/email-entries/${ entry.id }`, method: 'PATCH', data: { is_active: entry.is_active !== '1' } } ); entry.is_active = entry.is_active === '1' ? '0' : '1'; renderEntry(); result.textContent = 'Blacklist entry updated.'; } catch ( error ) { result.textContent = error.message; } } );
+				manageDialog.querySelector( '[data-close-manage-dialog]' ).addEventListener( 'click', () => manageDialog.close() );
 			} )();
 		</script>
 		<?php

@@ -35,8 +35,29 @@
 	min-height: 6em;
 }
 
+.wp-buyer-blacklist-status-badge {
+	border-radius: 2em;
+	display: inline-block;
+	font-size: 12px;
+	font-weight: 500;
+	padding: 0.15em 0.5em;
+}
+
+.wp-buyer-blacklist-status-badge.is-active {
+	background: #fcf0f1;
+	border: 1px solid #d63638;
+	color: #b32d2e;
+}
+
+.wp-buyer-blacklist-status-badge.is-inactive {
+	background: #f6f7f7;
+	border: 1px solid #8c8f94;
+	color: #50575e;
+}
+
 #wp-buyer-blacklist-entry-dialog,
-#wp-buyer-blacklist-enroll-customer-dialog {
+#wp-buyer-blacklist-enroll-customer-dialog,
+#wp-buyer-blacklist-manage-customer-dialog {
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
 	box-shadow: 0 3px 10px rgb(0 0 0 / 20%);
@@ -45,18 +66,21 @@
 }
 
 #wp-buyer-blacklist-entry-dialog::backdrop,
-#wp-buyer-blacklist-enroll-customer-dialog::backdrop {
+#wp-buyer-blacklist-enroll-customer-dialog::backdrop,
+#wp-buyer-blacklist-manage-customer-dialog::backdrop {
 	background: rgb(0 0 0 / 35%);
 }
 
 #wp-buyer-blacklist-entry-dialog p,
 #wp-buyer-blacklist-enroll-customer-dialog p,
+#wp-buyer-blacklist-manage-customer-dialog p,
 .wp-buyer-blacklist-enrollment-form p {
 	margin: 1em 0;
 }
 
 #wp-buyer-blacklist-entry-dialog label,
 #wp-buyer-blacklist-enroll-customer-dialog label,
+#wp-buyer-blacklist-manage-customer-dialog label,
 .wp-buyer-blacklist-enrollment-form label {
 	display: block;
 	font-weight: 600;
@@ -65,6 +89,7 @@
 
 #wp-buyer-blacklist-entry-dialog select,
 #wp-buyer-blacklist-enroll-customer-dialog select,
+#wp-buyer-blacklist-manage-customer-dialog select,
 .wp-buyer-blacklist-enrollment-form select {
 	max-width: 25rem;
 	width: 100%;
@@ -72,6 +97,7 @@
 
 #wp-buyer-blacklist-entry-dialog textarea,
 #wp-buyer-blacklist-enroll-customer-dialog textarea,
+#wp-buyer-blacklist-manage-customer-dialog textarea,
 .wp-buyer-blacklist-enrollment-form textarea {
 	max-width: 40rem;
 	min-height: 6em;
@@ -94,6 +120,7 @@
 
 #wp-buyer-blacklist-entry-dialog :focus-visible,
 #wp-buyer-blacklist-enroll-customer-dialog :focus-visible,
+#wp-buyer-blacklist-manage-customer-dialog :focus-visible,
 .wp-buyer-blacklist-enrollment-form :focus-visible {
 	outline: 2px solid #2271b1;
 	outline-offset: 2px;
