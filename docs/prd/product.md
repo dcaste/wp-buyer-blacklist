@@ -221,15 +221,16 @@ Deleting a WooCommerce Customer must not automatically delete a matching Blackli
 
 ### 4.7 Permissions and settings
 
-#### REQ-PERM-01 — Standard capability model
+#### REQ-PERM-01 — Configurable Blacklist operator access
 
 V1 must use standard WordPress and WooCommerce capabilities only; it creates no custom role or custom role-management UI.
 
 **Acceptance criteria**
 
-- A user with `manage_woocommerce` can view the list, create and manage entries, import CSV, and view Blocked attempts.
+- The "Allow WooCommerce managers to manage Blacklist entries" setting is enabled by default. When it is enabled, a user with `manage_woocommerce` can view the list, create and manage entries, import CSV, view Blocked attempts, and enroll Buyers from the Users list.
+- When the setting is disabled, those operations require `manage_options`.
 - Users with `manage_options` can perform all day-to-day operations.
-- Users with `manage_options` exclusively export, erase data, and configure blacklist permissions.
+- Users with `manage_options` exclusively export, erase data, configure settings, and configure blacklist permissions.
 
 #### REQ-PERM-02 — Delegable buyer-message editing
 

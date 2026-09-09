@@ -22,12 +22,21 @@ final class SourceEnrollment {
 	private EmailEntryRepository $entries;
 
 	/**
+	 * Blacklist operator access policy.
+	 *
+	 * @var OperatorAccess
+	 */
+	private OperatorAccess $operator_access;
+
+	/**
 	 * Creates the workflow.
 	 *
-	 * @param EmailEntryRepository $entries Entry storage.
+	 * @param EmailEntryRepository $entries         Entry storage.
+	 * @param OperatorAccess       $operator_access Blacklist operator access policy.
 	 */
-	public function __construct( EmailEntryRepository $entries ) {
-		$this->entries = $entries;
+	public function __construct( EmailEntryRepository $entries, OperatorAccess $operator_access ) {
+		$this->entries         = $entries;
+		$this->operator_access = $operator_access;
 	}
 
 	/**
@@ -73,7 +82,7 @@ final class SourceEnrollment {
 	 * @return string Cell markup.
 	 */
 	public function render_customer_column( string $output, string $column, int $user_id ): string {
-		if ( 'wp_buyer_blacklist' !== $column || ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( 'wp_buyer_blacklist' !== $column || ! $this->operator_access->can_manage_entries() ) {
 			return $output;
 		}
 
@@ -102,7 +111,9 @@ final class SourceEnrollment {
 	 * @return array<string, string>
 	 */
 	public function add_customer_bulk_action( array $actions ): array {
-		$actions['wp_buyer_blacklist_enroll'] = __( 'Enroll in Blacklist', 'wp-buyer-blacklist' );
+		if ( $this->operator_access->can_manage_entries() ) {
+			$actions['wp_buyer_blacklist_enroll'] = __( 'Enroll in Blacklist', 'wp-buyer-blacklist' );
+		}
 		return $actions;
 	}
 
@@ -115,7 +126,7 @@ final class SourceEnrollment {
 	 * @return string
 	 */
 	public function handle_customer_bulk_action( string $redirect_to, string $action, array $ids ): string {
-		return 'wp_buyer_blacklist_enroll' === $action ? $this->enrollment_url( 'customer', $ids ) : $redirect_to;
+		return 'wp_buyer_blacklist_enroll' === $action && $this->operator_access->can_manage_entries() ? $this->enrollment_url( 'customer', $ids ) : $redirect_to;
 	}
 
 	/**
@@ -125,7 +136,7 @@ final class SourceEnrollment {
 	 * @return void
 	 */
 	public function render_customer_detail_action( \WP_User $user ): void {
-		if ( ! in_array( 'customer', $user->roles, true ) || ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( ! in_array( 'customer', $user->roles, true ) || ! $this->operator_access->can_manage_entries() ) {
 			return;
 		}
 		?>
@@ -141,7 +152,7 @@ final class SourceEnrollment {
 	 * @return array<string, string>
 	 */
 	public function add_order_row_action( array $actions, \WC_Order $order ): array {
-		if ( current_user_can( 'manage_woocommerce' ) ) {
+		if ( $this->operator_access->can_manage_entries() ) {
 			$actions['wp_buyer_blacklist_enroll'] = array(
 				'url'    => $this->enrollment_url( 'order', array( $order->get_id() ) ),
 				'name'   => __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ),
@@ -160,7 +171,7 @@ final class SourceEnrollment {
 	 * @return array<string, string>
 	 */
 	public function add_order_detail_action( array $actions, \WC_Order $order ): array {
-		if ( $order->get_id() <= 0 ) {
+		if ( $order->get_id() <= 0 || ! $this->operator_access->can_manage_entries() ) {
 			return $actions;
 		}
 		$actions['wp_buyer_blacklist_enroll'] = __( 'Enroll in Blacklist', 'wp-buyer-blacklist' );
@@ -174,6 +185,9 @@ final class SourceEnrollment {
 	 * @return void
 	 */
 	public function redirect_order_detail_action( \WC_Order $order ): void {
+		if ( ! $this->operator_access->can_manage_entries() ) {
+			wp_die( esc_html__( 'You cannot enroll Blacklist entries.', 'wp-buyer-blacklist' ), 403 );
+		}
 		wp_safe_redirect( $this->enrollment_url( 'order', array( $order->get_id() ) ) );
 		exit;
 	}
@@ -185,7 +199,9 @@ final class SourceEnrollment {
 	 * @return array<string, string>
 	 */
 	public function add_order_bulk_action( array $actions ): array {
-		$actions['wp_buyer_blacklist_enroll'] = __( 'Enroll in Blacklist', 'wp-buyer-blacklist' );
+		if ( $this->operator_access->can_manage_entries() ) {
+			$actions['wp_buyer_blacklist_enroll'] = __( 'Enroll in Blacklist', 'wp-buyer-blacklist' );
+		}
 		return $actions;
 	}
 
@@ -198,7 +214,7 @@ final class SourceEnrollment {
 	 * @return string
 	 */
 	public function handle_order_bulk_action( string $redirect_to, string $action, array $ids ): string {
-		return 'wp_buyer_blacklist_enroll' === $action ? $this->enrollment_url( 'order', $ids ) : $redirect_to;
+		return 'wp_buyer_blacklist_enroll' === $action && $this->operator_access->can_manage_entries() ? $this->enrollment_url( 'order', $ids ) : $redirect_to;
 	}
 
 	/**
@@ -207,7 +223,7 @@ final class SourceEnrollment {
 	 * @return void
 	 */
 	public function register_page(): void {
-		add_submenu_page( null, __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ), __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ), 'manage_woocommerce', 'wp-buyer-blacklist-enroll', array( $this, 'render_page' ) );
+		add_submenu_page( null, __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ), __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ), $this->operator_access->menu_capability(), 'wp-buyer-blacklist-enroll', array( $this, 'render_page' ) );
 	}
 
 	/**
@@ -216,7 +232,7 @@ final class SourceEnrollment {
 	 * @return void
 	 */
 	public function render_page(): void {
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( ! $this->operator_access->can_manage_entries() ) {
 			return;
 		}
 
@@ -269,7 +285,7 @@ final class SourceEnrollment {
 	 * @return void
 	 */
 	public function create_entries(): void {
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( ! $this->operator_access->can_manage_entries() ) {
 			wp_die( esc_html__( 'You cannot enroll Blacklist entries.', 'wp-buyer-blacklist' ) );
 		}
 		check_admin_referer( 'wp_buyer_blacklist_enroll_source' );
