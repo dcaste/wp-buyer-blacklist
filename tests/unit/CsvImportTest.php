@@ -91,4 +91,19 @@ class CsvImportTest extends TestCase {
 			$result['rejected']
 		);
 	}
+
+	/**
+	 * Validates every sample entry in the downloadable import example.
+	 *
+	 * @return void
+	 */
+	public function test_validates_downloadable_example_csv(): void {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- This test reads a local static fixture.
+		$csv    = file_get_contents( dirname( __DIR__, 2 ) . '/assets/buyer-blacklist-example.csv' );
+		$result = CsvImport::validate( $csv, array( 'US' => 'United States' ) );
+
+		$this->assertCount( 4, $result['accepted'] );
+		$this->assertSame( array(), $result['duplicates'] );
+		$this->assertSame( array(), $result['rejected'] );
+	}
 }
