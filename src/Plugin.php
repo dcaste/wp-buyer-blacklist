@@ -879,13 +879,19 @@ final class Plugin {
 	 * @return void
 	 */
 	public function enqueue_admin_assets( string $hook ): void {
-		if ( 'woocommerce_page_wp-buyer-blacklist' !== $hook ) {
+		if ( ! in_array( $hook, array( 'woocommerce_page_wp-buyer-blacklist', 'admin_page_wp-buyer-blacklist-enroll', 'users.php' ), true ) ) {
 			return;
 		}
 		$asset = file_exists( WP_BUYER_BLACKLIST_DIR . 'build/index.asset.php' ) ? require WP_BUYER_BLACKLIST_DIR . 'build/index.asset.php' : array(
 			'dependencies' => array(),
 			'version'      => '0.1.0',
 		);
-		wp_enqueue_script( 'wp-buyer-blacklist-admin', WP_BUYER_BLACKLIST_URL . 'build/index.js', $asset['dependencies'], $asset['version'], true );
+		if ( file_exists( WP_BUYER_BLACKLIST_DIR . 'build/style-index.tsx.css' ) ) {
+			wp_enqueue_style( 'wp-buyer-blacklist-admin', WP_BUYER_BLACKLIST_URL . 'build/style-index.tsx.css', array(), $asset['version'] );
+			wp_style_add_data( 'wp-buyer-blacklist-admin', 'rtl', 'replace' );
+		}
+		if ( 'woocommerce_page_wp-buyer-blacklist' === $hook ) {
+			wp_enqueue_script( 'wp-buyer-blacklist-admin', WP_BUYER_BLACKLIST_URL . 'build/index.js', $asset['dependencies'], $asset['version'], true );
+		}
 	}
 }

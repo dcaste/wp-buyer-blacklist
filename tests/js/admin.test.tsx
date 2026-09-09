@@ -55,13 +55,15 @@ test( 'offers a downloadable CSV import example', async () => {
 test( 'renders structured address fields when an address Match type is selected', async () => {
 	const container = document.createElement( 'div' );
 	await act( async () => { createRoot( container ).render( <App /> ); } );
-	const matchType = container.querySelector( 'select[aria-label="Match type"]' ) as HTMLSelectElement;
+	const matchType = container.querySelector( '#wp-buyer-blacklist-match-type' ) as HTMLSelectElement;
 	await act( async () => {
 		matchType.value = 'billing_address';
 		matchType.dispatchEvent( new Event( 'change', { bubbles: true } ) );
 	} );
-	expect( container.querySelector( 'input[aria-label="Address line 1"]' ) ).not.toBeNull();
-	expect( container.querySelector( 'input[aria-label="Country"]' ) ).not.toBeNull();
+	expect( container.querySelector( '#wp-buyer-blacklist-address_line_1' ) ).not.toBeNull();
+	expect( container.querySelector( '#wp-buyer-blacklist-country' ) ).not.toBeNull();
+	expect( container.querySelector( 'label[for="wp-buyer-blacklist-address_line_1"]' )?.textContent ).toBe( 'Address line 1' );
+	expect( container.querySelector( 'label[for="wp-buyer-blacklist-country"]' )?.textContent ).toBe( 'Country' );
 } );
 
 test( 'loads Audit history and Blocked attempts when an entry is managed', async () => {
