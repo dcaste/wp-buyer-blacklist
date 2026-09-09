@@ -27,6 +27,7 @@ require_once __DIR__ . '/src/BlockedAttemptRecorder.php';
 require_once __DIR__ . '/src/EmailEntryRepository.php';
 require_once __DIR__ . '/src/EmailCheckoutBlocker.php';
 require_once __DIR__ . '/src/AddressCheckoutBlocker.php';
+require_once __DIR__ . '/src/OperatorAccess.php';
 require_once __DIR__ . '/src/SourceEnrollment.php';
 require_once __DIR__ . '/src/Plugin.php';
 
