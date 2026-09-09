@@ -721,6 +721,12 @@ final class Plugin {
 	 */
 	public function update_email_entry( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$entry_id = absint( $request['id'] );
+		if ( $this->has_identity_update( $request ) ) {
+			return new \WP_Error( 'wp_buyer_blacklist_identity_immutable', __( 'A Blacklist entry identity cannot be changed. Deactivate it and create a replacement entry instead.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
+		}
+		if ( null !== $request->get_param( 'reason' ) && null !== $request->get_param( 'is_active' ) ) {
+			return new \WP_Error( 'wp_buyer_blacklist_multiple_updates', __( 'Update either the reason or status in one request.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
+		}
 		if ( null !== $request->get_param( 'reason' ) ) {
 			$reason = $this->reason_from_request( $request );
 			if ( is_wp_error( $reason ) ) {
@@ -738,6 +744,22 @@ final class Plugin {
 		}
 
 		return new \WP_REST_Response( array( 'message' => __( 'Blacklist entry updated.', 'wp-buyer-blacklist' ) ) );
+	}
+
+	/**
+	 * Checks whether a request attempts to change an immutable identity.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return bool Whether the request contains an identity field.
+	 */
+	private function has_identity_update( \WP_REST_Request $request ): bool {
+		foreach ( array( 'match_type', 'value', 'email', 'customer_id', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'canonical_value', 'canonical_hash' ) as $field ) {
+			if ( null !== $request->get_param( $field ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
