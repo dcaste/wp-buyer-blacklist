@@ -96,7 +96,7 @@ final class SourceEnrollment {
 
 		$entries = $this->matching_customer_entries( $user_id );
 		if ( array() === $entries ) {
-			return '<button type="button" class="button-link wp-buyer-blacklist-enroll-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '">' . esc_html__( 'Enroll in Blacklist', 'wp-buyer-blacklist' ) . '</button>';
+			return '<span class="wp-buyer-blacklist-status-badge is-not-listed">' . esc_html__( 'Not listed', 'wp-buyer-blacklist' ) . '</span><br><button type="button" class="button-link wp-buyer-blacklist-enroll-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '">' . esc_html__( 'Enroll', 'wp-buyer-blacklist' ) . '</button>';
 		}
 		$entry_ids = array_column( $entries, 'id' );
 		$entries   = array_values(
@@ -109,7 +109,8 @@ final class SourceEnrollment {
 		$active = in_array( '1', array_column( $entries, 'is_active' ), true );
 		$status = $active ? __( 'Blacklisted', 'wp-buyer-blacklist' ) : __( 'Inactive', 'wp-buyer-blacklist' );
 
-		return '<span class="wp-buyer-blacklist-status-badge ' . ( $active ? 'is-active' : 'is-inactive' ) . '">' . esc_html( $status ) . '</span><br><button type="button" class="button-link wp-buyer-blacklist-manage-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '" data-entries="' . esc_attr( wp_json_encode( $entries ) ) . '">' . esc_html__( 'Manage Blacklist entries', 'wp-buyer-blacklist' ) . '</button>';
+		$description = $active ? ' aria-label="' . esc_attr__( 'Blacklisted. This Buyer cannot place new orders.', 'wp-buyer-blacklist' ) . '"' : '';
+		return '<span class="wp-buyer-blacklist-status-badge ' . ( $active ? 'is-active' : 'is-inactive' ) . '"' . $description . '>' . esc_html( $status ) . '</span><br><button type="button" class="button-link wp-buyer-blacklist-manage-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '" data-entries="' . esc_attr( wp_json_encode( $entries ) ) . '">' . esc_html__( 'Manage', 'wp-buyer-blacklist' ) . '</button>';
 	}
 
 	/**
