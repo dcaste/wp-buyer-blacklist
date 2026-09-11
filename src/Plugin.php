@@ -331,6 +331,15 @@ final class Plugin {
 		);
 		register_rest_route(
 			'wp-buyer-blacklist/v1',
+			'/import-history',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_import_history' ),
+				'permission_callback' => array( $this, 'can_manage_entries' ),
+			)
+		);
+		register_rest_route(
+			'wp-buyer-blacklist/v1',
 			'/email-entries/(?P<id>\\d+)/blocked-attempts',
 			array(
 				'methods'             => 'GET',
@@ -598,8 +607,9 @@ final class Plugin {
 			$reason                                 = sanitize_textarea_field( $entry['reason'] );
 			$result['accepted'][ $index ]['reason'] = '' === trim( $reason ) ? __( 'Imported blacklist entry', 'wp-buyer-blacklist' ) : $reason;
 		}
-		$result['accepted'] = array_values( $result['accepted'] );
-		$token              = wp_generate_uuid4();
+		$result['accepted']  = array_values( $result['accepted'] );
+		$result['file_name'] = sanitize_file_name( (string) $request->get_param( 'filename' ) );
+		$token               = wp_generate_uuid4();
 		set_transient( $this->csv_import_transient_key( $token ), $result, HOUR_IN_SECONDS );
 
 		return new \WP_REST_Response( $this->csv_import_result( $result, $token ) );
@@ -636,6 +646,7 @@ final class Plugin {
 			}
 		}
 		delete_transient( $this->csv_import_transient_key( $token ) );
+		$this->entries->record_import( (string) ( $result['file_name'] ?? __( 'CSV import', 'wp-buyer-blacklist' ) ), count( $result['accepted'] ) + count( $result['duplicates'] ) + count( $result['rejected'] ), $created, count( $result['duplicates'] ), count( $result['rejected'] ) );
 
 		return new \WP_REST_Response( $this->csv_import_result( $result, '', $created ) );
 	}
@@ -684,6 +695,11 @@ final class Plugin {
 	 */
 	public function get_entry_summary(): array {
 		return $this->entries->summary();
+	}
+
+	/** Gets protected import history. @return list<array<string, string>> */
+	public function get_import_history(): array {
+		return $this->entries->recent_imports();
 	}
 
 	/**
