@@ -52,7 +52,7 @@ test( 'validates a CSV file before it offers import confirmation', async () => {
 	document.body.append( container );
 	await act( async () => { createRoot( container ).render( <App /> ); } );
 	const fileInput = container.querySelector( 'input[type="file"]' ) as HTMLInputElement;
-	Object.defineProperty( fileInput, 'files', { value: [ { text: () => Promise.resolve( 'match_type,email\nemail,buyer@example.com\n' ) } ] } );
+	Object.defineProperty( fileInput, 'files', { value: [ { name: 'entries.csv', size: 42, text: () => Promise.resolve( 'match_type,email\nemail,buyer@example.com\n' ) } ] } );
 	await act( async () => { fileInput.dispatchEvent( new Event( 'change', { bubbles: true } ) ); } );
 	expect( apiFetch ).toHaveBeenCalledWith( expect.objectContaining( { path: '/wp-buyer-blacklist/v1/csv-import/validate' } ) );
 	expect( container.textContent ).toContain( 'Confirm import' );
@@ -67,6 +67,8 @@ test( 'offers a downloadable CSV import example', async () => {
 	document.body.append( container );
 	await act( async () => { createRoot( container ).render( <App /> ); } );
 	expect( container.querySelector( 'a[href="/wp-content/plugins/wp-buyer-blacklist/assets/buyer-blacklist-example.csv"]' )?.textContent ).toBe( 'Download example CSV' );
+	expect( container.textContent ).toContain( 'CSV files up to 5 MB' );
+	expect( container.textContent ).toContain( 'Drop a CSV file here' );
 	container.remove();
 } );
 
