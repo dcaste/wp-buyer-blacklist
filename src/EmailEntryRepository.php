@@ -15,7 +15,7 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 	/**
 	 * Current database schema version.
 	 */
-	private const DATABASE_VERSION = '3';
+	private const DATABASE_VERSION = '4';
 
 	/**
 	 * WordPress database connection.
@@ -94,6 +94,21 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 			created_at datetime NOT NULL,
 			PRIMARY KEY  (id),
 			KEY entry_id (entry_id)
+		) {$charset_collate};"
+		);
+		$imports_table = $this->database->prefix . 'buyer_blacklist_imports';
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		dbDelta(
+			"CREATE TABLE {$imports_table} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			file_name varchar(255) NOT NULL,
+			entries_found int unsigned NOT NULL,
+			entries_created int unsigned NOT NULL,
+			duplicates int unsigned NOT NULL,
+			rejected int unsigned NOT NULL,
+			outcome varchar(16) NOT NULL,
+			created_at datetime NOT NULL,
+			PRIMARY KEY  (id)
 		) {$charset_collate};"
 		);
 		update_option( 'wp_buyer_blacklist_database_version', self::DATABASE_VERSION );
@@ -453,6 +468,44 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 			'inactive_entries' => (int) ( $entries['inactive_entries'] ?? 0 ),
 			'blocked_attempts' => (int) $attempts,
 		);
+	}
+
+	/**
+	 * Records the non-sensitive outcome of a confirmed CSV import.
+	 *
+	 * @param string $file_name     Uploaded file name.
+	 * @param int    $entries_found Rows found during validation.
+	 * @param int    $entries_created Entries created.
+	 * @param int    $duplicates     Duplicate rows skipped.
+	 * @param int    $rejected       Rejected rows.
+	 * @return bool Whether history was recorded.
+	 */
+	public function record_import( string $file_name, int $entries_found, int $entries_created, int $duplicates, int $rejected ): bool {
+		return 1 === $this->database->insert(
+			$this->database->prefix . 'buyer_blacklist_imports',
+			array(
+				'file_name'       => $file_name,
+				'entries_found'   => $entries_found,
+				'entries_created' => $entries_created,
+				'duplicates'      => $duplicates,
+				'rejected'        => $rejected,
+				'outcome'         => $duplicates || $rejected ? 'warning' : 'completed',
+				'created_at'      => current_time( 'mysql', true ),
+			),
+			array( '%s', '%d', '%d', '%d', '%d', '%s', '%s' )
+		);
+	}
+
+	/**
+	 * Gets recent import outcomes.
+	 *
+	 * @return list<array<string, string>> Recent imports.
+	 */
+	public function recent_imports(): array {
+		$table = $this->database->prefix . 'buyer_blacklist_imports';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$results = $this->database->get_results( "SELECT id, file_name, entries_found, entries_created, duplicates, rejected, outcome, created_at FROM {$table} ORDER BY id DESC", ARRAY_A );
+		return is_array( $results ) ? $results : array();
 	}
 
 	/**
