@@ -277,6 +277,15 @@ final class Plugin {
 	public function register_rest_routes(): void {
 		register_rest_route(
 			'wp-buyer-blacklist/v1',
+			'/entry-summary',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_entry_summary' ),
+				'permission_callback' => array( $this, 'can_manage_entries' ),
+			)
+		);
+		register_rest_route(
+			'wp-buyer-blacklist/v1',
 			'/email-entries',
 			array(
 				array(
@@ -669,6 +678,15 @@ final class Plugin {
 	}
 
 	/**
+	 * Gets totals for the Manage entries summary cards.
+	 *
+	 * @return array{total_entries: int, active_entries: int, inactive_entries: int, blocked_attempts: int}
+	 */
+	public function get_entry_summary(): array {
+		return $this->entries->summary();
+	}
+
+	/**
 	 * Creates an email entry through the REST API.
 	 *
 	 * @param \WP_REST_Request $request Request.
@@ -861,15 +879,10 @@ final class Plugin {
 	 * Gets a required reason from a REST request.
 	 *
 	 * @param \WP_REST_Request $request Request.
-	 * @return string|\WP_Error
+	 * @return string
 	 */
-	private function reason_from_request( \WP_REST_Request $request ): string|\WP_Error {
-		$reason = sanitize_textarea_field( (string) $request->get_param( 'reason' ) );
-		if ( '' === trim( $reason ) ) {
-			return new \WP_Error( 'wp_buyer_blacklist_missing_reason', __( 'Enter a reason for this Blacklist entry.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
-		}
-
-		return $reason;
+	private function reason_from_request( \WP_REST_Request $request ): string {
+		return sanitize_textarea_field( (string) $request->get_param( 'reason' ) );
 	}
 
 	/**
