@@ -70,8 +70,12 @@ test( 'offers a downloadable CSV import example', async () => {
 	document.body.append( container );
 	await act( async () => { createRoot( container ).render( <App /> ); } );
 	expect( container.querySelector( 'a[href="/wp-content/plugins/wp-buyer-blacklist/assets/buyer-blacklist-example.csv"]' )?.textContent ).toBe( 'Download example CSV' );
-	expect( container.textContent ).toContain( 'CSV files up to 5 MB' );
-	expect( container.textContent ).toContain( 'Drop a CSV file here' );
+	expect( container.textContent ).toContain( 'Accepted file type: CSV (.csv) · Maximum file size: 5 MB' );
+	expect( container.textContent ).toContain( 'Drag and drop your CSV file here' );
+	expect( container.textContent ).toContain( 'Need a template?' );
+	expect( container.textContent ).toContain( 'View the status of your recent import activities.' );
+	expect( container.querySelector( '.wpbb-button-icon.is-download' ) ).not.toBeNull();
+	expect( container.querySelector( 'input[type="search"]' ) ).toBeNull();
 	container.remove();
 } );
 
