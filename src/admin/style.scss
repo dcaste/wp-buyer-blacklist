@@ -1,80 +1,143 @@
-#wp-buyer-blacklist-admin {
+.woocommerce_page_wp-buyer-blacklist {
 	--wpbb-page: #f7f9fc;
 	--wpbb-surface: #fff;
+	--wpbb-surface-subtle: #f8fafc;
 	--wpbb-border: #dce3ee;
 	--wpbb-input-border: #64748b;
+	--wpbb-text: #0f172a;
+	--wpbb-muted: #64748b;
 	--wpbb-primary: #1463f3;
+	--wpbb-primary-hover: #0c52d4;
+	--wpbb-focus: #1463f3;
 	--wpbb-success: #166534;
 	--wpbb-success-bg: #dcfce7;
+	--wpbb-danger: #b42318;
+	--wpbb-danger-bg: #fee2e2;
+	--wpbb-warning: #92400e;
+	--wpbb-warning-bg: #fef3c7;
 	--wpbb-neutral: #475569;
 	--wpbb-neutral-bg: #f1f5f9;
 	background: var(--wpbb-page);
+	color: var(--wpbb-text);
+
+	.nav-tab-wrapper .nav-tab {
+		border-color: var(--wpbb-border);
+		color: var(--wpbb-muted);
+		font-weight: 600;
+	}
+
+	.nav-tab-wrapper .nav-tab:hover,
+	.nav-tab-wrapper .nav-tab-active {
+		background: var(--wpbb-surface);
+		color: var(--wpbb-primary);
+	}
+
+	.nav-tab-wrapper .nav-tab-active {
+		border-bottom: 3px solid var(--wpbb-primary);
+	}
+}
+
+#wp-buyer-blacklist-admin {
+	background: var(--wpbb-page);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 	padding: 24px;
-	form > p,
-	section > p {
-		margin: 1em 0;
+
+	button,
+	a,
+	input,
+	select,
+	textarea {
+		&:focus-visible {
+			outline: 2px solid var(--wpbb-focus);
+			outline-offset: 2px;
+		}
 	}
 
 	label {
 		display: block;
+		font-size: 14px;
 		font-weight: 600;
+		line-height: 20px;
 		margin-bottom: 4px;
 	}
 
+	input:not([type='checkbox']):not([type='radio']),
 	select,
-	textarea,
-	input[type='text'],
-	input[type='email'],
-	input[type='file'] {
+	textarea {
+		background: var(--wpbb-surface);
+		border: 1px solid var(--wpbb-input-border);
+		border-radius: 6px;
+		box-shadow: none;
+		box-sizing: border-box;
+		color: var(--wpbb-text);
+		font-size: 14px;
+		line-height: 20px;
 		max-width: 100%;
+		padding: 8px 12px;
+	}
+
+	input:not([type='checkbox']):not([type='radio']),
+	select {
+		min-height: 38px;
 	}
 
 	textarea.large-text {
-		min-height: 6em;
+		min-height: 112px;
+		width: 100%;
+	}
+
+	.button,
+	.button-link {
+		border-radius: 6px;
+		font-weight: 600;
+	}
+
+	.button-primary {
+		background: var(--wpbb-primary);
+		border-color: var(--wpbb-primary);
+		box-shadow: none;
+		color: var(--wpbb-surface);
+	}
+
+	.button-primary:hover,
+	.button-primary:focus {
+		background: var(--wpbb-primary-hover);
+		border-color: var(--wpbb-primary-hover);
+		color: var(--wpbb-surface);
 	}
 
 	[role='status'] {
-		background: #fff;
-		border-left: 4px solid #72aee6;
-		box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
-		margin: 1em 0;
-		padding: 1px 12px;
-	}
-
-	:focus-visible {
-		outline: 2px solid var(--wpbb-primary);
-		outline-offset: 2px;
+		background: var(--wpbb-surface);
+		border-left: 4px solid var(--wpbb-primary);
+		box-shadow: 0 1px 2px rgb(15 23 42 / 8%);
+		margin: 16px 0;
+		padding: 8px 12px;
 	}
 }
 
 .woocommerce_page_wp-buyer-blacklist .form-table textarea.large-text {
-	min-height: 6em;
+	min-height: 112px;
 }
 
 .wp-buyer-blacklist-status-badge {
-	border-radius: 2em;
+	border-radius: 9999px;
 	display: inline-block;
 	font-size: 12px;
-	font-weight: 500;
-	padding: 0.15em 0.5em;
+	font-weight: 600;
+	line-height: 18px;
+	padding: 2px 8px;
+	white-space: nowrap;
 }
 
 .wp-buyer-blacklist-status-badge.is-active {
 	background: var(--wpbb-success-bg);
-	border: 1px solid var(--wpbb-success);
 	color: var(--wpbb-success);
 }
 
-.wp-buyer-blacklist-status-badge.is-inactive {
-	background: var(--wpbb-neutral-bg);
-	border: 1px solid var(--wpbb-neutral);
-	color: var(--wpbb-neutral);
-}
-
+.wp-buyer-blacklist-status-badge.is-inactive,
 .wp-buyer-blacklist-status-badge.is-not-listed {
-	background: #f1f5f9;
-	border: 1px solid #475569;
-	color: #475569;
+	background: var(--wpbb-neutral-bg);
+	color: var(--wpbb-neutral);
 }
 
 .column-wp_buyer_blacklist .button-link {
@@ -87,7 +150,8 @@
 	grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.wpbb-card {
+.wpbb-card,
+.wpbb-settings-card {
 	background: var(--wpbb-surface);
 	border: 1px solid var(--wpbb-border);
 	border-radius: 8px;
@@ -96,16 +160,160 @@
 	padding: 24px;
 }
 
-.wpbb-card strong {
-	display: block;
-	font-size: 28px;
+.wpbb-card {
+	h2,
+	h3 {
+		color: var(--wpbb-text);
+		font-weight: 700;
+		margin: 0 0 8px;
+	}
+
+	h2 {
+		font-size: 20px;
+		line-height: 28px;
+	}
+
+	h3 {
+		font-size: 16px;
+		line-height: 24px;
+	}
+
+	h3 .dashicons {
+		color: var(--wpbb-primary);
+		font-size: 18px;
+		height: 18px;
+		margin-right: 6px;
+		vertical-align: text-bottom;
+		width: 18px;
+	}
+
+	form > p,
+	section > p {
+		margin: 16px 0;
+	}
+
+	strong {
+		display: block;
+		font-size: 28px;
+		line-height: 34px;
+	}
+
+	small {
+		color: var(--wpbb-muted);
+		font-size: 12px;
+		line-height: 18px;
+	}
 }
 
-.wpbb-card small {
-	color: #64748b;
+.wpbb-summary .wpbb-card {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 0;
+}
+
+.wpbb-summary .wpbb-card p {
+	color: var(--wpbb-muted);
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 20px;
+	margin: 0 0 4px;
+}
+
+.wpbb-entry-form {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wpbb-entry-form h2,
+.wpbb-entry-form .wpbb-entry-reason {
+	grid-column: 1 / -1;
+}
+
+.wpbb-entry-form > p {
+	margin: 0;
+}
+
+.wpbb-entry-form input,
+.wpbb-entry-form select {
+	width: 100%;
+}
+
+.wpbb-entry-form .button-primary {
+	justify-self: start;
+}
+
+.wpbb-entry-form .button-link {
+	align-self: center;
+	justify-self: start;
+}
+
+.wpbb-icon-tile {
+	align-items: center;
+	background: var(--wpbb-neutral-bg);
+	border-radius: 12px;
+	display: inline-flex;
+	flex: 0 0 56px;
+	height: 56px;
+	justify-content: center;
+	width: 56px;
+}
+
+.wpbb-icon-tile::before {
+	background: var(--wpbb-primary);
+	content: '';
+	display: block;
+	height: 24px;
+	mask: center / contain no-repeat;
+	width: 24px;
+}
+
+.wpbb-icon-tile.is-entries::before {
+	mask-image: url('../../assets/admin-icons/entries.svg');
+}
+
+.wpbb-icon-tile.is-active::before {
+	mask-image: url('../../assets/admin-icons/active.svg');
+}
+
+.wpbb-icon-tile.is-inactive::before {
+	mask-image: url('../../assets/admin-icons/inactive.svg');
+}
+
+.wpbb-icon-tile.is-blocked-attempts::before {
+	mask-image: url('../../assets/admin-icons/blocked-attempts.svg');
+}
+
+.wpbb-icon-tile.is-upload::before {
+	mask-image: url('../../assets/admin-icons/upload.svg');
+}
+
+.wpbb-icon-tile.is-audit-history::before {
+	mask-image: url('../../assets/admin-icons/audit-history.svg');
+}
+
+.wpbb-icon-tile.is-primary {
+	background: #eaf1ff;
+}
+
+.wpbb-icon-tile.is-success {
+	background: var(--wpbb-success-bg);
+}
+
+.wpbb-icon-tile.is-success::before {
+	background: var(--wpbb-success);
+}
+
+.wpbb-icon-tile.is-danger {
+	background: var(--wpbb-danger-bg);
+}
+
+.wpbb-icon-tile.is-danger::before {
+	background: var(--wpbb-danger);
 }
 
 .wpbb-filters {
+	align-items: end;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 12px;
@@ -121,59 +329,132 @@
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.wpbb-import-cards .wpbb-icon-tile {
+	float: left;
+	margin: 0 16px 16px 0;
+}
+
 .wpbb-drop-target {
+	background: var(--wpbb-surface-subtle);
 	border: 2px dashed var(--wpbb-border);
 	border-radius: 6px;
 	padding: 24px;
 	text-align: center;
 }
 
+.wpbb-drop-target .wpbb-icon-tile {
+	float: none;
+	margin: 0 auto 12px;
+}
+
 .wpbb-table-wrap {
 	overflow-x: auto;
 }
 
-.wpbb-settings, .wpbb-settings-card { max-width: 900px; }
-.wpbb-settings-card { background: #fff; border: 1px solid var(--wpbb-border); border-radius: 8px; box-shadow: 0 1px 2px rgb(15 23 42 / 8%); margin: 24px 0; padding: 24px; }
-.wpbb-settings-card textarea { width: 100%; }
-.wpbb-message-preview { background: #f8fafc; border: 1px solid var(--wpbb-border); border-radius: 6px; padding: 16px; white-space: pre-wrap; }
-.wpbb-toggle { font-weight: 600; }
-.wpbb-warning-card { border-color: #92400e; }
+.wpbb-settings,
+.wpbb-settings-card {
+	max-width: 900px;
+}
 
-@media (max-width: 960px) {
-	.wpbb-summary {
-		grid-template-columns: 1fr;
-	}
+.wpbb-settings-card textarea {
+	width: 100%;
+}
 
-	.wpbb-import-cards {
-		grid-template-columns: 1fr;
-	}
+.wpbb-message-preview {
+	background: var(--wpbb-surface-subtle);
+	border: 1px solid var(--wpbb-border);
+	border-radius: 6px;
+	padding: 16px;
+	white-space: pre-wrap;
+}
 
-	.wpbb-card {
-		padding: 16px;
-	}
+.wpbb-toggle {
+	font-weight: 600;
+}
+
+.wpbb-warning-card {
+	border-color: var(--wpbb-warning);
 }
 
 #wp-buyer-blacklist-entry-dialog,
 #wp-buyer-blacklist-enroll-customer-dialog,
 #wp-buyer-blacklist-manage-customer-dialog {
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-	box-shadow: 0 3px 10px rgb(0 0 0 / 20%);
-	max-width: min(40rem, calc(100vw - 2rem));
-	padding: 1.5rem;
+	background: var(--wpbb-surface);
+	border: 1px solid var(--wpbb-border);
+	border-radius: 8px;
+	box-shadow: 0 16px 48px rgb(15 23 42 / 24%);
+	box-sizing: border-box;
+	color: var(--wpbb-text);
+	max-height: calc(100vh - 32px);
+	max-width: min(1100px, calc(100vw - 32px));
+	padding: 24px;
+	width: min(1100px, calc(100vw - 32px));
 }
 
 #wp-buyer-blacklist-entry-dialog::backdrop,
 #wp-buyer-blacklist-enroll-customer-dialog::backdrop,
 #wp-buyer-blacklist-manage-customer-dialog::backdrop {
-	background: rgb(0 0 0 / 35%);
+	background: rgb(15 23 42 / 48%);
+}
+
+#wp-buyer-blacklist-entry-dialog {
+	h2,
+	h3 {
+		color: var(--wpbb-text);
+		font-weight: 700;
+	}
+
+	h2 {
+		font-size: 20px;
+		line-height: 28px;
+		margin: 0 0 16px;
+	}
+
+}
+
+.wpbb-entry-dialog-grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr);
+}
+
+.wpbb-entry-dialog-main,
+.wpbb-entry-dialog-panel {
+	background: var(--wpbb-surface);
+	border: 1px solid var(--wpbb-border);
+	border-radius: 8px;
+	padding: 16px;
+}
+
+.wpbb-entry-dialog-main > p:first-child {
+	background: var(--wpbb-surface-subtle);
+	border-radius: 6px;
+	padding: 12px;
+}
+
+.wpbb-entry-dialog-details {
+	align-content: start;
+	display: grid;
+	gap: 16px;
+}
+
+.wpbb-entry-dialog-panel h3 {
+	align-items: center;
+	display: flex;
+	font-size: 16px;
+	line-height: 24px;
+	margin: 0 0 12px;
+}
+
+.wpbb-entry-dialog-panel .wpbb-icon-tile {
+	margin-right: 12px;
 }
 
 #wp-buyer-blacklist-entry-dialog p,
 #wp-buyer-blacklist-enroll-customer-dialog p,
 #wp-buyer-blacklist-manage-customer-dialog p,
 .wp-buyer-blacklist-enrollment-form p {
-	margin: 1em 0;
+	margin: 16px 0;
 }
 
 #wp-buyer-blacklist-entry-dialog label,
@@ -181,15 +462,24 @@
 #wp-buyer-blacklist-manage-customer-dialog label,
 .wp-buyer-blacklist-enrollment-form label {
 	display: block;
+	font-size: 14px;
 	font-weight: 600;
+	line-height: 20px;
 	margin-bottom: 4px;
 }
 
 #wp-buyer-blacklist-entry-dialog select,
 #wp-buyer-blacklist-enroll-customer-dialog select,
 #wp-buyer-blacklist-manage-customer-dialog select,
-.wp-buyer-blacklist-enrollment-form select {
-	max-width: 25rem;
+.wp-buyer-blacklist-enrollment-form select,
+#wp-buyer-blacklist-entry-dialog textarea,
+#wp-buyer-blacklist-enroll-customer-dialog textarea,
+#wp-buyer-blacklist-manage-customer-dialog textarea,
+.wp-buyer-blacklist-enrollment-form textarea {
+	border-color: var(--wpbb-input-border);
+	border-radius: 6px;
+	box-shadow: none;
+	max-width: 100%;
 	width: 100%;
 }
 
@@ -197,14 +487,48 @@
 #wp-buyer-blacklist-enroll-customer-dialog textarea,
 #wp-buyer-blacklist-manage-customer-dialog textarea,
 .wp-buyer-blacklist-enrollment-form textarea {
-	max-width: 40rem;
-	min-height: 6em;
-	width: 100%;
+	min-height: 112px;
+}
+
+#wp-buyer-blacklist-entry-dialog small {
+	color: var(--wpbb-muted);
+	display: block;
+	margin-top: 4px;
+	text-align: right;
+}
+
+
+.wpbb-entry-dialog-footer {
+	align-items: center;
+	border-top: 1px solid var(--wpbb-border);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	justify-content: space-between;
+	margin: 24px 0 16px;
+	padding-top: 16px;
+}
+
+.wpbb-entry-dialog-footer .button-primary {
+	margin-left: auto;
+}
+
+.wp-buyer-blacklist-delete-entry {
+	background: var(--wpbb-surface);
+	border-color: var(--wpbb-danger);
+	color: var(--wpbb-danger);
+}
+
+.wp-buyer-blacklist-delete-entry:hover,
+.wp-buyer-blacklist-delete-entry:focus {
+	background: var(--wpbb-danger-bg);
+	border-color: var(--wpbb-danger);
+	color: var(--wpbb-danger);
 }
 
 #wp-buyer-blacklist-enroll-customer-dialog dl {
 	display: grid;
-	gap: 0.5rem 1rem;
+	gap: 8px 16px;
 	grid-template-columns: max-content minmax(0, 1fr);
 }
 
@@ -220,6 +544,44 @@
 #wp-buyer-blacklist-enroll-customer-dialog :focus-visible,
 #wp-buyer-blacklist-manage-customer-dialog :focus-visible,
 .wp-buyer-blacklist-enrollment-form :focus-visible {
-	outline: 2px solid #2271b1;
+	outline: 2px solid var(--wpbb-focus);
 	outline-offset: 2px;
+}
+
+@media (max-width: 960px) {
+	.wpbb-summary,
+	.wpbb-import-cards {
+		grid-template-columns: 1fr;
+	}
+
+	.wpbb-card,
+	.wpbb-settings-card,
+	#wp-buyer-blacklist-entry-dialog,
+	#wp-buyer-blacklist-enroll-customer-dialog,
+	#wp-buyer-blacklist-manage-customer-dialog {
+		padding: 16px;
+	}
+
+	.wpbb-entry-dialog-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 600px) {
+	#wp-buyer-blacklist-admin {
+		padding: 16px;
+	}
+
+	.wpbb-filters > * {
+		width: 100%;
+	}
+
+	.wpbb-entry-form {
+		grid-template-columns: 1fr;
+	}
+
+	.wpbb-entry-form h2,
+	.wpbb-entry-form .wpbb-entry-reason {
+		grid-column: auto;
+	}
 }

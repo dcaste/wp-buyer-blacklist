@@ -115,8 +115,8 @@ test( 'loads Audit history and Blocked attempts when an entry is managed', async
 	expect( container.querySelector( 'dialog' ) ).not.toBeNull();
 	expect( Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Manage' )?.getAttribute( 'commandfor' ) ).toBe( 'wp-buyer-blacklist-entry-dialog' );
 	const deleteButton = container.querySelector( '.wp-buyer-blacklist-delete-entry' );
-	expect( deleteButton?.getAttribute( 'style' ) ).toContain( 'color: rgb(179, 45, 46)' );
-	expect( deleteButton?.parentElement?.getAttribute( 'style' ) ).toContain( 'text-align: right' );
+	expect( deleteButton?.classList ).toContain( 'wp-buyer-blacklist-delete-entry' );
+	expect( deleteButton?.parentElement?.classList ).toContain( 'wpbb-entry-dialog-footer' );
 	expect( container.textContent ).toContain( 'Close' );
 	container.remove();
 } );
