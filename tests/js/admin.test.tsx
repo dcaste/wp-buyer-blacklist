@@ -14,6 +14,24 @@ test( 'renders WordPress-style Manage entries controls', async () => {
 	expect( container.querySelector( 'input[type="email"]' ) ).not.toBeNull();
 	expect( container.querySelector( 'table.widefat' ) ).not.toBeNull();
 	expect( container.textContent ).toContain( 'Match type' );
+	expect( container.textContent ).toContain( 'Total entries' );
+	expect( container.textContent ).toContain( 'Blocked attempts' );
+} );
+
+test( 'filters entries by status and Match type', async () => {
+	( apiFetch as jest.Mock ).mockResolvedValue( [
+		{ id: '1', value: 'buyer@example.com', reason: 'Test entry', is_active: '1', match_type: 'email', created_at: '' },
+		{ id: '2', value: '{"city":"Testville"}', reason: 'Address', is_active: '0', match_type: 'billing_address', created_at: '' },
+	] );
+	const container = document.createElement( 'div' );
+	await act( async () => { createRoot( container ).render( <App /> ); } );
+	const status = container.querySelector( '#wp-buyer-blacklist-status-filter' ) as HTMLSelectElement;
+	await act( async () => {
+		status.value = 'inactive';
+		status.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+	} );
+	expect( container.textContent ).toContain( 'Address' );
+	expect( container.textContent ).not.toContain( 'Test entry' );
 } );
 
 test( 'paginates entries in groups of 20', async () => {
@@ -21,7 +39,7 @@ test( 'paginates entries in groups of 20', async () => {
 	const container = document.createElement( 'div' );
 	await act( async () => { createRoot( container ).render( <App /> ); } );
 	expect( container.querySelectorAll( 'tbody tr' ) ).toHaveLength( 20 );
-	expect( container.querySelectorAll( 'span[style*="border-radius"]' ) ).toHaveLength( 1 );
+	expect( container.querySelectorAll( '.wp-buyer-blacklist-status-badge.is-inactive' ) ).toHaveLength( 1 );
 	expect( container.querySelector( '.tablenav-pages' )?.getAttribute( 'style' ) ).toContain( 'float: left' );
 	expect( container.textContent ).toContain( 'Next' );
 } );

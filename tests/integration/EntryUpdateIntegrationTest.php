@@ -15,6 +15,31 @@ use WP_Buyer_Blacklist\Plugin;
 class EntryUpdateIntegrationTest extends WP_UnitTestCase {
 
 	/**
+	 * Reports real entry and Blocked attempt totals for the admin summary.
+	 *
+	 * @return void
+	 */
+	public function test_summary_counts_entries_by_status_and_blocked_attempts(): void {
+		global $wpdb;
+		$entries = new EmailEntryRepository( $wpdb );
+		$this->assertTrue( $entries->create( EmailEntry::from_email( 'active@example.com' ), 'Fraud' ) );
+		$this->assertTrue( $entries->create( EmailEntry::from_email( 'inactive@example.com' ), 'Fraud' ) );
+		$all = $entries->all();
+		$this->assertTrue( $entries->set_active( (int) $all[0]['id'], false ) );
+		$this->assertTrue( $entries->record_blocked_attempt( (int) $all[1]['id'], 'active@example.com' ) );
+
+		$this->assertSame(
+			array(
+				'total_entries'    => 2,
+				'active_entries'   => 1,
+				'inactive_entries' => 1,
+				'blocked_attempts' => 1,
+			),
+			$entries->summary()
+		);
+	}
+
+	/**
 	 * Rejects an attempt to change an entry identity.
 	 *
 	 * @return void

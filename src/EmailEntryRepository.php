@@ -436,6 +436,26 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 	}
 
 	/**
+	 * Gets the entry and Blocked attempt totals for the admin summary.
+	 *
+	 * @return array{total_entries: int, active_entries: int, inactive_entries: int, blocked_attempts: int}
+	 */
+	public function summary(): array {
+		$attempts_table = $this->database->prefix . 'buyer_blacklist_blocked_attempts';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names use only the WordPress table prefix.
+		$entries = $this->database->get_row( "SELECT COUNT(*) AS total_entries, SUM(is_active = 1) AS active_entries, SUM(is_active = 0) AS inactive_entries FROM {$this->table_name}", ARRAY_A );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		$attempts = $this->database->get_var( "SELECT COUNT(*) FROM {$attempts_table}" );
+
+		return array(
+			'total_entries'    => (int) ( $entries['total_entries'] ?? 0 ),
+			'active_entries'   => (int) ( $entries['active_entries'] ?? 0 ),
+			'inactive_entries' => (int) ( $entries['inactive_entries'] ?? 0 ),
+			'blocked_attempts' => (int) $attempts,
+		);
+	}
+
+	/**
 	 * Exports every Blacklist entry as UTF-8 CSV.
 	 *
 	 * @return string CSV document.
