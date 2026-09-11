@@ -773,15 +773,23 @@
 }
 
 .wpbb-toggle input[type='checkbox'] {
-	appearance: none;
+	appearance: none !important;
+	-webkit-appearance: none;
 	background: var(--wpbb-neutral);
+	background-image: none !important;
 	border: 0;
 	border-radius: 9999px;
+	box-shadow: none;
 	cursor: pointer;
 	height: 28px;
 	margin: 0;
 	position: relative;
 	width: 48px;
+}
+
+.wpbb-toggle input[type='checkbox']::before {
+	content: none !important;
+	display: none !important;
 }
 
 .wpbb-toggle input[type='checkbox']::after {
@@ -796,7 +804,7 @@
 }
 
 .wpbb-toggle input[type='checkbox']:checked {
-	background: var(--wpbb-primary);
+	background: #16a34a;
 }
 
 .wpbb-toggle input[type='checkbox']:checked::after {
