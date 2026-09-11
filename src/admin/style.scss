@@ -71,6 +71,16 @@
 	color: var(--wpbb-neutral);
 }
 
+.wp-buyer-blacklist-status-badge.is-not-listed {
+	background: #f1f5f9;
+	border: 1px solid #475569;
+	color: #475569;
+}
+
+.column-wp_buyer_blacklist .button-link {
+	margin-top: 6px;
+}
+
 .wpbb-summary {
 	display: grid;
 	gap: 16px;

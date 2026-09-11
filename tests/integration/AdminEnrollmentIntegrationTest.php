@@ -23,7 +23,8 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 		$output  = apply_filters( 'manage_users_custom_column', '', 'wp_buyer_blacklist', $customer->ID );
 
 		$this->assertArrayHasKey( 'wp_buyer_blacklist', $columns );
-		$this->assertStringContainsString( 'Enroll in Blacklist', $output );
+		$this->assertStringContainsString( 'Not listed', $output );
+		$this->assertStringContainsString( 'Enroll', $output );
 		$this->assertSame( array(), apply_filters( 'user_row_actions', array(), $customer ) );
 	}
 
@@ -99,7 +100,8 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 		$output = apply_filters( 'manage_users_custom_column', '', 'wp_buyer_blacklist', $customer->ID );
 
 		$this->assertStringContainsString( 'Blacklisted', $output );
-		$this->assertStringContainsString( 'Manage Blacklist entries', $output );
+		$this->assertStringContainsString( 'Manage', $output );
+		$this->assertStringContainsString( 'This Buyer cannot place new orders.', $output );
 		$this->assertStringContainsString( 'wp-buyer-blacklist-status-badge is-active', $output );
 		$this->assertStringContainsString( 'wp-buyer-blacklist-manage-customer', $output );
 		$this->assertStringNotContainsString( 'page=wp-buyer-blacklist', $output );
@@ -128,7 +130,7 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 		$output = apply_filters( 'manage_users_custom_column', '', 'wp_buyer_blacklist', $customer->ID );
 
 		$this->assertStringContainsString( 'Inactive', $output );
-		$this->assertStringContainsString( 'Manage Blacklist entries', $output );
+		$this->assertStringContainsString( 'Manage', $output );
 	}
 
 	/**
