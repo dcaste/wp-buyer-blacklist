@@ -441,7 +441,7 @@
 }
 
 .wpbb-button-icon.is-download {
-	transform: rotate(180deg);
+	mask-image: url('../../assets/admin-icons/download.svg');
 }
 
 .wpbb-export-card .button-primary {
