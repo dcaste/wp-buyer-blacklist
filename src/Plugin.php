@@ -115,6 +115,24 @@ final class Plugin {
 				'default'           => $this->default_buyer_block_message(),
 			)
 		);
+		register_setting(
+			'wp_buyer_blacklist',
+			'wp_buyer_blacklist_notify_blocked_attempts',
+			array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				'default'           => false,
+			)
+		);
+		register_setting(
+			'wp_buyer_blacklist',
+			'wp_buyer_blacklist_notification_recipient',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_email',
+				'default'           => '',
+			)
+		);
 	}
 
 	/**
@@ -176,6 +194,7 @@ final class Plugin {
 					<?php settings_fields( 'wp_buyer_blacklist' ); ?>
 					<section class="wpbb-settings-card"><h2><?php esc_html_e( 'Buyer-facing block message', 'wp-buyer-blacklist' ); ?></h2><p><label for="wp-buyer-blacklist-buyer-message"><?php esc_html_e( 'Message shown at checkout', 'wp-buyer-blacklist' ); ?></label><textarea class="large-text" id="wp-buyer-blacklist-buyer-message" name="wp_buyer_blacklist_buyer_message" rows="3"><?php echo esc_textarea( get_option( 'wp_buyer_blacklist_buyer_message', $this->default_buyer_block_message() ) ); ?></textarea></p><p class="description"><?php esc_html_e( 'Leave this blank to restore the default message.', 'wp-buyer-blacklist' ); ?></p><div class="wpbb-message-preview" aria-live="polite"><strong><?php esc_html_e( 'Checkout preview', 'wp-buyer-blacklist' ); ?></strong><p id="wp-buyer-blacklist-message-preview"><?php echo esc_html( get_option( 'wp_buyer_blacklist_buyer_message', $this->default_buyer_block_message() ) ); ?></p></div></section>
 					<section class="wpbb-settings-card"><h2><?php esc_html_e( 'Permissions', 'wp-buyer-blacklist' ); ?></h2><input name="wp_buyer_blacklist_allow_woocommerce_managers" type="hidden" value="0" /><label class="wpbb-toggle"><input id="wp-buyer-blacklist-allow-woocommerce-managers" name="wp_buyer_blacklist_allow_woocommerce_managers" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_allow_woocommerce_managers', true ) ); ?> /> <?php esc_html_e( 'Allow WooCommerce managers to manage Blacklist entries', 'wp-buyer-blacklist' ); ?></label><p class="description"><?php esc_html_e( 'This includes entries, CSV imports, and Blocked attempts.', 'wp-buyer-blacklist' ); ?></p></section>
+					<section class="wpbb-settings-card"><h2><?php esc_html_e( 'Notifications', 'wp-buyer-blacklist' ); ?></h2><input name="wp_buyer_blacklist_notify_blocked_attempts" type="hidden" value="0" /><label class="wpbb-toggle"><input name="wp_buyer_blacklist_notify_blocked_attempts" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_notify_blocked_attempts', false ) ); ?> /> <?php esc_html_e( 'Email me when a Buyer is blocked', 'wp-buyer-blacklist' ); ?></label><p><label for="wp-buyer-blacklist-notification-recipient"><?php esc_html_e( 'Recipient email address', 'wp-buyer-blacklist' ); ?></label><input class="regular-text" id="wp-buyer-blacklist-notification-recipient" name="wp_buyer_blacklist_notification_recipient" type="email" value="<?php echo esc_attr( get_option( 'wp_buyer_blacklist_notification_recipient', '' ) ); ?>"></p></section>
 					<section class="wpbb-settings-card wpbb-warning-card"><h2><?php esc_html_e( 'Data and cleanup', 'wp-buyer-blacklist' ); ?></h2><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" /><label class="wpbb-toggle"><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ); ?> /> <?php esc_html_e( 'Delete all Blacklist data when the plugin is uninstalled.', 'wp-buyer-blacklist' ); ?></label><p class="description"><?php esc_html_e( 'This is permanent. Export your data before uninstalling.', 'wp-buyer-blacklist' ); ?></p></section>
 					<?php submit_button(); ?>
 				</form>

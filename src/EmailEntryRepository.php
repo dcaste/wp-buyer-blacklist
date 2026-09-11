@@ -412,7 +412,7 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 	 * @return bool Whether the attempt was recorded.
 	 */
 	public function record_blocked_attempt( int $entry_id, string $identity_value ): bool {
-		return 1 === $this->database->insert(
+		$recorded = 1 === $this->database->insert(
 			$this->database->prefix . 'buyer_blacklist_blocked_attempts',
 			array(
 				'entry_id'       => $entry_id,
@@ -422,6 +422,15 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 			),
 			array( '%d', '%s', '%s', '%s' )
 		);
+		if ( $recorded && get_option( 'wp_buyer_blacklist_notify_blocked_attempts', false ) ) {
+			$recipient = get_option( 'wp_buyer_blacklist_notification_recipient', '' );
+			if ( is_string( $recipient ) && is_email( $recipient ) ) {
+				/* translators: %d: Blacklist entry identifier. */
+				wp_mail( $recipient, __( 'Buyer Blacklist blocked an attempt', 'wp-buyer-blacklist' ), sprintf( __( 'An active Blacklist entry blocked an order attempt. Entry ID: %d.', 'wp-buyer-blacklist' ), $entry_id ) );
+			}
+		}
+
+		return $recorded;
 	}
 
 	/**
