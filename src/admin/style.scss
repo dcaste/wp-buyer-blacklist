@@ -122,6 +122,13 @@
 	overflow-x: auto;
 }
 
+.wpbb-settings, .wpbb-settings-card { max-width: 900px; }
+.wpbb-settings-card { background: #fff; border: 1px solid var(--wpbb-border); border-radius: 8px; box-shadow: 0 1px 2px rgb(15 23 42 / 8%); margin: 24px 0; padding: 24px; }
+.wpbb-settings-card textarea { width: 100%; }
+.wpbb-message-preview { background: #f8fafc; border: 1px solid var(--wpbb-border); border-radius: 6px; padding: 16px; white-space: pre-wrap; }
+.wpbb-toggle { font-weight: 600; }
+.wpbb-warning-card { border-color: #92400e; }
+
 @media (max-width: 960px) {
 	.wpbb-summary {
 		grid-template-columns: 1fr;
