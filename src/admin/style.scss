@@ -105,12 +105,29 @@
 	margin: 0;
 }
 
+.wpbb-import-cards {
+	display: grid;
+	gap: 24px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wpbb-drop-target {
+	border: 2px dashed var(--wpbb-border);
+	border-radius: 6px;
+	padding: 24px;
+	text-align: center;
+}
+
 .wpbb-table-wrap {
 	overflow-x: auto;
 }
 
 @media (max-width: 960px) {
 	.wpbb-summary {
+		grid-template-columns: 1fr;
+	}
+
+	.wpbb-import-cards {
 		grid-template-columns: 1fr;
 	}
 
