@@ -830,6 +830,20 @@
 	}
 }
 
+.wpbb-settings-actions .button {
+	border-radius: 6px;
+}
+
+.wpbb-settings-reset-icon {
+	background: currentcolor;
+	display: inline-block;
+	height: 18px;
+	margin-right: 8px;
+	mask: center / contain no-repeat url('../../assets/admin-icons/reset.svg');
+	vertical-align: text-bottom;
+	width: 18px;
+}
+
 .wpbb-settings-warning {
 	align-items: center;
 	background: var(--wpbb-warning-bg);
