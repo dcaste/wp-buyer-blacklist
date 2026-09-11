@@ -422,14 +422,6 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 			),
 			array( '%d', '%s', '%s', '%s' )
 		);
-		if ( $recorded && get_option( 'wp_buyer_blacklist_notify_blocked_attempts', false ) ) {
-			$recipient = get_option( 'wp_buyer_blacklist_notification_recipient', '' );
-			if ( is_string( $recipient ) && is_email( $recipient ) ) {
-				/* translators: %d: Blacklist entry identifier. */
-				wp_mail( $recipient, __( 'Buyer Blacklist blocked an attempt', 'wp-buyer-blacklist' ), sprintf( __( 'An active Blacklist entry blocked an order attempt. Entry ID: %d.', 'wp-buyer-blacklist' ), $entry_id ) );
-			}
-		}
-
 		return $recorded;
 	}
 

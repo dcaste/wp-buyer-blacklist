@@ -506,6 +506,7 @@
 
 	.description {
 		color: var(--wpbb-muted);
+		margin: 0;
 	}
 }
 
@@ -515,10 +516,6 @@
 
 .wpbb-settings-permissions-card > h2::after {
 	mask-image: url('../../assets/admin-icons/permissions.svg');
-}
-
-.wpbb-settings-notifications-card > h2::after {
-	mask-image: url('../../assets/admin-icons/notifications.svg');
 }
 
 .wpbb-settings-cleanup-card > h2::after {
@@ -549,12 +546,34 @@
 }
 
 .wpbb-message-preview {
+	align-items: flex-start;
 	background: var(--wpbb-danger-bg);
 	border: 1px solid var(--wpbb-danger);
 	border-radius: 6px;
 	color: var(--wpbb-danger);
+	display: flex;
+	gap: 16px;
 	padding: 16px;
 	white-space: pre-wrap;
+
+	p {
+		font-weight: 600;
+		margin: 0;
+	}
+}
+
+.wpbb-message-preview-icon {
+	align-items: center;
+	background: var(--wpbb-danger);
+	border-radius: 50%;
+	color: var(--wpbb-surface);
+	display: inline-flex;
+	flex: 0 0 36px;
+	font-size: 24px;
+	font-weight: 700;
+	height: 36px;
+	justify-content: center;
+	line-height: 1;
 }
 
 .wpbb-settings .button-primary {
@@ -614,18 +633,22 @@
 }
 
 .wpbb-settings-message-card,
-.wpbb-settings-permissions-card {
+.wpbb-settings-permissions-card,
+.wpbb-settings-cleanup-card {
 	grid-column: 1 / -1;
 }
 
-.wpbb-settings-notifications-card {
-	grid-column: 2;
-	grid-row: 3;
-}
+.wpbb-settings-actions {
+	align-items: center;
+	display: flex;
+	gap: 16px;
+	grid-column: 1 / -1;
+	margin: 0;
 
-.wpbb-settings-cleanup-card {
-	grid-column: 1;
-	grid-row: 3;
+	.submit {
+		margin: 0;
+		padding: 0;
+	}
 }
 
 .wpbb-settings-warning {
@@ -643,6 +666,10 @@
 	font-size: 24px;
 	height: 24px;
 	width: 24px;
+}
+
+.wpbb-settings-warning p {
+	margin: 4px 0 0;
 }
 
 .wpbb-warning-card {

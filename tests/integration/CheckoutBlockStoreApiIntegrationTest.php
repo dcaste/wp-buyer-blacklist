@@ -7,6 +7,7 @@
 
 use WP_Buyer_Blacklist\EmailEntry;
 use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Plugin;
 
 /**
  * Covers the WooCommerce pre-payment checkout hook.
@@ -202,5 +203,22 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 		$this->assertNull( $event['entry_id'] );
 		$this->assertNull( $event['actor_id'] );
 		$this->assertNull( $event['actor_name'] );
+	}
+
+	/**
+	 * Restores every supported setting to its registered default.
+	 *
+	 * @return void
+	 */
+	public function test_resets_settings_to_defaults(): void {
+		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', false );
+		update_option( 'wp_buyer_blacklist_delete_data_on_uninstall', true );
+		update_option( 'wp_buyer_blacklist_buyer_message', 'Configured buyer message' );
+
+		( new Plugin( $this->entries ) )->reset_to_default_settings();
+
+		$this->assertTrue( get_option( 'wp_buyer_blacklist_allow_woocommerce_managers', true ) );
+		$this->assertFalse( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) );
+		$this->assertSame( 'We’re unable to process your order. Please contact us for assistance.', get_option( 'wp_buyer_blacklist_buyer_message', 'We’re unable to process your order. Please contact us for assistance.' ) );
 	}
 }
