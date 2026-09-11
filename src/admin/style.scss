@@ -207,6 +207,10 @@
 	padding: 24px;
 }
 
+#wp-buyer-blacklist-admin .wpbb-page > * + * {
+	margin-top: 24px;
+}
+
 .wpbb-card {
 	h2,
 	h3 {
@@ -273,6 +277,7 @@
 }
 
 .wpbb-entry-form h2,
+.wpbb-entry-form .wpbb-entry-form-intro,
 .wpbb-entry-form .wpbb-entry-reason {
 	grid-column: 1 / -1;
 }
@@ -290,9 +295,23 @@
 	justify-self: start;
 }
 
-.wpbb-entry-form .button-link {
-	align-self: center;
-	justify-self: start;
+.wpbb-entry-form-intro {
+	color: var(--wpbb-muted);
+	font-size: 14px;
+	line-height: 20px;
+}
+
+.wpbb-entry-form small {
+	color: var(--wpbb-muted);
+	display: block;
+	font-size: 12px;
+	line-height: 18px;
+	margin-top: 4px;
+}
+
+.wpbb-entry-reason {
+	border-top: 1px solid var(--wpbb-border);
+	padding-top: 16px;
 }
 
 .wpbb-icon-tile {
@@ -364,10 +383,31 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 12px;
+	justify-content: flex-end;
+	margin-bottom: 24px;
 }
 
 .wpbb-filters p {
 	margin: 0;
+}
+
+.wpbb-entries-card {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.wpbb-entries-card > h2 {
+	align-self: center;
+}
+
+.wpbb-entries-card > .wpbb-table-wrap,
+.wpbb-entries-card > .tablenav {
+	grid-column: 1 / -1;
+}
+
+#wp-buyer-blacklist-admin .wpbb-entries-card .wp-buyer-blacklist-status-badge.is-inactive {
+	background: var(--wpbb-danger-bg);
+	color: var(--wpbb-danger);
 }
 
 .wpbb-import-cards {
@@ -834,7 +874,17 @@
 	}
 
 	.wpbb-entry-form h2,
+	.wpbb-entry-form .wpbb-entry-form-intro,
 	.wpbb-entry-form .wpbb-entry-reason {
 		grid-column: auto;
+	}
+
+	.wpbb-entries-card {
+		grid-template-columns: 1fr;
+	}
+
+	.wpbb-filters {
+		grid-column: 1;
+		justify-content: stretch;
 	}
 }

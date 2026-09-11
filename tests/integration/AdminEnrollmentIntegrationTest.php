@@ -23,8 +23,8 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 		$output  = apply_filters( 'manage_users_custom_column', '', 'wp_buyer_blacklist', $customer->ID );
 
 		$this->assertArrayHasKey( 'wp_buyer_blacklist', $columns );
-		$this->assertStringContainsString( 'Not listed', $output );
 		$this->assertStringContainsString( 'Enroll', $output );
+		$this->assertStringNotContainsString( 'wp-buyer-blacklist-status-badge', $output );
 		$this->assertSame( array(), apply_filters( 'user_row_actions', array(), $customer ) );
 	}
 

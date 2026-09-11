@@ -96,7 +96,7 @@ final class SourceEnrollment {
 
 		$entries = $this->matching_customer_entries( $user_id );
 		if ( array() === $entries ) {
-			return '<span class="wp-buyer-blacklist-status-badge is-not-listed">' . esc_html__( 'Not listed', 'wp-buyer-blacklist' ) . '</span><br><button type="button" class="button-link wp-buyer-blacklist-enroll-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '">' . esc_html__( 'Enroll', 'wp-buyer-blacklist' ) . '</button>';
+			return '<button type="button" class="button-link wp-buyer-blacklist-enroll-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '">' . esc_html__( 'Enroll', 'wp-buyer-blacklist' ) . '</button>';
 		}
 		$entry_ids = array_column( $entries, 'id' );
 		$entries   = array_values(

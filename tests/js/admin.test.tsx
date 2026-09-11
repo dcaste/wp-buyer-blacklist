@@ -14,6 +14,9 @@ test( 'renders WordPress-style Manage entries controls', async () => {
 	expect( container.querySelector( 'input[type="email"]' ) ).not.toBeNull();
 	expect( container.querySelector( 'table.widefat' ) ).not.toBeNull();
 	expect( container.textContent ).toContain( 'Match type' );
+	expect( container.textContent ).toContain( 'Choose the Buyer detail to match during checkout.' );
+	expect( container.textContent ).toContain( 'Enter the full email address to block.' );
+	expect( container.textContent ).not.toContain( 'Import CSV' );
 	expect( container.textContent ).toContain( 'Total entries' );
 	expect( container.textContent ).toContain( 'Blocked attempts' );
 } );
@@ -84,6 +87,8 @@ test( 'renders structured address fields when an address Match type is selected'
 	expect( container.querySelector( '#wp-buyer-blacklist-country' ) ).not.toBeNull();
 	expect( container.querySelector( 'label[for="wp-buyer-blacklist-address_line_1"]' )?.textContent ).toBe( 'Address line 1' );
 	expect( container.querySelector( 'label[for="wp-buyer-blacklist-country"]' )?.textContent ).toBe( 'Country' );
+	expect( container.textContent ).toContain( 'Enter the building number and street name.' );
+	expect( container.textContent ).toContain( 'Enter the two-letter country code, such as US.' );
 } );
 
 test( 'loads Audit history and Blocked attempts when an entry is managed', async () => {
