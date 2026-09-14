@@ -1,0 +1,72 @@
+/* Responsive layout changes. */
+@media (min-width: 600px) {
+	#wp-buyer-blacklist-admin {
+		padding: 24px;
+	}
+
+	.wpbb-filters > * {
+		width: auto;
+	}
+
+	.wpbb-entry-form {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.wpbb-entry-form h2,
+	.wpbb-entry-form .wpbb-entry-form-intro,
+	.wpbb-entry-form .wpbb-entry-reason {
+		grid-column: 1 / -1;
+	}
+
+	.wpbb-entries-card {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.wpbb-filters {
+		grid-column: auto;
+		justify-content: flex-end;
+	}
+}
+
+@media (min-width: 960px) {
+	.wpbb-summary {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	.wpbb-import-cards {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.wpbb-card,
+	.wpbb-settings-card,
+	#wp-buyer-blacklist-entry-dialog,
+	#wp-buyer-blacklist-enroll-customer-dialog,
+	#wp-buyer-blacklist-manage-customer-dialog {
+		padding: 24px;
+	}
+
+	.wpbb-settings {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.wpbb-settings-message-content {
+		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+	}
+
+	.wpbb-settings-message-content > :last-child {
+		border-left: 1px solid var(--wpbb-border);
+		border-top: 0;
+		padding-left: 24px;
+		padding-top: 0;
+	}
+
+	.wpbb-settings-message-card,
+	.wpbb-settings-permissions-card,
+	.wpbb-settings-cleanup-card {
+		grid-column: 1 / -1;
+	}
+
+	.wpbb-entry-dialog-grid {
+		grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr);
+	}
+}
