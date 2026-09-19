@@ -1,0 +1,25 @@
+/* WooCommerce page chrome and nav tabs. */
+.woocommerce_page_wp-buyer-blacklist {
+	background: var(--wpbb-page);
+	color: var(--wpbb-text);
+
+	.nav-tab-wrapper .nav-tab {
+		border-color: var(--wpbb-border);
+		color: var(--wpbb-muted);
+		font-weight: 600;
+	}
+
+	.nav-tab-wrapper .nav-tab:hover,
+	.nav-tab-wrapper .nav-tab-active {
+		background: var(--wpbb-surface);
+		color: var(--wpbb-primary);
+	}
+
+	.nav-tab-wrapper .nav-tab-active {
+		border-bottom: 3px solid var(--wpbb-primary);
+	}
+}
+
+.woocommerce_page_wp-buyer-blacklist .form-table textarea.large-text {
+	min-height: 112px;
+}

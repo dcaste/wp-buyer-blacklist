@@ -1,0 +1,78 @@
+/* Defaults for everything inside the React root. */
+#wp-buyer-blacklist-admin {
+	background: var(--wpbb-page);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	padding: var(--wpbb-space-16);
+
+	button,
+	a,
+	input,
+	select,
+	textarea {
+		&:focus-visible {
+			outline: 2px solid var(--wpbb-focus);
+			outline-offset: 2px;
+		}
+	}
+
+	label {
+		display: block;
+		font-size: 14px;
+		font-weight: 600;
+		line-height: 20px;
+		margin-bottom: var(--wpbb-space-4);
+	}
+
+	input:not([type='checkbox']):not([type='radio']),
+	select,
+	textarea {
+		background: var(--wpbb-surface);
+		border: 1px solid var(--wpbb-input-border);
+		border-radius: var(--wpbb-radius-md);
+		box-shadow: none;
+		box-sizing: border-box;
+		color: var(--wpbb-text);
+		font-size: 14px;
+		line-height: 20px;
+		max-width: 100%;
+		padding: var(--wpbb-space-8) var(--wpbb-space-12);
+	}
+
+	input:not([type='checkbox']):not([type='radio']),
+	select {
+		min-height: 38px;
+	}
+
+	textarea.large-text {
+		min-height: 112px;
+		width: 100%;
+	}
+
+	.button,
+	.button-link {
+		border-radius: var(--wpbb-radius-md);
+		font-weight: 600;
+	}
+
+	.button-primary {
+		background: var(--wpbb-primary);
+		border-color: var(--wpbb-primary);
+		box-shadow: none;
+		color: var(--wpbb-surface);
+	}
+
+	.button-primary:hover,
+	.button-primary:focus {
+		background: var(--wpbb-primary-hover);
+		border-color: var(--wpbb-primary-hover);
+		color: var(--wpbb-surface);
+	}
+
+	[role='status'] {
+		background: var(--wpbb-surface);
+		border-left: 4px solid var(--wpbb-primary);
+		box-shadow: 0 1px 2px rgb(15 23 42 / 8%);
+		margin: var(--wpbb-space-16) 0;
+		padding: var(--wpbb-space-8) var(--wpbb-space-12);
+	}
+}

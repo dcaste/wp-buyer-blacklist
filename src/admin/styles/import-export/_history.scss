@@ -1,0 +1,55 @@
+/* Recent imports table. */
+#wp-buyer-blacklist-admin {
+	.wpbb-import-history h2 {
+		margin-bottom: var(--wpbb-space-4);
+	}
+
+	.wpbb-import-history > .description {
+		color: var(--wpbb-muted);
+		margin-top: 0;
+	}
+
+	.wpbb-import-history .widefat {
+		border-color: var(--wpbb-border);
+		border-radius: var(--wpbb-radius-md);
+		border-spacing: 0;
+		box-shadow: none;
+		overflow: hidden;
+	}
+
+	.wpbb-import-history .widefat th {
+		background: var(--wpbb-surface-subtle);
+		border-bottom-color: var(--wpbb-border);
+		color: var(--wpbb-text);
+		font-weight: 600;
+	}
+
+	.wpbb-import-history .widefat td {
+		border-bottom-color: var(--wpbb-border);
+		color: var(--wpbb-text);
+	}
+
+	.wpbb-import-status {
+		border-radius: var(--wpbb-radius-pill);
+		display: inline-block;
+		font-size: 12px;
+		font-weight: 600;
+		line-height: 18px;
+		padding: var(--wpbb-space-2) var(--wpbb-space-8);
+	}
+
+	.wpbb-import-status.is-completed {
+		background: var(--wpbb-success-bg);
+		color: var(--wpbb-success);
+	}
+
+	.wpbb-import-status.is-warning {
+		background: var(--wpbb-warning-bg);
+		color: var(--wpbb-warning);
+	}
+
+	.wpbb-import-status.is-failed {
+		background: var(--wpbb-danger-bg);
+		color: var(--wpbb-danger);
+	}
+}

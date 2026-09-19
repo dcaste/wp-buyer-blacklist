@@ -1,0 +1,19 @@
+/* Settings buttons. */
+#wp-buyer-blacklist-admin {
+	.wpbb-settings .button-primary {
+		background: var(--wpbb-primary);
+		border-color: var(--wpbb-primary);
+		box-shadow: none;
+	}
+
+	.wpbb-settings .button-primary:hover,
+	.wpbb-settings .button-primary:focus {
+		background: var(--wpbb-primary-hover);
+		border-color: var(--wpbb-primary-hover);
+	}
+
+	.wpbb-settings .button:focus-visible {
+		outline: 2px solid var(--wpbb-focus);
+		outline-offset: 2px;
+	}
+}

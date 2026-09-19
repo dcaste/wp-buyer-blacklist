@@ -1,0 +1,12 @@
+/* Reason editor section. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	.wpbb-entry-reason-editor label {
+		position: absolute;
+		clip-path: inset(50%);
+	}
+
+	.wpbb-entry-reason-editor textarea {
+		margin-top: var(--wpbb-space-12);
+	}
+}

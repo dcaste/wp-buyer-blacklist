@@ -1,0 +1,110 @@
+/* Audit history and blocked attempts panels. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	.wpbb-entry-dialog-panel {
+		padding: var(--wpbb-space-20);
+	}
+
+	.wpbb-entry-dialog-panel h3 {
+		font-size: 20px;
+		margin-bottom: var(--wpbb-space-16);
+	}
+
+	.wpbb-entry-dialog-panel h3 .wpbb-icon-tile {
+		background: transparent;
+		color: var(--wpbb-text);
+		flex-basis: 28px;
+		height: 28px;
+		margin-right: 0;
+		width: 28px;
+	}
+
+	.wpbb-entry-dialog-panel h3 .wpbb-icon-tile::before {
+		background: currentcolor;
+	}
+
+	.wpbb-audit-history ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.wpbb-audit-history li {
+		border-top: 1px solid var(--wpbb-border);
+		display: grid;
+		gap: var(--wpbb-space-2);
+		grid-template-columns: minmax(0, 1fr) auto;
+		padding: var(--wpbb-space-16) 0 var(--wpbb-space-16) calc(var(--wpbb-space-24) + var(--wpbb-space-6));
+		position: relative;
+	}
+
+	.wpbb-audit-history li::before {
+		background: var(--wpbb-primary);
+		border: 3px solid var(--wpbb-surface);
+		border-radius: var(--wpbb-radius-circle);
+		box-shadow: 0 0 0 1px var(--wpbb-border);
+		content: '';
+		height: 10px;
+		left: 8px;
+		position: absolute;
+		top: 20px;
+		width: 10px;
+	}
+
+	.wpbb-audit-history li strong {
+		grid-column: 1;
+	}
+
+	.wpbb-audit-history li span,
+	.wpbb-audit-history time {
+		color: var(--wpbb-muted);
+		font-size: 12px;
+	}
+
+	.wpbb-audit-history time {
+		grid-column: 2;
+		grid-row: 1 / span 2;
+		text-align: right;
+	}
+
+	.wpbb-attempt-count {
+		background: var(--wpbb-neutral-bg);
+		border-radius: var(--wpbb-radius-circle);
+		font-size: 14px;
+		margin-left: auto;
+		padding: var(--wpbb-space-6) var(--wpbb-space-12);
+	}
+
+	.wpbb-no-attempts {
+		align-items: center;
+		border: 1px solid var(--wpbb-border);
+		border-radius: var(--wpbb-radius-md);
+		display: flex;
+		flex-direction: column;
+		gap: var(--wpbb-space-12);
+		padding: var(--wpbb-space-24);
+		text-align: center;
+	}
+
+	.wpbb-no-attempts .wpbb-icon-tile {
+		color: var(--wpbb-primary);
+	}
+
+	.wpbb-no-attempts p {
+		color: var(--wpbb-muted);
+		margin: 0 !important;
+	}
+
+	.wpbb-attempts-note {
+		align-items: center;
+		background: #eaf1ff;
+		border: 1px solid var(--wpbb-border);
+		border-radius: var(--wpbb-radius-md);
+		color: var(--wpbb-muted);
+		display: flex;
+		font-size: 12px;
+		gap: var(--wpbb-space-12);
+		margin: 0 !important;
+		padding: var(--wpbb-space-12);
+	}
+}

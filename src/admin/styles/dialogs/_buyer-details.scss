@@ -1,0 +1,54 @@
+/* Buyer details section. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	.wpbb-buyer-details-card {
+		align-items: center;
+		border: 1px solid var(--wpbb-border);
+		border-radius: var(--wpbb-radius-md);
+		display: grid;
+		gap: var(--wpbb-space-12) var(--wpbb-space-16);
+		grid-template-columns: 56px minmax(0, 1fr);
+		margin-top: var(--wpbb-space-16);
+		padding: var(--wpbb-space-16);
+	}
+
+	.wpbb-buyer-avatar {
+		align-items: center;
+		background: var(--wpbb-neutral-bg);
+		border-radius: var(--wpbb-radius-circle);
+		color: var(--wpbb-muted);
+		display: flex;
+		height: 56px;
+		justify-content: center;
+		width: 56px;
+	}
+
+	.wpbb-buyer-identity strong,
+	.wpbb-buyer-identity span {
+		display: block;
+	}
+
+	.wpbb-buyer-identity strong {
+		font-size: 18px;
+	}
+
+	.wpbb-buyer-addresses {
+		border-top: 1px solid var(--wpbb-border);
+		display: grid;
+		gap: var(--wpbb-space-16);
+		grid-column: 1 / -1;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		padding-top: var(--wpbb-space-12);
+	}
+
+	.wpbb-buyer-addresses > div {
+		display: flex;
+		gap: var(--wpbb-space-12);
+	}
+
+	.wpbb-buyer-addresses p,
+	.wpbb-entry-reason-editor p,
+	.wpbb-entry-status-editor p {
+		margin: 0 !important;
+	}
+}

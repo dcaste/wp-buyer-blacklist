@@ -1,0 +1,22 @@
+/* Dashboard summary cards. */
+#wp-buyer-blacklist-admin {
+	.wpbb-summary {
+		display: grid;
+		gap: var(--wpbb-space-16);
+		grid-template-columns: 1fr;
+	}
+
+	.wpbb-summary .wpbb-card {
+		display: flex;
+		gap: var(--wpbb-space-16);
+		margin-bottom: 0;
+	}
+
+	.wpbb-summary .wpbb-card p {
+		color: var(--wpbb-muted);
+		font-size: 14px;
+		font-weight: 600;
+		line-height: 20px;
+		margin: 0 0 var(--wpbb-space-4);
+	}
+}

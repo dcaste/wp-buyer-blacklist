@@ -1,0 +1,47 @@
+/* Entry dialog grid. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	.wpbb-entry-dialog-grid {
+		display: grid;
+		gap: var(--wpbb-space-16);
+		grid-template-columns: 1fr;
+	}
+
+	.wpbb-entry-dialog-main,
+	.wpbb-entry-dialog-panel {
+		background: var(--wpbb-surface);
+		border: 1px solid var(--wpbb-border);
+		border-radius: var(--wpbb-radius-lg);
+		padding: var(--wpbb-space-16);
+	}
+
+	.wpbb-entry-dialog-main > p:first-child {
+		background: var(--wpbb-surface-subtle);
+		border-radius: var(--wpbb-radius-md);
+		padding: var(--wpbb-space-12);
+	}
+
+	.wpbb-entry-dialog-details {
+		align-content: start;
+		display: grid;
+		gap: var(--wpbb-space-16);
+	}
+
+	.wpbb-entry-dialog-panel h3 {
+		align-items: center;
+		display: flex;
+		font-size: 16px;
+		line-height: 24px;
+		margin: 0 0 var(--wpbb-space-12);
+	}
+
+	.wpbb-entry-dialog-panel .wpbb-icon-tile {
+		margin-right: var(--wpbb-space-12);
+	}
+
+	.wpbb-entry-dialog-main {
+		background: transparent;
+		border: 0;
+		padding: 0;
+	}
+}

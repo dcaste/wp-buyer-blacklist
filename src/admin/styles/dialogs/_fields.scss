@@ -1,0 +1,50 @@
+/* Dialog form fields. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	#wp-buyer-blacklist-entry-dialog p,
+	#wp-buyer-blacklist-enroll-customer-dialog p,
+	#wp-buyer-blacklist-manage-customer-dialog p,
+	.wp-buyer-blacklist-enrollment-form p {
+		margin: var(--wpbb-space-16) 0;
+	}
+
+	#wp-buyer-blacklist-entry-dialog label,
+	#wp-buyer-blacklist-enroll-customer-dialog label,
+	#wp-buyer-blacklist-manage-customer-dialog label,
+	.wp-buyer-blacklist-enrollment-form label {
+		display: block;
+		font-size: 14px;
+		font-weight: 600;
+		line-height: 20px;
+		margin-bottom: var(--wpbb-space-4);
+	}
+
+	#wp-buyer-blacklist-entry-dialog select,
+	#wp-buyer-blacklist-enroll-customer-dialog select,
+	#wp-buyer-blacklist-manage-customer-dialog select,
+	.wp-buyer-blacklist-enrollment-form select,
+	#wp-buyer-blacklist-entry-dialog textarea,
+	#wp-buyer-blacklist-enroll-customer-dialog textarea,
+	#wp-buyer-blacklist-manage-customer-dialog textarea,
+	.wp-buyer-blacklist-enrollment-form textarea {
+		border-color: var(--wpbb-input-border);
+		border-radius: var(--wpbb-radius-md);
+		box-shadow: none;
+		max-width: 100%;
+		width: 100%;
+	}
+
+	#wp-buyer-blacklist-entry-dialog textarea,
+	#wp-buyer-blacklist-enroll-customer-dialog textarea,
+	#wp-buyer-blacklist-manage-customer-dialog textarea,
+	.wp-buyer-blacklist-enrollment-form textarea {
+		min-height: 112px;
+	}
+
+	#wp-buyer-blacklist-entry-dialog small {
+		color: var(--wpbb-muted);
+		display: block;
+		margin-top: var(--wpbb-space-4);
+		text-align: right;
+	}
+}

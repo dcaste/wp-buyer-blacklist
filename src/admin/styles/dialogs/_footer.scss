@@ -1,0 +1,48 @@
+/* Dialog footer and delete action. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	.wpbb-entry-dialog-footer {
+		align-items: center;
+		border-top: 1px solid var(--wpbb-border);
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--wpbb-space-12);
+		justify-content: space-between;
+		margin: var(--wpbb-space-24) 0 var(--wpbb-space-16);
+		padding-top: var(--wpbb-space-16);
+	}
+
+	.wpbb-entry-dialog-footer .button-primary {
+		margin-left: auto;
+	}
+
+	.wp-buyer-blacklist-delete-entry {
+		background: var(--wpbb-surface);
+		border-color: var(--wpbb-danger);
+		color: var(--wpbb-danger);
+	}
+
+	.wp-buyer-blacklist-delete-entry:hover,
+	.wp-buyer-blacklist-delete-entry:focus {
+		background: var(--wpbb-danger-bg);
+		border-color: var(--wpbb-danger);
+		color: var(--wpbb-danger);
+	}
+
+	.wpbb-entry-dialog-footer {
+		border-top: 1px solid var(--wpbb-border);
+		margin: var(--wpbb-space-16) 0 0;
+	}
+
+	.wpbb-entry-dialog-footer > div > p {
+		color: var(--wpbb-muted);
+		font-size: 12px;
+		margin: var(--wpbb-space-6) 0 0 !important;
+	}
+
+	.wpbb-entry-dialog-footer > a {
+		color: var(--wpbb-primary);
+		font-weight: 600;
+		margin-left: auto;
+	}
+}

@@ -1,0 +1,39 @@
+/* Blacklist entries card, filters and table. */
+#wp-buyer-blacklist-admin {
+	.wpbb-filters {
+		align-items: end;
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--wpbb-space-12);
+		grid-column: 1;
+		justify-content: stretch;
+		margin-bottom: var(--wpbb-space-24);
+	}
+
+	.wpbb-filters > * {
+		width: 100%;
+	}
+
+	.wpbb-filters p {
+		margin: 0;
+	}
+
+	.wpbb-entries-card {
+		display: grid;
+		grid-template-columns: 1fr;
+	}
+
+	.wpbb-entries-card > h2 {
+		align-self: center;
+	}
+
+	.wpbb-entries-card > .wpbb-table-wrap,
+	.wpbb-entries-card > .tablenav {
+		grid-column: 1 / -1;
+	}
+
+	.wpbb-entries-card .wp-buyer-blacklist-status-badge.is-inactive {
+		background: var(--wpbb-danger-bg);
+		color: var(--wpbb-danger);
+	}
+}

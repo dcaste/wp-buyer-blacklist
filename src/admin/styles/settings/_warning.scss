@@ -1,0 +1,27 @@
+/* Settings warning notes. */
+#wp-buyer-blacklist-admin {
+	.wpbb-settings-warning {
+		align-items: center;
+		background: var(--wpbb-warning-bg);
+		border: 1px solid var(--wpbb-warning);
+		border-radius: var(--wpbb-radius-md);
+		color: var(--wpbb-warning);
+		display: flex;
+		gap: var(--wpbb-space-12);
+		padding: var(--wpbb-space-12);
+	}
+
+	.wpbb-settings-warning .dashicons {
+		font-size: 24px;
+		height: 24px;
+		width: 24px;
+	}
+
+	.wpbb-settings-warning p {
+		margin: var(--wpbb-space-4) 0 0;
+	}
+
+	.wpbb-warning-card {
+		border-color: var(--wpbb-warning);
+	}
+}
