@@ -13,8 +13,8 @@
 	<arg name="extensions" value="php"/>
 
 	<rule ref="WordPress-Extra">
-		<!-- Files here follow the existing "class-<concern>.php" convention
-		     rather than WP core's full-class-name file naming. -->
+		<!-- Classes autoload through PSR-4, so each file is named after its
+		     PascalCase class (Plugin.php), not WP core's class-<name>.php. -->
 		<exclude name="WordPress.Files.FileName"/>
 	</rule>
 	<rule ref="WordPress-Docs"/>
