@@ -9,12 +9,21 @@ use WP_Buyer_Blacklist\AddressEntry;
 use WP_Buyer_Blacklist\CustomerIdEntry;
 use WP_Buyer_Blacklist\EmailEntry;
 use WP_Buyer_Blacklist\EmailEntryRepository;
-use WP_Buyer_Blacklist\Plugin;
 
 /**
  * Covers the entry-management Buyer context boundary.
  */
 class BuyerContextIntegrationTest extends WP_UnitTestCase {
+
+	/**
+	 * Signs in a Blacklist operator.
+	 *
+	 * @return void
+	 */
+	public function set_up(): void {
+		parent::set_up();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+	}
 
 	/**
 	 * Resolves a Customer-ID entry to the current registered Buyer.
@@ -44,7 +53,7 @@ class BuyerContextIntegrationTest extends WP_UnitTestCase {
 		$entries = new EmailEntryRepository( $wpdb );
 		$this->assertTrue( $entries->create_customer_id( CustomerIdEntry::from_customer_id( $buyer_id ), 'Fraud' ) );
 
-		$result = $this->buyer_context( new Plugin( $entries ), (int) $entries->all()[0]['id'] );
+		$result = $this->buyer_context( (int) $entries->all()[0]['id'] );
 
 		$this->assertSame( $buyer_id, $result['buyer']['id'] );
 		$this->assertSame( 'Ada Lovelace', $result['buyer']['name'] );
@@ -69,10 +78,9 @@ class BuyerContextIntegrationTest extends WP_UnitTestCase {
 		$entries = new EmailEntryRepository( $wpdb );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'buyer@example.com' ), 'Fraud' ) );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'guest@example.com' ), 'Fraud' ) );
-		$plugin = new Plugin( $entries );
 
-		$this->assertSame( 'buyer@example.com', $this->buyer_context( $plugin, (int) $entries->all()[1]['id'] )['buyer']['email'] );
-		$this->assertNull( $this->buyer_context( $plugin, (int) $entries->all()[0]['id'] )['buyer'] );
+		$this->assertSame( 'buyer@example.com', $this->buyer_context( (int) $entries->all()[1]['id'] )['buyer']['email'] );
+		$this->assertNull( $this->buyer_context( (int) $entries->all()[0]['id'] )['buyer'] );
 	}
 
 	/**
@@ -97,22 +105,21 @@ class BuyerContextIntegrationTest extends WP_UnitTestCase {
 		);
 		$this->assertTrue( $entries->create_address( $address, 'Fraud' ) );
 
-		$result = $this->buyer_context( new Plugin( $entries ), (int) $entries->all()[0]['id'] );
+		$result = $this->buyer_context( (int) $entries->all()[0]['id'] );
 
 		$this->assertNull( $result['buyer'] );
 		$this->assertSame( 'No uniquely identified registered Buyer.', $result['message'] );
 	}
 
 	/**
-	 * Requests context through the modal endpoint callback.
+	 * Requests context through the modal endpoint.
 	 *
-	 * @param Plugin $plugin   Plugin.
-	 * @param int    $entry_id Entry identifier.
+	 * @param int $entry_id Entry identifier.
 	 * @return array<string, mixed> Buyer context.
 	 */
-	private function buyer_context( Plugin $plugin, int $entry_id ): array {
-		$request = new WP_REST_Request( 'GET', '/wp-buyer-blacklist/v1/email-entries/' . $entry_id . '/buyer-context' );
-		$request->set_param( 'id', $entry_id );
-		return $plugin->get_buyer_context( $request );
+	private function buyer_context( int $entry_id ): array {
+		$response = rest_do_request( new WP_REST_Request( 'GET', '/wp-buyer-blacklist/v1/email-entries/' . $entry_id . '/buyer-context' ) );
+		$this->assertSame( 200, $response->get_status() );
+		return $response->get_data();
 	}
 }

@@ -9,7 +9,6 @@ use WP_Buyer_Blacklist\AddressEntry;
 use WP_Buyer_Blacklist\CustomerIdEntry;
 use WP_Buyer_Blacklist\EmailEntry;
 use WP_Buyer_Blacklist\EmailEntryRepository;
-use WP_Buyer_Blacklist\Plugin;
 
 /**
  * Covers confirmation of validated imports.
@@ -25,15 +24,16 @@ class CsvImportIntegrationTest extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		global $wpdb;
 		$repository = new EmailEntryRepository( $wpdb );
-		$plugin     = new Plugin( $repository );
 		$validation = new WP_REST_Request( 'POST', '/wp-buyer-blacklist/v1/csv-import/validate' );
 		$validation->set_param( 'csv', "match_type,email,reason\nemail,imported@example.com,CSV test\n" );
-		$validation = $plugin->validate_csv_import( $validation );
+		$validation = rest_do_request( $validation );
+		$this->assertSame( 200, $validation->get_status() );
 
 		$this->assertSame( 1, $validation->get_data()['valid'] );
 		$confirmation = new WP_REST_Request( 'POST', '/wp-buyer-blacklist/v1/csv-import/confirm' );
 		$confirmation->set_param( 'token', $validation->get_data()['token'] );
-		$result = $plugin->confirm_csv_import( $confirmation );
+		$result = rest_do_request( $confirmation );
+		$this->assertSame( 200, $result->get_status() );
 
 		$this->assertSame( 1, $result->get_data()['created'] );
 		$this->assertSame( 'imported@example.com', $repository->all()[0]['value'] );
@@ -49,7 +49,6 @@ class CsvImportIntegrationTest extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		global $wpdb;
 		$repository = new EmailEntryRepository( $wpdb );
-		$plugin     = new Plugin( $repository );
 		$address    = array(
 			'address_line_1' => '1 Test Street',
 			'address_line_2' => 'Apt 2',
@@ -78,11 +77,13 @@ class CsvImportIntegrationTest extends WP_UnitTestCase {
 		}
 		$validation = new WP_REST_Request( 'POST', '/wp-buyer-blacklist/v1/csv-import/validate' );
 		$validation->set_param( 'csv', $csv );
-		$validation = $plugin->validate_csv_import( $validation );
+		$validation = rest_do_request( $validation );
+		$this->assertSame( 200, $validation->get_status() );
 		$this->assertSame( 4, $validation->get_data()['valid'] );
 		$confirmation = new WP_REST_Request( 'POST', '/wp-buyer-blacklist/v1/csv-import/confirm' );
 		$confirmation->set_param( 'token', $validation->get_data()['token'] );
-		$result = $plugin->confirm_csv_import( $confirmation );
+		$result = rest_do_request( $confirmation );
+		$this->assertSame( 200, $result->get_status() );
 
 		$this->assertSame( 4, $result->get_data()['created'] );
 		$statuses = array_column( $repository->all(), 'is_active', 'match_type' );
