@@ -24,3 +24,5 @@ tests_add_filter(
 );
 
 require_once $wordpress_tests_dir . '/includes/bootstrap.php';
+require_once __DIR__ . '/support/RedirectException.php';
+require_once __DIR__ . '/support/AdminPostRequests.php';

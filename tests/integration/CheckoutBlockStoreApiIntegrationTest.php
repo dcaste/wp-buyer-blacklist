@@ -7,12 +7,13 @@
 
 use WP_Buyer_Blacklist\EmailEntry;
 use WP_Buyer_Blacklist\EmailEntryRepository;
-use WP_Buyer_Blacklist\Plugin;
 
 /**
  * Covers the WooCommerce pre-payment checkout hook.
  */
 class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
+
+	use AdminPostRequests;
 
 	/**
 	 * Email entry storage.
@@ -231,7 +232,11 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 		update_option( 'wp_buyer_blacklist_delete_data_on_uninstall', true );
 		update_option( 'wp_buyer_blacklist_buyer_message', 'Configured buyer message' );
 
-		( new Plugin( $this->entries ) )->reset_to_default_settings();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$location = $this->submit_admin_post( 'wp_buyer_blacklist_reset_settings', array( '_wpnonce' => wp_create_nonce( 'wp_buyer_blacklist_reset_settings' ) ) );
+
+		$this->assertStringContainsString( 'wp_buyer_blacklist_settings=reset', $location );
 
 		$this->assertTrue( get_option( 'wp_buyer_blacklist_allow_woocommerce_managers', true ) );
 		$this->assertFalse( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) );

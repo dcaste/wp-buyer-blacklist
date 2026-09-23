@@ -10,6 +10,8 @@
  */
 class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 
+	use AdminPostRequests;
+
 	/**
 	 * Adds an enrollment link to the Customer Blacklist column.
 	 *
@@ -189,9 +191,8 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 			)
 		);
 		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
-		$enrollment  = new \WP_Buyer_Blacklist\SourceEnrollment( $repository, new \WP_Buyer_Blacklist\OperatorAccess() );
 
-		$this->assertSame( 'created', $enrollment->enroll_customer( $customer_id, 'email', 'Fraud' ) );
+		$this->assertSame( 'created', $this->enroll_customer( $customer_id, 'email', 'Fraud' ) );
 		$entry = $repository->all()[0];
 
 		$this->assertSame( 'email', $entry['match_type'] );
@@ -214,10 +215,9 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 			)
 		);
 		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
-		$enrollment  = new \WP_Buyer_Blacklist\SourceEnrollment( $repository, new \WP_Buyer_Blacklist\OperatorAccess() );
 
-		$this->assertSame( 'created', $enrollment->enroll_customer( $customer_id, 'email', 'Fraud' ) );
-		$this->assertSame( 'duplicate', $enrollment->enroll_customer( $customer_id, 'email', 'Fraud' ) );
+		$this->assertSame( 'created', $this->enroll_customer( $customer_id, 'email', 'Fraud' ) );
+		$this->assertSame( 'duplicate', $this->enroll_customer( $customer_id, 'email', 'Fraud' ) );
 		$this->assertCount( 1, $repository->all() );
 	}
 
@@ -233,9 +233,37 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
 		$customer_id = self::factory()->user->create( array( 'role' => 'customer' ) );
 		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
-		$enrollment  = new \WP_Buyer_Blacklist\SourceEnrollment( $repository, new \WP_Buyer_Blacklist\OperatorAccess() );
 
-		$this->assertSame( 'denied', $enrollment->enroll_customer( $customer_id, 'customer_id', 'Fraud' ) );
+		try {
+			$this->enroll_customer( $customer_id, 'customer_id', 'Fraud' );
+			$this->fail( 'A manager without operator access enrolled a Customer.' );
+		} catch ( WPDieException $denied ) {
+			$this->assertSame( 403, $denied->getCode() );
+		}
 		$this->assertSame( array(), $repository->all() );
+	}
+
+	/**
+	 * Submits the Users-list enrollment form.
+	 *
+	 * @param int    $customer_id WordPress user ID.
+	 * @param string $match_type  Selected Match type.
+	 * @param string $reason      Operator reason.
+	 * @return string Enrollment result reported on the Users screen.
+	 */
+	private function enroll_customer( int $customer_id, string $match_type, string $reason ): string {
+		$location = $this->submit_admin_post(
+			'wp_buyer_blacklist_enroll_customer',
+			array(
+				'_wpnonce'    => wp_create_nonce( 'wp_buyer_blacklist_enroll_customer' ),
+				'customer_id' => (string) $customer_id,
+				'match_type'  => $match_type,
+				'reason'      => $reason,
+			)
+		);
+		parse_str( (string) wp_parse_url( $location, PHP_URL_QUERY ), $query );
+		$this->assertArrayHasKey( 'wp_buyer_blacklist_enrollment', $query );
+
+		return $query['wp_buyer_blacklist_enrollment'];
 	}
 }
