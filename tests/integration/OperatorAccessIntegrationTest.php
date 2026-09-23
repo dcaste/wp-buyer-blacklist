@@ -33,7 +33,8 @@ class OperatorAccessIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function test_disabled_manager_access_requires_manage_options(): void {
 		global $wpdb;
-		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', false );
+		// false would be skipped as unchanged while the option doesn't exist yet.
+		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', '0' );
 		$plugin = new Plugin( new EmailEntryRepository( $wpdb ) );
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
@@ -62,7 +63,7 @@ class OperatorAccessIntegrationTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_disabled_manager_access_hides_users_list_enrollment_actions(): void {
-		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', false );
+		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', '0' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
 		$customer = new WP_User( self::factory()->user->create( array( 'role' => 'customer' ) ) );
 
@@ -77,9 +78,6 @@ class OperatorAccessIntegrationTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_entry_management_rest_routes_use_operator_access_setting(): void {
-		global $wpdb;
-		$plugin = new Plugin( new EmailEntryRepository( $wpdb ) );
-		$plugin->register_rest_routes();
 		$routes = rest_get_server()->get_routes();
 		$paths  = array(
 			'/wp-buyer-blacklist/v1/email-entries',
@@ -93,11 +91,11 @@ class OperatorAccessIntegrationTest extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
 		foreach ( $paths as $path ) {
 			foreach ( $routes[ $path ] as $endpoint ) {
-				$this->assertSame( 'DELETE' !== $endpoint['methods'], call_user_func( $endpoint['permission_callback'] ) );
+				$this->assertSame( ! isset( $endpoint['methods']['DELETE'] ), call_user_func( $endpoint['permission_callback'] ) );
 			}
 		}
 
-		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', false );
+		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', '0' );
 		foreach ( $paths as $path ) {
 			foreach ( $routes[ $path ] as $endpoint ) {
 				$this->assertFalse( call_user_func( $endpoint['permission_callback'] ) );

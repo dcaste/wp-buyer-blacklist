@@ -37,12 +37,27 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 		parent::set_up();
 
 		WC_Install::create_tables();
+		// The Store API checkout route keeps its draft order between requests, so rebuild the routes for each test.
+		$GLOBALS['wp_rest_server'] = null;
 		wp_set_current_user( self::factory()->user->create( array( 'display_name' => 'Blacklist Operator' ) ) );
 		$this->entries = new EmailEntryRepository( $GLOBALS['wpdb'] );
 		$this->entries->install();
 		$this->assertTrue( $this->entries->create( EmailEntry::from_email( 'buyer@example.com' ), 'Test entry' ) );
 		$entries        = $this->entries->all();
 		$this->entry_id = (int) $entries[0]['id'];
+	}
+
+	/**
+	 * Fires admin_init so the plugin registers its settings.
+	 *
+	 * @return void
+	 */
+	private function run_admin_init(): void {
+		// Core sends a Referrer-Policy header here, which fails once PHPUnit has printed output.
+		remove_action( 'admin_init', 'wp_admin_headers' );
+		// WooCommerce adds its privacy policy text on admin_init, which WordPress rejects outside wp-admin.
+		$this->setExpectedIncorrectUsage( 'wp_add_privacy_policy_content' );
+		do_action( 'admin_init' );
 	}
 
 	/**
@@ -55,7 +70,7 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_blocks_matching_email_with_only_the_configured_buyer_message( string $message, string $expected_message ): void {
-		do_action( 'admin_init' );
+		$this->run_admin_init();
 		update_option( 'wp_buyer_blacklist_buyer_message', sanitize_option( 'wp_buyer_blacklist_buyer_message', $message ) );
 		$product = new WC_Product_Simple();
 		$product->set_regular_price( '0' );
@@ -119,7 +134,7 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_restores_the_default_buyer_message_when_a_blank_value_is_saved(): void {
-		do_action( 'admin_init' );
+		$this->run_admin_init();
 
 		foreach ( array( '', " \n\t " ) as $message ) {
 			update_option( 'wp_buyer_blacklist_buyer_message', sanitize_option( 'wp_buyer_blacklist_buyer_message', $message ) );
@@ -211,7 +226,8 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_resets_settings_to_defaults(): void {
-		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', false );
+		// false would be skipped as unchanged while the option doesn't exist yet.
+		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', '0' );
 		update_option( 'wp_buyer_blacklist_delete_data_on_uninstall', true );
 		update_option( 'wp_buyer_blacklist_buyer_message', 'Configured buyer message' );
 
