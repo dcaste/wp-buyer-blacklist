@@ -1,0 +1,6 @@
+		<div class="wrap"><h1>Enroll in Blacklist</h1><form class="wp-buyer-blacklist-enrollment-form" method="post" action="http://example.org/wp-admin/admin-post.php">
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="{enroll-source-nonce}" /><input type="hidden" name="_wp_http_referer" value="/wp-admin/admin.php?page=wp-buyer-blacklist-enroll&#038;source_type=order&#038;source_ids%5B0%5D=101&#038;source_ids%5B1%5D=102" /><input type="hidden" name="action" value="wp_buyer_blacklist_enroll_source"><input type="hidden" name="source_type" value="order">
+							<input type="hidden" name="source_ids[]" value="101">				<input type="hidden" name="source_ids[]" value="102">			<p><label>Match type<select name="match_type"><option value="email">Email</option><option value="customer_id">Customer ID</option><option value="billing_address">Billing address</option><option value="shipping_address">Shipping address</option></select></label></p>
+			<p><label>Reason<textarea class="large-text" name="reason" required></textarea></label></p><p>Email and Customer ID need a value. Addresses need every address field. Sources without the selected value are skipped.</p><p><button type="submit" class="button button-primary">Create entries</button></p>
+		</form></div>
+		
