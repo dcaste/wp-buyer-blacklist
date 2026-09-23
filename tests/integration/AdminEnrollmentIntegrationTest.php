@@ -228,7 +228,8 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function test_denies_customer_enrollment_without_operator_access(): void {
 		global $wpdb;
-		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', false );
+		// false would be skipped as unchanged while the option doesn't exist yet.
+		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', '0' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
 		$customer_id = self::factory()->user->create( array( 'role' => 'customer' ) );
 		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
