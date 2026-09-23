@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin bootstrap and classic checkout enforcement.
+ * Plugin bootstrap.
  *
  * @package WP_Buyer_Blacklist
  */
@@ -8,10 +8,15 @@
 namespace WP_Buyer_Blacklist;
 
 use InvalidArgumentException;
+use WP_Buyer_Blacklist\Enforcement\AddressCheckoutBlocker;
+use WP_Buyer_Blacklist\Enforcement\CheckoutEnforcement;
+use WP_Buyer_Blacklist\Enforcement\EmailCheckoutBlocker;
+use WP_Buyer_Blacklist\Settings\BlacklistSettings;
+use WP_Buyer_Blacklist\Settings\BuyerBlockMessage;
 use WP_Error;
 
 /**
- * Registers Blacklist administration and classic checkout enforcement.
+ * Builds the plugin modules and registers Blacklist administration.
  */
 final class Plugin {
 
@@ -23,18 +28,25 @@ final class Plugin {
 	private EmailEntryRepository $entries;
 
 	/**
-	 * Email checkout blocking decision.
+	 * Checkout enforcement.
 	 *
-	 * @var EmailCheckoutBlocker
+	 * @var CheckoutEnforcement
 	 */
-	private EmailCheckoutBlocker $blocker;
+	private CheckoutEnforcement $checkout_enforcement;
 
 	/**
-	 * Address checkout blocking decision.
+	 * Plugin settings.
 	 *
-	 * @var AddressCheckoutBlocker
+	 * @var BlacklistSettings
 	 */
-	private AddressCheckoutBlocker $address_blocker;
+	private BlacklistSettings $settings;
+
+	/**
+	 * Buyer block message.
+	 *
+	 * @var BuyerBlockMessage
+	 */
+	private BuyerBlockMessage $buyer_block_message;
 
 	/**
 	 * Customer and Order enrollment workflow.
@@ -56,11 +68,14 @@ final class Plugin {
 	 * @param EmailEntryRepository $entries Email entry storage.
 	 */
 	public function __construct( EmailEntryRepository $entries ) {
-		$this->entries           = $entries;
-		$this->blocker           = new EmailCheckoutBlocker( $entries, $entries );
-		$this->address_blocker   = new AddressCheckoutBlocker( $entries );
-		$this->operator_access   = new OperatorAccess();
-		$this->source_enrollment = new SourceEnrollment( $entries, $this->operator_access );
+		$this->entries              = $entries;
+		$this->buyer_block_message  = new BuyerBlockMessage();
+		$email_blocker              = new EmailCheckoutBlocker( $entries, $entries );
+		$address_blocker            = new AddressCheckoutBlocker( $entries );
+		$this->checkout_enforcement = new CheckoutEnforcement( $email_blocker, $address_blocker, $this->buyer_block_message );
+		$this->settings             = new BlacklistSettings( $this->buyer_block_message );
+		$this->operator_access      = new OperatorAccess();
+		$this->source_enrollment    = new SourceEnrollment( $entries, $this->operator_access );
 	}
 
 	/**
@@ -70,64 +85,15 @@ final class Plugin {
 	 */
 	public function register(): void {
 		add_action( 'admin_menu', array( $this, 'register_admin_page' ) );
-		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'admin_post_wp_buyer_blacklist_export', array( $this, 'download_csv_export' ) );
 		add_action( 'admin_post_wp_buyer_blacklist_dossier_export', array( $this, 'download_identity_dossier' ) );
-		add_action( 'admin_post_wp_buyer_blacklist_reset_settings', array( $this, 'reset_settings' ) );
 		add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_personal_data_exporter' ) );
 		add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_personal_data_eraser' ) );
-		add_action( 'woocommerce_after_checkout_validation', array( $this, 'validate_classic_checkout' ), 10, 2 );
-		add_action( 'woocommerce_checkout_validate_order_before_payment', array( $this, 'validate_store_api_checkout' ), 10, 2 );
+		$this->settings->register();
+		$this->checkout_enforcement->register();
 		$this->source_enrollment->register();
-	}
-
-	/**
-	 * Registers the uninstall cleanup option.
-	 *
-	 * @return void
-	 */
-	public function register_settings(): void {
-		register_setting(
-			'wp_buyer_blacklist',
-			'wp_buyer_blacklist_allow_woocommerce_managers',
-			array(
-				'type'              => 'boolean',
-				'sanitize_callback' => 'rest_sanitize_boolean',
-				'default'           => true,
-			)
-		);
-		register_setting(
-			'wp_buyer_blacklist',
-			'wp_buyer_blacklist_delete_data_on_uninstall',
-			array(
-				'type'              => 'boolean',
-				'sanitize_callback' => 'rest_sanitize_boolean',
-				'default'           => false,
-			)
-		);
-		register_setting(
-			'wp_buyer_blacklist',
-			'wp_buyer_blacklist_buyer_message',
-			array(
-				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_buyer_block_message' ),
-				'default'           => $this->default_buyer_block_message(),
-			)
-		);
-	}
-
-	/**
-	 * Sanitizes the Buyer block message.
-	 *
-	 * @param mixed $message Buyer block message.
-	 * @return string Sanitized Buyer block message.
-	 */
-	public function sanitize_buyer_block_message( mixed $message ): string {
-		$message = sanitize_textarea_field( $message );
-
-		return '' === trim( $message ) ? $this->default_buyer_block_message() : $message;
 	}
 
 	/**
@@ -178,130 +144,17 @@ final class Plugin {
 				<?php endif; ?>
 				<form class="wpbb-settings" action="options.php" method="post">
 					<?php settings_fields( 'wp_buyer_blacklist' ); ?>
-					<section class="wpbb-settings-card wpbb-settings-message-card"><header><h2><?php esc_html_e( 'Buyer-facing block message', 'wp-buyer-blacklist' ); ?></h2><p class="description"><?php esc_html_e( 'This message is shown when a Buyer is blocked from placing an order.', 'wp-buyer-blacklist' ); ?></p></header><div class="wpbb-settings-message-content"><div><p><label for="wp-buyer-blacklist-buyer-message"><?php esc_html_e( 'Message', 'wp-buyer-blacklist' ); ?></label><textarea aria-describedby="wp-buyer-blacklist-buyer-message-description" class="large-text" id="wp-buyer-blacklist-buyer-message" name="wp_buyer_blacklist_buyer_message" rows="3"><?php echo esc_textarea( get_option( 'wp_buyer_blacklist_buyer_message', $this->default_buyer_block_message() ) ); ?></textarea></p><p class="description" id="wp-buyer-blacklist-buyer-message-description"><?php esc_html_e( 'Keep the message clear and professional. Explain what the Buyer can do next.', 'wp-buyer-blacklist' ); ?></p></div><div class="wpbb-settings-preview"><strong><?php esc_html_e( 'Preview', 'wp-buyer-blacklist' ); ?></strong><p class="description"><?php esc_html_e( 'This is how the message appears to a blocked Buyer during checkout.', 'wp-buyer-blacklist' ); ?></p><div class="wpbb-message-preview" aria-live="polite"><span class="wpbb-message-preview-icon" aria-hidden="true">!</span><p id="wp-buyer-blacklist-message-preview"><?php echo esc_html( get_option( 'wp_buyer_blacklist_buyer_message', $this->default_buyer_block_message() ) ); ?></p></div></div></div></section>
+					<section class="wpbb-settings-card wpbb-settings-message-card"><header><h2><?php esc_html_e( 'Buyer-facing block message', 'wp-buyer-blacklist' ); ?></h2><p class="description"><?php esc_html_e( 'This message is shown when a Buyer is blocked from placing an order.', 'wp-buyer-blacklist' ); ?></p></header><div class="wpbb-settings-message-content"><div><p><label for="wp-buyer-blacklist-buyer-message"><?php esc_html_e( 'Message', 'wp-buyer-blacklist' ); ?></label><textarea aria-describedby="wp-buyer-blacklist-buyer-message-description" class="large-text" id="wp-buyer-blacklist-buyer-message" name="wp_buyer_blacklist_buyer_message" rows="3"><?php echo esc_textarea( get_option( 'wp_buyer_blacklist_buyer_message', $this->buyer_block_message->default() ) ); ?></textarea></p><p class="description" id="wp-buyer-blacklist-buyer-message-description"><?php esc_html_e( 'Keep the message clear and professional. Explain what the Buyer can do next.', 'wp-buyer-blacklist' ); ?></p></div><div class="wpbb-settings-preview"><strong><?php esc_html_e( 'Preview', 'wp-buyer-blacklist' ); ?></strong><p class="description"><?php esc_html_e( 'This is how the message appears to a blocked Buyer during checkout.', 'wp-buyer-blacklist' ); ?></p><div class="wpbb-message-preview" aria-live="polite"><span class="wpbb-message-preview-icon" aria-hidden="true">!</span><p id="wp-buyer-blacklist-message-preview"><?php echo esc_html( get_option( 'wp_buyer_blacklist_buyer_message', $this->buyer_block_message->default() ) ); ?></p></div></div></div></section>
 					<section class="wpbb-settings-card wpbb-settings-permissions-card"><header><h2><?php esc_html_e( 'Permissions', 'wp-buyer-blacklist' ); ?></h2><p class="description"><?php esc_html_e( 'Control who can manage the Blacklist in your store.', 'wp-buyer-blacklist' ); ?></p></header><input name="wp_buyer_blacklist_allow_woocommerce_managers" type="hidden" value="0" /><label class="wpbb-toggle"><input aria-describedby="wp-buyer-blacklist-allow-woocommerce-managers-description" id="wp-buyer-blacklist-allow-woocommerce-managers" name="wp_buyer_blacklist_allow_woocommerce_managers" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_allow_woocommerce_managers', true ) ); ?> /> <?php esc_html_e( 'Allow WooCommerce managers to manage Blacklist entries', 'wp-buyer-blacklist' ); ?></label><p class="description" id="wp-buyer-blacklist-allow-woocommerce-managers-description"><?php esc_html_e( 'Gives users with WooCommerce management permission access to entries, CSV imports, and Blocked attempts.', 'wp-buyer-blacklist' ); ?></p></section>
 					<section class="wpbb-settings-card wpbb-settings-cleanup-card"><header><h2><?php esc_html_e( 'Data and cleanup', 'wp-buyer-blacklist' ); ?></h2><p class="description"><?php esc_html_e( 'Manage what happens to Blacklist data when the plugin is removed.', 'wp-buyer-blacklist' ); ?></p></header><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" /><label class="wpbb-toggle"><input aria-describedby="wp-buyer-blacklist-delete-data-description" id="wp-buyer-blacklist-delete-data" name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ); ?> /> <?php esc_html_e( 'Delete all Blacklist data when the plugin is uninstalled', 'wp-buyer-blacklist' ); ?></label><p class="description" id="wp-buyer-blacklist-delete-data-description"><?php esc_html_e( 'Permanently deletes all Blacklist entries, import history, and Blocked attempt data when the plugin is uninstalled. This cannot be undone.', 'wp-buyer-blacklist' ); ?></p><div class="wpbb-settings-warning"><span class="dashicons dashicons-warning" aria-hidden="true"></span><div><strong><?php esc_html_e( 'This will permanently delete your data.', 'wp-buyer-blacklist' ); ?></strong><p><?php esc_html_e( 'Export your entries first if you need a backup before uninstalling the plugin.', 'wp-buyer-blacklist' ); ?></p></div></div></section>
 					<div class="wpbb-settings-actions"><?php wp_nonce_field( 'wp_buyer_blacklist_reset_settings' ); ?><?php submit_button( __( 'Save changes', 'wp-buyer-blacklist' ), 'primary', 'submit', false ); ?><button class="button" type="submit" name="action" value="wp_buyer_blacklist_reset_settings" formaction="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" formmethod="post" onclick="return window.confirm('<?php echo esc_js( __( 'Reset all Buyer Blacklist settings to their defaults?', 'wp-buyer-blacklist' ) ); ?>');"><span class="wpbb-settings-reset-icon" aria-hidden="true"></span><?php esc_html_e( 'Reset to defaults', 'wp-buyer-blacklist' ); ?></button></div>
 				</form>
-				<script>document.getElementById('wp-buyer-blacklist-buyer-message').addEventListener('input', function () { document.getElementById('wp-buyer-blacklist-message-preview').textContent = this.value || '<?php echo esc_js( $this->default_buyer_block_message() ); ?>'; });</script>
+				<script>document.getElementById('wp-buyer-blacklist-buyer-message').addEventListener('input', function () { document.getElementById('wp-buyer-blacklist-message-preview').textContent = this.value || '<?php echo esc_js( $this->buyer_block_message->default() ); ?>'; });</script>
 			<?php else : ?>
 				<div id="wp-buyer-blacklist-admin" data-tab="<?php echo esc_attr( $tab ); ?>" data-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_export' ), 'wp_buyer_blacklist_export' ) ); ?>" data-example-csv-url="<?php echo esc_url( WP_BUYER_BLACKLIST_URL . 'assets/buyer-blacklist-example.csv' ); ?>" data-dossier-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_dossier_export' ), 'wp_buyer_blacklist_dossier_export' ) ); ?>"></div>
 			<?php endif; ?>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Restores supported settings to their default values.
-	 *
-	 * @return void
-	 */
-	public function reset_to_default_settings(): void {
-		delete_option( 'wp_buyer_blacklist_allow_woocommerce_managers' );
-		delete_option( 'wp_buyer_blacklist_delete_data_on_uninstall' );
-		delete_option( 'wp_buyer_blacklist_buyer_message' );
-	}
-
-	/**
-	 * Handles a request to restore the default settings.
-	 *
-	 * @return void
-	 */
-	public function reset_settings(): void {
-		if ( ! $this->can_manage_privacy_data() ) {
-			wp_die( esc_html__( 'You are not allowed to reset Blacklist settings.', 'wp-buyer-blacklist' ), 403 );
-		}
-
-		check_admin_referer( 'wp_buyer_blacklist_reset_settings' );
-		$this->reset_to_default_settings();
-		wp_safe_redirect( add_query_arg( 'wp_buyer_blacklist_settings', 'reset', admin_url( 'admin.php?page=wp-buyer-blacklist&tab=settings' ) ) );
-		exit;
-	}
-
-	/**
-	 * Blocks a matching Buyer at classic checkout validation.
-	 *
-	 * @param array<string, mixed> $data   Submitted checkout data.
-	 * @param WP_Error             $errors Checkout validation errors.
-	 * @return void
-	 */
-	public function validate_classic_checkout( array $data, WP_Error $errors ): void {
-		$email = isset( $data['billing_email'] ) && is_string( $data['billing_email'] ) ? $data['billing_email'] : '';
-
-		if ( $this->blocker->blocks( $email ) || $this->blocks_checkout_address( 'billing_address', $data ) || $this->blocks_checkout_address( 'shipping_address', $data ) ) {
-			$errors->add( 'wp_buyer_blacklist_blocked', $this->buyer_block_message() );
-		}
-	}
-
-	/**
-	 * Blocks a matching Buyer before Checkout Block or Store API payment.
-	 *
-	 * @param \WC_Order $order  Checkout order.
-	 * @param WP_Error  $errors Checkout validation errors.
-	 * @return void
-	 */
-	public function validate_store_api_checkout( \WC_Order $order, WP_Error $errors ): void {
-		$billing_address  = array(
-			'address_line_1' => $order->get_billing_address_1(),
-			'address_line_2' => $order->get_billing_address_2(),
-			'city'           => $order->get_billing_city(),
-			'state'          => $order->get_billing_state(),
-			'postcode'       => $order->get_billing_postcode(),
-			'country'        => $order->get_billing_country(),
-		);
-		$shipping_address = array(
-			'address_line_1' => $order->get_shipping_address_1(),
-			'address_line_2' => $order->get_shipping_address_2(),
-			'city'           => $order->get_shipping_city(),
-			'state'          => $order->get_shipping_state(),
-			'postcode'       => $order->get_shipping_postcode(),
-			'country'        => $order->get_shipping_country(),
-		);
-		if ( $this->blocker->blocks( $order->get_billing_email() ) || $this->address_blocker->blocks( 'billing_address', $billing_address, WC()->countries->get_countries() ) || $this->address_blocker->blocks( 'shipping_address', $shipping_address, WC()->countries->get_countries() ) ) {
-			$errors->add( 'wp_buyer_blacklist_blocked', $this->buyer_block_message() );
-		}
-	}
-
-	/**
-	 * Checks a complete classic-checkout address.
-	 *
-	 * @param string               $match_type Address Match type.
-	 * @param array<string, mixed> $data       Submitted checkout data.
-	 * @return bool Whether the address blocks checkout.
-	 */
-	private function blocks_checkout_address( string $match_type, array $data ): bool {
-		$prefix = 'billing_address' === $match_type ? 'billing_' : 'shipping_';
-		$fields = array(
-			'address_line_1' => isset( $data[ $prefix . 'address_1' ] ) && is_string( $data[ $prefix . 'address_1' ] ) ? $data[ $prefix . 'address_1' ] : '',
-			'address_line_2' => isset( $data[ $prefix . 'address_2' ] ) && is_string( $data[ $prefix . 'address_2' ] ) ? $data[ $prefix . 'address_2' ] : '',
-			'city'           => isset( $data[ $prefix . 'city' ] ) && is_string( $data[ $prefix . 'city' ] ) ? $data[ $prefix . 'city' ] : '',
-			'state'          => isset( $data[ $prefix . 'state' ] ) && is_string( $data[ $prefix . 'state' ] ) ? $data[ $prefix . 'state' ] : '',
-			'postcode'       => isset( $data[ $prefix . 'postcode' ] ) && is_string( $data[ $prefix . 'postcode' ] ) ? $data[ $prefix . 'postcode' ] : '',
-			'country'        => isset( $data[ $prefix . 'country' ] ) && is_string( $data[ $prefix . 'country' ] ) ? $data[ $prefix . 'country' ] : '',
-		);
-
-		return $this->address_blocker->blocks( $match_type, $fields, WC()->countries->get_countries() );
-	}
-
-	/**
-	 * Gets the generic Buyer block message.
-	 *
-	 * @return string
-	 */
-	private function buyer_block_message(): string {
-		$default = $this->default_buyer_block_message();
-		$message = get_option( 'wp_buyer_blacklist_buyer_message', $default );
-
-		return is_string( $message ) && '' !== $message ? $message : $default;
-	}
-
-	/**
-	 * Gets the translated default Buyer block message.
-	 *
-	 * @return string
-	 */
-	private function default_buyer_block_message(): string {
-		return __( 'We’re unable to process your order. Please contact us for assistance.', 'wp-buyer-blacklist' );
 	}
 
 	/** Registers the private entry API. @return void */

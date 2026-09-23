@@ -5,7 +5,9 @@
  * @package WP_Buyer_Blacklist
  */
 
-namespace WP_Buyer_Blacklist;
+namespace WP_Buyer_Blacklist\Enforcement;
+
+use WP_Buyer_Blacklist\AddressEntry;
 
 /**
  * Checks Buyer addresses against active Blacklist entries.

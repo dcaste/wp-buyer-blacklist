@@ -6,9 +6,9 @@
  */
 
 use PHPUnit\Framework\TestCase;
-use WP_Buyer_Blacklist\ActiveAddressEntryFinder;
-use WP_Buyer_Blacklist\AddressCheckoutBlocker;
-use WP_Buyer_Blacklist\BlockedAttemptRecorder;
+use WP_Buyer_Blacklist\Enforcement\ActiveAddressEntryFinder;
+use WP_Buyer_Blacklist\Enforcement\AddressCheckoutBlocker;
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptRecorder;
 
 /**
  * Covers the active address block decision.
