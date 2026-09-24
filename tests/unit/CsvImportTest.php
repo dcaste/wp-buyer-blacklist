@@ -6,7 +6,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
-use WP_Buyer_Blacklist\CsvImport;
+use WP_Buyer_Blacklist\ImportExport\CsvImport;
 
 /**
  * Covers the supported CSV import format.

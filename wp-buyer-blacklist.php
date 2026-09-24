@@ -20,7 +20,7 @@ require_once __DIR__ . '/src/Entries/EmailCanonicalizer.php';
 require_once __DIR__ . '/src/Entries/EmailEntry.php';
 require_once __DIR__ . '/src/Entries/CustomerIdEntry.php';
 require_once __DIR__ . '/src/Entries/AddressEntry.php';
-require_once __DIR__ . '/src/CsvImport.php';
+require_once __DIR__ . '/src/ImportExport/CsvImport.php';
 require_once __DIR__ . '/src/Enforcement/ActiveAddressEntryFinder.php';
 require_once __DIR__ . '/src/Enforcement/ActiveCustomerIdEntryFinder.php';
 require_once __DIR__ . '/src/Enforcement/ActiveEmailEntryFinder.php';
@@ -36,6 +36,8 @@ require_once __DIR__ . '/src/Enforcement/CheckoutEnforcement.php';
 require_once __DIR__ . '/src/Access/OperatorAccess.php';
 require_once __DIR__ . '/src/SourceEnrollment.php';
 require_once __DIR__ . '/src/Entries/EntriesController.php';
+require_once __DIR__ . '/src/ImportExport/ImportExportController.php';
+require_once __DIR__ . '/src/ImportExport/CsvExportDownload.php';
 require_once __DIR__ . '/src/Admin/AdminPage.php';
 require_once __DIR__ . '/src/Plugin.php';
 
