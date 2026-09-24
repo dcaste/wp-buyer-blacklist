@@ -126,4 +126,67 @@ class SettingsIntegrationTest extends WP_UnitTestCase {
 			wp_scripts()->get_data( 'wp-buyer-blacklist-admin', 'after' )
 		);
 	}
+
+	/**
+	 * Posts a valid options.php nonce when the Settings form is saved.
+	 *
+	 * @return void
+	 */
+	public function test_settings_form_posts_a_valid_options_nonce(): void {
+		$fields = $this->form_fields( $this->render_settings_tab(), 'options.php' );
+
+		$this->assertSame( 'wp_buyer_blacklist', $fields['option_page'] );
+		$this->assertSame( 'update', $fields['action'] );
+		$this->assertSame( 1, wp_verify_nonce( $fields['_wpnonce'], 'wp_buyer_blacklist-options' ) );
+	}
+
+	/**
+	 * Resets the settings with the fields the Reset form posts.
+	 *
+	 * @return void
+	 */
+	public function test_reset_form_posts_what_the_reset_handler_accepts(): void {
+		update_option( 'wp_buyer_blacklist_buyer_message', 'Configured buyer message' );
+		$fields = $this->form_fields( $this->render_settings_tab(), admin_url( 'admin-post.php' ) );
+
+		$this->assertSame( 'wp_buyer_blacklist_reset_settings', $fields['action'] );
+		$this->assertStringContainsString( 'wp_buyer_blacklist_settings=reset', $this->submit_admin_post( $fields['action'], $fields ) );
+		$this->assertFalse( get_option( 'wp_buyer_blacklist_buyer_message' ) );
+	}
+
+	/**
+	 * Renders the Settings tab as an Administrator.
+	 *
+	 * @return string Rendered markup.
+	 */
+	private function render_settings_tab(): string {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		return $this->render_admin_page(
+			'woocommerce_page_wp-buyer-blacklist',
+			array(
+				'page' => 'wp-buyer-blacklist',
+				'tab'  => 'settings',
+			)
+		);
+	}
+
+	/**
+	 * Gets the fields a form posts, keeping the last value of a repeated name as PHP does.
+	 *
+	 * @param string $markup Rendered page.
+	 * @param string $action Form action attribute, as rendered.
+	 * @return array<string, string> Posted fields.
+	 */
+	private function form_fields( string $markup, string $action ): array {
+		$this->assertSame( 1, preg_match( '/<form[^>]*action="' . preg_quote( $action, '/' ) . '"[^>]*>(.*?)<\/form>/s', $markup, $form ), "No form posts to {$action}." );
+		preg_match_all( '/<input[^>]*name=["\']([^"\']+)["\'][^>]*value=["\']([^"\']*)["\']/', $form[1], $inputs, PREG_SET_ORDER );
+
+		$fields = array();
+		foreach ( $inputs as $input ) {
+			$fields[ $input[1] ] = html_entity_decode( $input[2] );
+		}
+
+		return $fields;
+	}
 }

@@ -62,7 +62,11 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 	</section>
 	<div class="wpbb-settings-actions">
-		<?php wp_nonce_field( 'wp_buyer_blacklist_reset_settings' ); ?>
-		<?php submit_button( __( 'Save changes', 'wp-buyer-blacklist' ), 'primary', 'submit', false ); ?><button class="button" type="submit" name="action" value="wp_buyer_blacklist_reset_settings" formaction="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" formmethod="post" onclick="return window.confirm('<?php echo esc_js( __( 'Reset all Buyer Blacklist settings to their defaults?', 'wp-buyer-blacklist' ) ); ?>');"><span class="wpbb-settings-reset-icon" aria-hidden="true"></span><?php esc_html_e( 'Reset to defaults', 'wp-buyer-blacklist' ); ?></button>
+		<?php submit_button( __( 'Save changes', 'wp-buyer-blacklist' ), 'primary', 'submit', false ); ?><button class="button" type="submit" form="wp-buyer-blacklist-reset-settings" onclick="return window.confirm('<?php echo esc_js( __( 'Reset all Buyer Blacklist settings to their defaults?', 'wp-buyer-blacklist' ) ); ?>');"><span class="wpbb-settings-reset-icon" aria-hidden="true"></span><?php esc_html_e( 'Reset to defaults', 'wp-buyer-blacklist' ); ?></button>
 	</div>
+</form>
+<?php // The Reset button sits in the settings form's action row but submits this form, so each form posts only its own nonce. ?>
+<form id="wp-buyer-blacklist-reset-settings" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
+	<input type="hidden" name="action" value="wp_buyer_blacklist_reset_settings" />
+	<?php wp_nonce_field( 'wp_buyer_blacklist_reset_settings' ); ?>
 </form>

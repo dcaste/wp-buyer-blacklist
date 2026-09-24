@@ -49,7 +49,10 @@
 		</div>
 	</section>
 	<div class="wpbb-settings-actions">
-		<input type="hidden" id="_wpnonce" name="_wpnonce" value="{reset-nonce}" /><input type="hidden" name="_wp_http_referer" value="/wp-admin/admin.php?page=wp-buyer-blacklist&#038;tab=settings" />		<input type="submit" name="submit" id="submit" class="button button-primary" value="Save changes"  /><button class="button" type="submit" name="action" value="wp_buyer_blacklist_reset_settings" formaction="http://example.org/wp-admin/admin-post.php" formmethod="post" onclick="return window.confirm('Reset all Buyer Blacklist settings to their defaults?');"><span class="wpbb-settings-reset-icon" aria-hidden="true"></span>Reset to defaults</button>
+		<input type="submit" name="submit" id="submit" class="button button-primary" value="Save changes"  /><button class="button" type="submit" form="wp-buyer-blacklist-reset-settings" onclick="return window.confirm('Reset all Buyer Blacklist settings to their defaults?');"><span class="wpbb-settings-reset-icon" aria-hidden="true"></span>Reset to defaults</button>
 	</div>
 </form>
+<form id="wp-buyer-blacklist-reset-settings" action="http://example.org/wp-admin/admin-post.php" method="post">
+	<input type="hidden" name="action" value="wp_buyer_blacklist_reset_settings" />
+	<input type="hidden" id="_wpnonce" name="_wpnonce" value="{reset-nonce}" /><input type="hidden" name="_wp_http_referer" value="/wp-admin/admin.php?page=wp-buyer-blacklist&#038;tab=settings" /></form>
 	</div>
