@@ -5,7 +5,7 @@
  * @package WP_Buyer_Blacklist
  */
 
-namespace WP_Buyer_Blacklist;
+namespace WP_Buyer_Blacklist\Enforcement;
 
 /**
  * Checks whether a Buyer email has an active Blacklist entry.

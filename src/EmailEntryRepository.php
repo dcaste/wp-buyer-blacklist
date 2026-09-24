@@ -7,6 +7,10 @@
 
 namespace WP_Buyer_Blacklist;
 
+use WP_Buyer_Blacklist\Enforcement\ActiveAddressEntryFinder;
+use WP_Buyer_Blacklist\Enforcement\ActiveEmailEntryFinder;
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptRecorder;
+
 /**
  * Stores and finds email Blacklist entries.
  */

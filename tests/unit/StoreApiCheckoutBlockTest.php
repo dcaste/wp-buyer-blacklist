@@ -7,9 +7,9 @@
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use WP_Buyer_Blacklist\ActiveEmailEntryFinder;
-use WP_Buyer_Blacklist\BlockedAttemptRecorder;
-use WP_Buyer_Blacklist\EmailCheckoutBlocker;
+use WP_Buyer_Blacklist\Enforcement\ActiveEmailEntryFinder;
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptRecorder;
+use WP_Buyer_Blacklist\Enforcement\EmailCheckoutBlocker;
 
 /**
  * Covers the active email block decision.

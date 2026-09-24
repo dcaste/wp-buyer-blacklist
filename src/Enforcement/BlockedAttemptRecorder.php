@@ -5,7 +5,7 @@
  * @package WP_Buyer_Blacklist
  */
 
-namespace WP_Buyer_Blacklist;
+namespace WP_Buyer_Blacklist\Enforcement;
 
 /**
  * Records attempts stopped by a Blacklist entry.
