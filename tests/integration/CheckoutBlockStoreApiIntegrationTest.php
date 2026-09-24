@@ -227,7 +227,7 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 
 		$location = $this->submit_admin_post( 'wp_buyer_blacklist_reset_settings', array( '_wpnonce' => wp_create_nonce( 'wp_buyer_blacklist_reset_settings' ) ) );
 
-		$this->assertStringContainsString( 'wp_buyer_blacklist_settings=reset', $location );
+		$this->assertStringContainsString( 'settings-updated=true', $location );
 
 		$this->assertTrue( get_option( 'wp_buyer_blacklist_allow_woocommerce_managers', true ) );
 		$this->assertFalse( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) );
