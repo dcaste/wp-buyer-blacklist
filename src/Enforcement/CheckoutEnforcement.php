@@ -78,9 +78,15 @@ final class CheckoutEnforcement {
 	public function validate_classic_checkout( array $data, WP_Error $errors ): void {
 		$email = isset( $data['billing_email'] ) && is_string( $data['billing_email'] ) ? $data['billing_email'] : '';
 
-		if ( $this->email_blocker->blocks( $email ) || $this->customer_id_blocker->blocks( get_current_user_id() ) || $this->blocks_checkout_address( 'billing_address', $data ) || $this->blocks_checkout_address( 'shipping_address', $data ) ) {
-			$errors->add( 'wp_buyer_blacklist_blocked', $this->buyer_block_message->current() );
-		}
+		$this->block_if_any(
+			$errors,
+			array(
+				$this->email_blocker->blocks( $email ),
+				$this->customer_id_blocker->blocks( get_current_user_id() ),
+				$this->blocks_checkout_address( 'billing_address', $data ),
+				$this->blocks_checkout_address( 'shipping_address', $data ),
+			)
+		);
 	}
 
 	/**
@@ -107,7 +113,29 @@ final class CheckoutEnforcement {
 			'postcode'       => $order->get_shipping_postcode(),
 			'country'        => $order->get_shipping_country(),
 		);
-		if ( $this->email_blocker->blocks( $order->get_billing_email() ) || $this->customer_id_blocker->blocks( $order->get_customer_id() ) || $this->address_blocker->blocks( 'billing_address', $billing_address, WC()->countries->get_countries() ) || $this->address_blocker->blocks( 'shipping_address', $shipping_address, WC()->countries->get_countries() ) ) {
+		$this->block_if_any(
+			$errors,
+			array(
+				$this->email_blocker->blocks( $order->get_billing_email() ),
+				$this->customer_id_blocker->blocks( $order->get_customer_id() ),
+				$this->address_blocker->blocks( 'billing_address', $billing_address, WC()->countries->get_countries() ),
+				$this->address_blocker->blocks( 'shipping_address', $shipping_address, WC()->countries->get_countries() ),
+			)
+		);
+	}
+
+	/**
+	 * Adds the Buyer block message when any Match type blocked checkout.
+	 *
+	 * Callers pass every decision already evaluated, not joined with ||,
+	 * because each blocker records Blocked attempts as it runs.
+	 *
+	 * @param WP_Error $errors    Checkout validation errors.
+	 * @param bool[]   $decisions One blocking decision per Match type.
+	 * @return void
+	 */
+	private function block_if_any( WP_Error $errors, array $decisions ): void {
+		if ( in_array( true, $decisions, true ) ) {
 			$errors->add( 'wp_buyer_blacklist_blocked', $this->buyer_block_message->current() );
 		}
 	}

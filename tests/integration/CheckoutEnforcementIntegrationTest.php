@@ -108,6 +108,25 @@ class CheckoutEnforcementIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Records one Blocked attempt for each entry that matches one checkout.
+	 *
+	 * @return void
+	 */
+	public function test_checkout_records_an_attempt_for_every_matching_entry(): void {
+		foreach ( array( 'email', 'customer_id', 'billing_address', 'shipping_address' ) as $match_type ) {
+			$this->seed_entry( $match_type );
+		}
+
+		$this->assertSame( array( self::DEFAULT_MESSAGE ), $this->validate_classic_checkout()->get_error_messages( 'wp_buyer_blacklist_blocked' ) );
+		$this->assertSame( array( self::DEFAULT_MESSAGE ), $this->validate_store_api_checkout()->get_error_messages( 'wp_buyer_blacklist_blocked' ) );
+
+		$this->assertCount( 4, $this->entries->all() );
+		foreach ( $this->entries->all() as $entry ) {
+			$this->assertCount( 2, $this->entries->blocked_attempts( (int) $entry['id'] ), $entry['match_type'] );
+		}
+	}
+
+	/**
 	 * Lets a guest through a customer-ID entry when nothing else matches.
 	 *
 	 * @return void
