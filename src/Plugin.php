@@ -13,6 +13,10 @@ use WP_Buyer_Blacklist\Enforcement\AddressCheckoutBlocker;
 use WP_Buyer_Blacklist\Enforcement\CheckoutEnforcement;
 use WP_Buyer_Blacklist\Enforcement\CustomerIdCheckoutBlocker;
 use WP_Buyer_Blacklist\Enforcement\EmailCheckoutBlocker;
+use WP_Buyer_Blacklist\Enrollment\CustomerScreen;
+use WP_Buyer_Blacklist\Enrollment\Enroller;
+use WP_Buyer_Blacklist\Enrollment\EnrollmentPage;
+use WP_Buyer_Blacklist\Enrollment\OrderScreen;
 use WP_Buyer_Blacklist\Entries\EntriesController;
 use WP_Buyer_Blacklist\ImportExport\CsvExportDownload;
 use WP_Buyer_Blacklist\ImportExport\ImportExportController;
@@ -37,7 +41,7 @@ final class Plugin {
 	/**
 	 * Feature modules, in registration order.
 	 *
-	 * @var list<DossierController|DossierDownload|PersonalDataTools|EntriesController|ImportExportController|CsvExportDownload|AdminPage|BlacklistSettings|CheckoutEnforcement|SourceEnrollment>
+	 * @var list<DossierController|DossierDownload|PersonalDataTools|EntriesController|ImportExportController|CsvExportDownload|AdminPage|BlacklistSettings|CheckoutEnforcement|CustomerScreen|OrderScreen|EnrollmentPage>
 	 */
 	private array $modules;
 
@@ -50,6 +54,8 @@ final class Plugin {
 		$buyer_block_message = new BuyerBlockMessage();
 		$operator_access     = new OperatorAccess();
 		$privacy_access      = new PrivacyDataAccess();
+		$enroller            = new Enroller( $entries );
+		$enrollment_page     = new EnrollmentPage( $enroller, $operator_access );
 
 		$this->modules = array(
 			new DossierController( $entries, $privacy_access ),
@@ -66,7 +72,9 @@ final class Plugin {
 				new AddressCheckoutBlocker( $entries ),
 				$buyer_block_message
 			),
-			new SourceEnrollment( $entries, $operator_access ),
+			new CustomerScreen( $entries, $enroller, $enrollment_page, $operator_access ),
+			new OrderScreen( $enrollment_page, $operator_access ),
+			$enrollment_page,
 		);
 	}
 
