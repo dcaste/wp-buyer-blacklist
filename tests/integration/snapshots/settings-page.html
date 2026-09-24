@@ -1,15 +1,55 @@
-		<div class="wrap">
-			<h1>Buyer Blacklist</h1>
-			<nav class="nav-tab-wrapper" aria-label="Buyer Blacklist sections">
-				<a class="nav-tab " href="http://example.org/wp-admin/admin.php?page=wp-buyer-blacklist">Manage entries</a>
-				<a class="nav-tab " href="http://example.org/wp-admin/admin.php?page=wp-buyer-blacklist&#038;tab=import-export">Import and export</a>
-									<a class="nav-tab nav-tab-active" href="http://example.org/wp-admin/admin.php?page=wp-buyer-blacklist&#038;tab=settings">Settings</a>			</nav>
-											<form class="wpbb-settings" action="options.php" method="post">
-					<input type='hidden' name='option_page' value='wp_buyer_blacklist' /><input type="hidden" name="action" value="update" /><input type="hidden" id="_wpnonce" name="_wpnonce" value="{settings-nonce}" /><input type="hidden" name="_wp_http_referer" value="/wp-admin/admin.php?page=wp-buyer-blacklist&#038;tab=settings" />					<section class="wpbb-settings-card wpbb-settings-message-card"><header><h2>Buyer-facing block message</h2><p class="description">This message is shown when a Buyer is blocked from placing an order.</p></header><div class="wpbb-settings-message-content"><div><p><label for="wp-buyer-blacklist-buyer-message">Message</label><textarea aria-describedby="wp-buyer-blacklist-buyer-message-description" class="large-text" id="wp-buyer-blacklist-buyer-message" name="wp_buyer_blacklist_buyer_message" rows="3">We’re unable to process your order. Please contact us for assistance.</textarea></p><p class="description" id="wp-buyer-blacklist-buyer-message-description">Keep the message clear and professional. Explain what the Buyer can do next.</p></div><div class="wpbb-settings-preview"><strong>Preview</strong><p class="description">This is how the message appears to a blocked Buyer during checkout.</p><div class="wpbb-message-preview" aria-live="polite"><span class="wpbb-message-preview-icon" aria-hidden="true">!</span><p id="wp-buyer-blacklist-message-preview">We’re unable to process your order. Please contact us for assistance.</p></div></div></div></section>
-					<section class="wpbb-settings-card wpbb-settings-permissions-card"><header><h2>Permissions</h2><p class="description">Control who can manage the Blacklist in your store.</p></header><input name="wp_buyer_blacklist_allow_woocommerce_managers" type="hidden" value="0" /><label class="wpbb-toggle"><input aria-describedby="wp-buyer-blacklist-allow-woocommerce-managers-description" id="wp-buyer-blacklist-allow-woocommerce-managers" name="wp_buyer_blacklist_allow_woocommerce_managers" type="checkbox" value="1"  checked='checked' /> Allow WooCommerce managers to manage Blacklist entries</label><p class="description" id="wp-buyer-blacklist-allow-woocommerce-managers-description">Gives users with WooCommerce management permission access to entries, CSV imports, and Blocked attempts.</p></section>
-					<section class="wpbb-settings-card wpbb-settings-cleanup-card"><header><h2>Data and cleanup</h2><p class="description">Manage what happens to Blacklist data when the plugin is removed.</p></header><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" /><label class="wpbb-toggle"><input aria-describedby="wp-buyer-blacklist-delete-data-description" id="wp-buyer-blacklist-delete-data" name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1"  /> Delete all Blacklist data when the plugin is uninstalled</label><p class="description" id="wp-buyer-blacklist-delete-data-description">Permanently deletes all Blacklist entries, import history, and Blocked attempt data when the plugin is uninstalled. This cannot be undone.</p><div class="wpbb-settings-warning"><span class="dashicons dashicons-warning" aria-hidden="true"></span><div><strong>This will permanently delete your data.</strong><p>Export your entries first if you need a backup before uninstalling the plugin.</p></div></div></section>
-					<div class="wpbb-settings-actions"><input type="hidden" id="_wpnonce" name="_wpnonce" value="{reset-nonce}" /><input type="hidden" name="_wp_http_referer" value="/wp-admin/admin.php?page=wp-buyer-blacklist&#038;tab=settings" /><input type="submit" name="submit" id="submit" class="button button-primary" value="Save changes"  /><button class="button" type="submit" name="action" value="wp_buyer_blacklist_reset_settings" formaction="http://example.org/wp-admin/admin-post.php" formmethod="post" onclick="return window.confirm('Reset all Buyer Blacklist settings to their defaults?');"><span class="wpbb-settings-reset-icon" aria-hidden="true"></span>Reset to defaults</button></div>
-				</form>
-				<script>document.getElementById('wp-buyer-blacklist-buyer-message').addEventListener('input', function () { document.getElementById('wp-buyer-blacklist-message-preview').textContent = this.value || 'We’re unable to process your order. Please contact us for assistance.'; });</script>
-					</div>
-		
+<div class="wrap">
+	<h1>Buyer Blacklist</h1>
+	<nav class="nav-tab-wrapper" aria-label="Buyer Blacklist sections">
+		<a class="nav-tab " href="http://example.org/wp-admin/admin.php?page=wp-buyer-blacklist">Manage entries</a>
+		<a class="nav-tab " href="http://example.org/wp-admin/admin.php?page=wp-buyer-blacklist&#038;tab=import-export">Import and export</a>
+					<a class="nav-tab nav-tab-active" href="http://example.org/wp-admin/admin.php?page=wp-buyer-blacklist&#038;tab=settings">Settings</a>
+			</nav>
+			<form class="wpbb-settings" action="options.php" method="post">
+	<input type='hidden' name='option_page' value='wp_buyer_blacklist' /><input type="hidden" name="action" value="update" /><input type="hidden" id="_wpnonce" name="_wpnonce" value="{settings-nonce}" /><input type="hidden" name="_wp_http_referer" value="/wp-admin/admin.php?page=wp-buyer-blacklist&#038;tab=settings" />	<section class="wpbb-settings-card wpbb-settings-message-card">
+		<header>
+			<h2>Buyer-facing block message</h2>
+			<p class="description">This message is shown when a Buyer is blocked from placing an order.</p>
+		</header>
+		<div class="wpbb-settings-message-content">
+			<div>
+				<p><label for="wp-buyer-blacklist-buyer-message">Message</label><textarea aria-describedby="wp-buyer-blacklist-buyer-message-description" class="large-text" id="wp-buyer-blacklist-buyer-message" name="wp_buyer_blacklist_buyer_message" rows="3">We’re unable to process your order. Please contact us for assistance.</textarea></p>
+				<p class="description" id="wp-buyer-blacklist-buyer-message-description">Keep the message clear and professional. Explain what the Buyer can do next.</p>
+			</div>
+			<div class="wpbb-settings-preview">
+				<strong>Preview</strong>
+				<p class="description">This is how the message appears to a blocked Buyer during checkout.</p>
+				<div class="wpbb-message-preview" aria-live="polite"><span class="wpbb-message-preview-icon" aria-hidden="true">!</span><p id="wp-buyer-blacklist-message-preview">We’re unable to process your order. Please contact us for assistance.</p></div>
+			</div>
+		</div>
+	</section>
+	<section class="wpbb-settings-card wpbb-settings-permissions-card">
+		<header>
+			<h2>Permissions</h2>
+			<p class="description">Control who can manage the Blacklist in your store.</p>
+		</header>
+		<input name="wp_buyer_blacklist_allow_woocommerce_managers" type="hidden" value="0" />
+		<label class="wpbb-toggle"><input aria-describedby="wp-buyer-blacklist-allow-woocommerce-managers-description" id="wp-buyer-blacklist-allow-woocommerce-managers" name="wp_buyer_blacklist_allow_woocommerce_managers" type="checkbox" value="1"  checked='checked' /> Allow WooCommerce managers to manage Blacklist entries</label>
+		<p class="description" id="wp-buyer-blacklist-allow-woocommerce-managers-description">Gives users with WooCommerce management permission access to entries, CSV imports, and Blocked attempts.</p>
+	</section>
+	<section class="wpbb-settings-card wpbb-settings-cleanup-card">
+		<header>
+			<h2>Data and cleanup</h2>
+			<p class="description">Manage what happens to Blacklist data when the plugin is removed.</p>
+		</header>
+		<input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" />
+		<label class="wpbb-toggle"><input aria-describedby="wp-buyer-blacklist-delete-data-description" id="wp-buyer-blacklist-delete-data" name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1"  /> Delete all Blacklist data when the plugin is uninstalled</label>
+		<p class="description" id="wp-buyer-blacklist-delete-data-description">Permanently deletes all Blacklist entries, import history, and Blocked attempt data when the plugin is uninstalled. This cannot be undone.</p>
+		<div class="wpbb-settings-warning">
+			<span class="dashicons dashicons-warning" aria-hidden="true"></span>
+			<div>
+				<strong>This will permanently delete your data.</strong>
+				<p>Export your entries first if you need a backup before uninstalling the plugin.</p>
+			</div>
+		</div>
+	</section>
+	<div class="wpbb-settings-actions">
+		<input type="hidden" id="_wpnonce" name="_wpnonce" value="{reset-nonce}" /><input type="hidden" name="_wp_http_referer" value="/wp-admin/admin.php?page=wp-buyer-blacklist&#038;tab=settings" />		<input type="submit" name="submit" id="submit" class="button button-primary" value="Save changes"  /><button class="button" type="submit" name="action" value="wp_buyer_blacklist_reset_settings" formaction="http://example.org/wp-admin/admin-post.php" formmethod="post" onclick="return window.confirm('Reset all Buyer Blacklist settings to their defaults?');"><span class="wpbb-settings-reset-icon" aria-hidden="true"></span>Reset to defaults</button>
+	</div>
+</form>
+	</div>

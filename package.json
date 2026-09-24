@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-	"build": "wp-scripts build src/admin/index.tsx --output-path=build --output-filename=index.js",
+	"build": "wp-scripts build assets/admin/index.tsx --output-path=build --output-filename=index.js",
     "test": "wp-scripts test-unit-js --runInBand",
     "test:unit": "npm test"
   },

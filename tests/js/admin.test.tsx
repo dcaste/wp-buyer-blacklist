@@ -1,7 +1,7 @@
 import apiFetch from '@wordpress/api-fetch';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from '../../src/admin/index';
+import { App } from '../../assets/admin/index';
 
 jest.mock( '@wordpress/api-fetch', () => jest.fn().mockResolvedValue( [] ) );
 

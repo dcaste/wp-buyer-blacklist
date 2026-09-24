@@ -5,16 +5,16 @@
 		display: inline-block;
 		height: 18px;
 		margin-right: var(--wpbb-space-8);
-		mask: center / contain no-repeat url('../../assets/admin-icons/upload.svg');
+		mask: center / contain no-repeat url('../admin-icons/upload.svg');
 		vertical-align: text-bottom;
 		width: 18px;
 	}
 
 	.wpbb-button-icon.is-download {
-		mask-image: url('../../assets/admin-icons/download.svg');
+		mask-image: url('../admin-icons/download.svg');
 	}
 
 	.wpbb-button-icon.is-trash {
-		mask-image: url('../../assets/admin-icons/trash.svg');
+		mask-image: url('../admin-icons/trash.svg');
 	}
 }

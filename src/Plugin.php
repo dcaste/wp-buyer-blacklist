@@ -8,12 +8,14 @@
 namespace WP_Buyer_Blacklist;
 
 use InvalidArgumentException;
+use WP_Buyer_Blacklist\Admin\AdminPage;
 use WP_Buyer_Blacklist\Enforcement\AddressCheckoutBlocker;
 use WP_Buyer_Blacklist\Enforcement\CheckoutEnforcement;
 use WP_Buyer_Blacklist\Enforcement\CustomerIdCheckoutBlocker;
 use WP_Buyer_Blacklist\Enforcement\EmailCheckoutBlocker;
 use WP_Buyer_Blacklist\Settings\BlacklistSettings;
 use WP_Buyer_Blacklist\Settings\BuyerBlockMessage;
+use WP_Buyer_Blacklist\Settings\SettingsTab;
 use WP_Error;
 
 /**
@@ -43,11 +45,11 @@ final class Plugin {
 	private BlacklistSettings $settings;
 
 	/**
-	 * Buyer block message.
+	 * Buyer Blacklist admin page.
 	 *
-	 * @var BuyerBlockMessage
+	 * @var AdminPage
 	 */
-	private BuyerBlockMessage $buyer_block_message;
+	private AdminPage $admin_page;
 
 	/**
 	 * Customer and Order enrollment workflow.
@@ -70,14 +72,15 @@ final class Plugin {
 	 */
 	public function __construct( EmailEntryRepository $entries ) {
 		$this->entries              = $entries;
-		$this->buyer_block_message  = new BuyerBlockMessage();
+		$buyer_block_message        = new BuyerBlockMessage();
 		$email_blocker              = new EmailCheckoutBlocker( $entries, $entries );
 		$customer_id_blocker        = new CustomerIdCheckoutBlocker( $entries );
 		$address_blocker            = new AddressCheckoutBlocker( $entries );
-		$this->checkout_enforcement = new CheckoutEnforcement( $email_blocker, $customer_id_blocker, $address_blocker, $this->buyer_block_message );
-		$this->settings             = new BlacklistSettings( $this->buyer_block_message );
+		$this->checkout_enforcement = new CheckoutEnforcement( $email_blocker, $customer_id_blocker, $address_blocker, $buyer_block_message );
+		$this->settings             = new BlacklistSettings( $buyer_block_message );
 		$this->operator_access      = new OperatorAccess();
 		$this->source_enrollment    = new SourceEnrollment( $entries, $this->operator_access );
+		$this->admin_page           = new AdminPage( $this->operator_access, new SettingsTab( $buyer_block_message ) );
 	}
 
 	/**
@@ -86,77 +89,15 @@ final class Plugin {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'admin_menu', array( $this, 'register_admin_page' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'admin_post_wp_buyer_blacklist_export', array( $this, 'download_csv_export' ) );
 		add_action( 'admin_post_wp_buyer_blacklist_dossier_export', array( $this, 'download_identity_dossier' ) );
 		add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_personal_data_exporter' ) );
 		add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_personal_data_eraser' ) );
+		$this->admin_page->register();
 		$this->settings->register();
 		$this->checkout_enforcement->register();
 		$this->source_enrollment->register();
-	}
-
-	/**
-	 * Registers the WooCommerce submenu page.
-	 *
-	 * @return void
-	 */
-	public function register_admin_page(): void {
-		add_submenu_page(
-			'woocommerce',
-			__( 'Buyer Blacklist', 'wp-buyer-blacklist' ),
-			__( 'Buyer Blacklist', 'wp-buyer-blacklist' ),
-			$this->operator_access->menu_capability(),
-			'wp-buyer-blacklist',
-			array( $this, 'render_admin_page' )
-		);
-	}
-
-	/**
-	 * Renders the entry creation and list screen.
-	 *
-	 * @return void
-	 */
-	public function render_admin_page(): void {
-		if ( ! $this->can_manage_entries() ) {
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This selects the tab to render and does not change plugin data.
-		$tab = isset( $_GET['tab'] ) && is_string( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'manage';
-		if ( ! in_array( $tab, array( 'manage', 'import-export', 'settings' ), true ) || ( 'settings' === $tab && ! $this->can_manage_privacy_data() ) ) {
-			$tab = 'manage';
-		}
-		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'Buyer Blacklist', 'wp-buyer-blacklist' ); ?></h1>
-			<nav class="nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Buyer Blacklist sections', 'wp-buyer-blacklist' ); ?>">
-				<a class="nav-tab <?php echo 'manage' === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-buyer-blacklist' ) ); ?>"><?php esc_html_e( 'Manage entries', 'wp-buyer-blacklist' ); ?></a>
-				<a class="nav-tab <?php echo 'import-export' === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-buyer-blacklist&tab=import-export' ) ); ?>"><?php esc_html_e( 'Import and export', 'wp-buyer-blacklist' ); ?></a>
-				<?php
-				if ( $this->can_manage_privacy_data() ) :
-					?>
-					<a class="nav-tab <?php echo 'settings' === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-buyer-blacklist&tab=settings' ) ); ?>"><?php esc_html_e( 'Settings', 'wp-buyer-blacklist' ); ?></a><?php endif; ?>
-			</nav>
-			<?php if ( 'settings' === $tab ) : ?>
-				<?php if ( isset( $_GET['wp_buyer_blacklist_settings'] ) && 'reset' === sanitize_key( wp_unslash( $_GET['wp_buyer_blacklist_settings'] ) ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This displays a result from the nonce-protected reset action. ?>
-					<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Settings restored to their defaults.', 'wp-buyer-blacklist' ); ?></p></div>
-				<?php endif; ?>
-				<form class="wpbb-settings" action="options.php" method="post">
-					<?php settings_fields( 'wp_buyer_blacklist' ); ?>
-					<section class="wpbb-settings-card wpbb-settings-message-card"><header><h2><?php esc_html_e( 'Buyer-facing block message', 'wp-buyer-blacklist' ); ?></h2><p class="description"><?php esc_html_e( 'This message is shown when a Buyer is blocked from placing an order.', 'wp-buyer-blacklist' ); ?></p></header><div class="wpbb-settings-message-content"><div><p><label for="wp-buyer-blacklist-buyer-message"><?php esc_html_e( 'Message', 'wp-buyer-blacklist' ); ?></label><textarea aria-describedby="wp-buyer-blacklist-buyer-message-description" class="large-text" id="wp-buyer-blacklist-buyer-message" name="wp_buyer_blacklist_buyer_message" rows="3"><?php echo esc_textarea( get_option( 'wp_buyer_blacklist_buyer_message', $this->buyer_block_message->default() ) ); ?></textarea></p><p class="description" id="wp-buyer-blacklist-buyer-message-description"><?php esc_html_e( 'Keep the message clear and professional. Explain what the Buyer can do next.', 'wp-buyer-blacklist' ); ?></p></div><div class="wpbb-settings-preview"><strong><?php esc_html_e( 'Preview', 'wp-buyer-blacklist' ); ?></strong><p class="description"><?php esc_html_e( 'This is how the message appears to a blocked Buyer during checkout.', 'wp-buyer-blacklist' ); ?></p><div class="wpbb-message-preview" aria-live="polite"><span class="wpbb-message-preview-icon" aria-hidden="true">!</span><p id="wp-buyer-blacklist-message-preview"><?php echo esc_html( get_option( 'wp_buyer_blacklist_buyer_message', $this->buyer_block_message->default() ) ); ?></p></div></div></div></section>
-					<section class="wpbb-settings-card wpbb-settings-permissions-card"><header><h2><?php esc_html_e( 'Permissions', 'wp-buyer-blacklist' ); ?></h2><p class="description"><?php esc_html_e( 'Control who can manage the Blacklist in your store.', 'wp-buyer-blacklist' ); ?></p></header><input name="wp_buyer_blacklist_allow_woocommerce_managers" type="hidden" value="0" /><label class="wpbb-toggle"><input aria-describedby="wp-buyer-blacklist-allow-woocommerce-managers-description" id="wp-buyer-blacklist-allow-woocommerce-managers" name="wp_buyer_blacklist_allow_woocommerce_managers" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_allow_woocommerce_managers', true ) ); ?> /> <?php esc_html_e( 'Allow WooCommerce managers to manage Blacklist entries', 'wp-buyer-blacklist' ); ?></label><p class="description" id="wp-buyer-blacklist-allow-woocommerce-managers-description"><?php esc_html_e( 'Gives users with WooCommerce management permission access to entries, CSV imports, and Blocked attempts.', 'wp-buyer-blacklist' ); ?></p></section>
-					<section class="wpbb-settings-card wpbb-settings-cleanup-card"><header><h2><?php esc_html_e( 'Data and cleanup', 'wp-buyer-blacklist' ); ?></h2><p class="description"><?php esc_html_e( 'Manage what happens to Blacklist data when the plugin is removed.', 'wp-buyer-blacklist' ); ?></p></header><input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" /><label class="wpbb-toggle"><input aria-describedby="wp-buyer-blacklist-delete-data-description" id="wp-buyer-blacklist-delete-data" name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1" <?php checked( get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ); ?> /> <?php esc_html_e( 'Delete all Blacklist data when the plugin is uninstalled', 'wp-buyer-blacklist' ); ?></label><p class="description" id="wp-buyer-blacklist-delete-data-description"><?php esc_html_e( 'Permanently deletes all Blacklist entries, import history, and Blocked attempt data when the plugin is uninstalled. This cannot be undone.', 'wp-buyer-blacklist' ); ?></p><div class="wpbb-settings-warning"><span class="dashicons dashicons-warning" aria-hidden="true"></span><div><strong><?php esc_html_e( 'This will permanently delete your data.', 'wp-buyer-blacklist' ); ?></strong><p><?php esc_html_e( 'Export your entries first if you need a backup before uninstalling the plugin.', 'wp-buyer-blacklist' ); ?></p></div></div></section>
-					<div class="wpbb-settings-actions"><?php wp_nonce_field( 'wp_buyer_blacklist_reset_settings' ); ?><?php submit_button( __( 'Save changes', 'wp-buyer-blacklist' ), 'primary', 'submit', false ); ?><button class="button" type="submit" name="action" value="wp_buyer_blacklist_reset_settings" formaction="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" formmethod="post" onclick="return window.confirm('<?php echo esc_js( __( 'Reset all Buyer Blacklist settings to their defaults?', 'wp-buyer-blacklist' ) ); ?>');"><span class="wpbb-settings-reset-icon" aria-hidden="true"></span><?php esc_html_e( 'Reset to defaults', 'wp-buyer-blacklist' ); ?></button></div>
-				</form>
-				<script>document.getElementById('wp-buyer-blacklist-buyer-message').addEventListener('input', function () { document.getElementById('wp-buyer-blacklist-message-preview').textContent = this.value || '<?php echo esc_js( $this->buyer_block_message->default() ); ?>'; });</script>
-			<?php else : ?>
-				<div id="wp-buyer-blacklist-admin" data-tab="<?php echo esc_attr( $tab ); ?>" data-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_export' ), 'wp_buyer_blacklist_export' ) ); ?>" data-example-csv-url="<?php echo esc_url( WP_BUYER_BLACKLIST_URL . 'assets/buyer-blacklist-example.csv' ); ?>" data-dossier-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_dossier_export' ), 'wp_buyer_blacklist_dossier_export' ) ); ?>"></div>
-			<?php endif; ?>
-		</div>
-		<?php
 	}
 
 	/** Registers the private entry API. @return void */
@@ -803,28 +744,5 @@ final class Plugin {
 	 */
 	private function reason_from_request( \WP_REST_Request $request ): string {
 		return sanitize_textarea_field( (string) $request->get_param( 'reason' ) );
-	}
-
-	/**
-	 * Enqueues the React admin application.
-	 *
-	 * @param string $hook Current admin hook.
-	 * @return void
-	 */
-	public function enqueue_admin_assets( string $hook ): void {
-		if ( ! in_array( $hook, array( 'woocommerce_page_wp-buyer-blacklist', 'admin_page_wp-buyer-blacklist-enroll', 'users.php' ), true ) ) {
-			return;
-		}
-		$asset = file_exists( WP_BUYER_BLACKLIST_DIR . 'build/index.asset.php' ) ? require WP_BUYER_BLACKLIST_DIR . 'build/index.asset.php' : array(
-			'dependencies' => array(),
-			'version'      => '0.1.0',
-		);
-		if ( file_exists( WP_BUYER_BLACKLIST_DIR . 'build/style-index.tsx.css' ) ) {
-			wp_enqueue_style( 'wp-buyer-blacklist-admin', WP_BUYER_BLACKLIST_URL . 'build/style-index.tsx.css', array(), $asset['version'] );
-			wp_style_add_data( 'wp-buyer-blacklist-admin', 'rtl', 'replace' );
-		}
-		if ( in_array( $hook, array( 'woocommerce_page_wp-buyer-blacklist', 'users.php' ), true ) ) {
-			wp_enqueue_script( 'wp-buyer-blacklist-admin', WP_BUYER_BLACKLIST_URL . 'build/index.js', $asset['dependencies'], $asset['version'], true );
-		}
 	}
 }
