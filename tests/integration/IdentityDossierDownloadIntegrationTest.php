@@ -7,7 +7,8 @@
 
 use WP_Buyer_Blacklist\Entries\EmailEntry;
 use WP_Buyer_Blacklist\EmailEntryRepository;
-use WP_Buyer_Blacklist\Plugin;
+use WP_Buyer_Blacklist\Privacy\DossierDownload;
+use WP_Buyer_Blacklist\Privacy\PrivacyDataAccess;
 
 /**
  * Covers Administrator-only dossier downloads.
@@ -27,7 +28,7 @@ class IdentityDossierDownloadIntegrationTest extends WP_UnitTestCase {
 		$repository->record_blocked_attempt( $entry_id, 'buyer@example.com' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
-		$dossier = ( new Plugin( $repository ) )->identity_dossier_for_download( $entry_id, wp_create_nonce( 'wp_buyer_blacklist_dossier_export' ) );
+		$dossier = ( new DossierDownload( $repository, new PrivacyDataAccess() ) )->identity_dossier_for_download( $entry_id, wp_create_nonce( 'wp_buyer_blacklist_dossier_export' ) );
 
 		$this->assertIsArray( $dossier );
 		$this->assertSame( 'buyer@example.com', $dossier['entry']['value'] );
@@ -45,7 +46,7 @@ class IdentityDossierDownloadIntegrationTest extends WP_UnitTestCase {
 		$repository = new EmailEntryRepository( $wpdb );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
 
-		$result = ( new Plugin( $repository ) )->identity_dossier_for_download( 1, wp_create_nonce( 'wp_buyer_blacklist_dossier_export' ) );
+		$result = ( new DossierDownload( $repository, new PrivacyDataAccess() ) )->identity_dossier_for_download( 1, wp_create_nonce( 'wp_buyer_blacklist_dossier_export' ) );
 
 		$this->assertWPError( $result );
 		$this->assertSame( 403, $result->get_error_data()['status'] );
@@ -61,7 +62,7 @@ class IdentityDossierDownloadIntegrationTest extends WP_UnitTestCase {
 		$repository = new EmailEntryRepository( $wpdb );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
-		$result = ( new Plugin( $repository ) )->identity_dossier_for_download( 1, 'expired-nonce' );
+		$result = ( new DossierDownload( $repository, new PrivacyDataAccess() ) )->identity_dossier_for_download( 1, 'expired-nonce' );
 
 		$this->assertWPError( $result );
 		$this->assertSame( 403, $result->get_error_data()['status'] );
