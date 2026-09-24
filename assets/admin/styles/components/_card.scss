@@ -1,15 +1,15 @@
 /* Cards and page spacing. */
-#wp-buyer-blacklist-admin {
-	.wpbb-card,
-	.wpbb-settings-card {
-		background: var(--wpbb-surface);
-		border: 1px solid var(--wpbb-border);
-		border-radius: var(--wpbb-radius-lg);
-		box-shadow: 0 1px 2px rgb(15 23 42 / 8%);
-		margin: 0 0 var(--wpbb-space-24);
-		padding: var(--wpbb-space-16);
-	}
+#wp-buyer-blacklist-admin .wpbb-card,
+.woocommerce_page_wp-buyer-blacklist .wpbb-settings-card {
+	background: var(--wpbb-surface);
+	border: 1px solid var(--wpbb-border);
+	border-radius: var(--wpbb-radius-lg);
+	box-shadow: 0 1px 2px rgb(15 23 42 / 8%);
+	margin: 0 0 var(--wpbb-space-24);
+	padding: var(--wpbb-space-16);
+}
 
+#wp-buyer-blacklist-admin {
 	.wpbb-page > * + * {
 		margin-top: var(--wpbb-space-24);
 	}
