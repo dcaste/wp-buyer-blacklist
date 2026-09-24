@@ -13,19 +13,28 @@ namespace WP_Buyer_Blacklist\Enforcement;
 final class CustomerIdCheckoutBlocker {
 
 	/**
-	 * Customer-ID entry storage.
+	 * Active customer-ID entry lookup.
 	 *
-	 * @var ActiveCustomerIdEntryFinder&BlockedAttemptRecorder
+	 * @var ActiveCustomerIdEntryFinder
 	 */
-	private ActiveCustomerIdEntryFinder&BlockedAttemptRecorder $entries;
+	private ActiveCustomerIdEntryFinder $entries;
+
+	/**
+	 * Blocked attempt persistence.
+	 *
+	 * @var BlockedAttemptRecorder
+	 */
+	private BlockedAttemptRecorder $attempts;
 
 	/**
 	 * Creates the customer-ID checkout blocker.
 	 *
-	 * @param ActiveCustomerIdEntryFinder&BlockedAttemptRecorder $entries Customer-ID entry storage.
+	 * @param ActiveCustomerIdEntryFinder $entries  Active customer-ID entry lookup.
+	 * @param BlockedAttemptRecorder      $attempts Blocked attempt persistence.
 	 */
-	public function __construct( ActiveCustomerIdEntryFinder&BlockedAttemptRecorder $entries ) {
-		$this->entries = $entries;
+	public function __construct( ActiveCustomerIdEntryFinder $entries, BlockedAttemptRecorder $attempts ) {
+		$this->entries  = $entries;
+		$this->attempts = $attempts;
 	}
 
 	/**
@@ -41,7 +50,7 @@ final class CustomerIdCheckoutBlocker {
 
 		$entry_ids = $this->entries->matching_active_customer_id_entry_ids( $customer_id );
 		foreach ( $entry_ids as $entry_id ) {
-			$this->entries->record_blocked_attempt( $entry_id, (string) $customer_id );
+			$this->attempts->record_blocked_attempt( $entry_id, (string) $customer_id );
 		}
 
 		return array() !== $entry_ids;

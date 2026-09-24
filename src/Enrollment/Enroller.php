@@ -8,7 +8,7 @@
 namespace WP_Buyer_Blacklist\Enrollment;
 
 use InvalidArgumentException;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 use WP_Buyer_Blacklist\Entries\AddressEntry;
 use WP_Buyer_Blacklist\Entries\CustomerIdEntry;
 use WP_Buyer_Blacklist\Entries\EmailEntry;
@@ -21,16 +21,16 @@ final class Enroller {
 	/**
 	 * Entry storage.
 	 *
-	 * @var EmailEntryRepository
+	 * @var EntryRepository
 	 */
-	private EmailEntryRepository $entries;
+	private EntryRepository $entries;
 
 	/**
 	 * Creates the enroller.
 	 *
-	 * @param EmailEntryRepository $entries Entry storage.
+	 * @param EntryRepository $entries Entry storage.
 	 */
-	public function __construct( EmailEntryRepository $entries ) {
+	public function __construct( EntryRepository $entries ) {
 		$this->entries = $entries;
 	}
 

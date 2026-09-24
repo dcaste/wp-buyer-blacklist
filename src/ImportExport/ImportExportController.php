@@ -9,7 +9,7 @@ namespace WP_Buyer_Blacklist\ImportExport;
 
 use InvalidArgumentException;
 use WP_Buyer_Blacklist\Access\OperatorAccess;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 use WP_Buyer_Blacklist\Plugin;
 use WP_Error;
 use WP_REST_Request;
@@ -23,9 +23,16 @@ final class ImportExportController {
 	/**
 	 * Entry storage.
 	 *
-	 * @var EmailEntryRepository
+	 * @var EntryRepository
 	 */
-	private EmailEntryRepository $entries;
+	private EntryRepository $entries;
+
+	/**
+	 * Outcomes of confirmed imports.
+	 *
+	 * @var ImportHistory
+	 */
+	private ImportHistory $import_history;
 
 	/**
 	 * Blacklist operator access policy.
@@ -37,11 +44,13 @@ final class ImportExportController {
 	/**
 	 * Creates the controller.
 	 *
-	 * @param EmailEntryRepository $entries         Entry storage.
-	 * @param OperatorAccess       $operator_access Blacklist operator access policy.
+	 * @param EntryRepository $entries         Entry storage.
+	 * @param ImportHistory   $import_history  Outcomes of confirmed imports.
+	 * @param OperatorAccess  $operator_access Blacklist operator access policy.
 	 */
-	public function __construct( EmailEntryRepository $entries, OperatorAccess $operator_access ) {
+	public function __construct( EntryRepository $entries, ImportHistory $import_history, OperatorAccess $operator_access ) {
 		$this->entries         = $entries;
+		$this->import_history  = $import_history;
 		$this->operator_access = $operator_access;
 	}
 
@@ -158,7 +167,7 @@ final class ImportExportController {
 			}
 		}
 		delete_transient( $this->csv_import_transient_key( $token ) );
-		$this->entries->record_import( (string) ( $result['file_name'] ?? __( 'CSV import', 'wp-buyer-blacklist' ) ), count( $result['accepted'] ) + count( $result['duplicates'] ) + count( $result['rejected'] ), $created, count( $result['duplicates'] ), count( $result['rejected'] ) );
+		$this->import_history->record_import( (string) ( $result['file_name'] ?? __( 'CSV import', 'wp-buyer-blacklist' ) ), count( $result['accepted'] ) + count( $result['duplicates'] ) + count( $result['rejected'] ), $created, count( $result['duplicates'] ), count( $result['rejected'] ) );
 
 		return new WP_REST_Response( $this->csv_import_result( $result, '', $created ) );
 	}
@@ -197,6 +206,6 @@ final class ImportExportController {
 	 * @return list<array<string, string>>
 	 */
 	public function get_import_history(): array {
-		return $this->entries->recent_imports();
+		return $this->import_history->recent_imports();
 	}
 }

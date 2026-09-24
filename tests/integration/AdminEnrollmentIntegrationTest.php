@@ -96,7 +96,7 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 				)
 			)
 		);
-		$repository = new \WP_Buyer_Blacklist\EmailEntryRepository( $GLOBALS['wpdb'] );
+		$repository = new \WP_Buyer_Blacklist\Entries\EntryRepository( $GLOBALS['wpdb'], new \WP_Buyer_Blacklist\Entries\AuditLog( $GLOBALS['wpdb'] ), new \WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog( $GLOBALS['wpdb'] ) );
 		$repository->create( \WP_Buyer_Blacklist\Entries\EmailEntry::from_email( 'buyer@example.com' ), 'Test entry' );
 
 		$output = apply_filters( 'manage_users_custom_column', '', 'wp_buyer_blacklist', $customer->ID );
@@ -124,7 +124,7 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 				)
 			)
 		);
-		$repository = new \WP_Buyer_Blacklist\EmailEntryRepository( $GLOBALS['wpdb'] );
+		$repository = new \WP_Buyer_Blacklist\Entries\EntryRepository( $GLOBALS['wpdb'], new \WP_Buyer_Blacklist\Entries\AuditLog( $GLOBALS['wpdb'] ), new \WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog( $GLOBALS['wpdb'] ) );
 		$repository->create( \WP_Buyer_Blacklist\Entries\EmailEntry::from_email( 'inactive@example.com' ), 'Test entry' );
 		$entry = $repository->all()[0];
 		$repository->set_active( (int) $entry['id'], false );
@@ -148,7 +148,7 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 				'user_email' => 'multiple@example.com',
 			)
 		);
-		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $GLOBALS['wpdb'] );
+		$repository  = new \WP_Buyer_Blacklist\Entries\EntryRepository( $GLOBALS['wpdb'], new \WP_Buyer_Blacklist\Entries\AuditLog( $GLOBALS['wpdb'] ), new \WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog( $GLOBALS['wpdb'] ) );
 		$repository->create( \WP_Buyer_Blacklist\Entries\EmailEntry::from_email( 'multiple@example.com' ), 'Email match' );
 		$repository->create_customer_id( \WP_Buyer_Blacklist\Entries\CustomerIdEntry::from_customer_id( $customer_id ), 'Customer ID match' );
 
@@ -190,14 +190,14 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 				'user_email' => 'buyer@example.com',
 			)
 		);
-		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
+		$repository  = new \WP_Buyer_Blacklist\Entries\EntryRepository( $wpdb, new \WP_Buyer_Blacklist\Entries\AuditLog( $wpdb ), new \WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog( $wpdb ) );
 
 		$this->assertSame( 'created', $this->enroll_customer( $customer_id, 'email', 'Fraud' ) );
 		$entry = $repository->all()[0];
 
 		$this->assertSame( 'email', $entry['match_type'] );
 		$this->assertSame( 'buyer@example.com', $entry['value'] );
-		$this->assertSame( 'created', $repository->audit_events( (int) $entry['id'] )[0]['action'] );
+		$this->assertSame( 'created', ( new \WP_Buyer_Blacklist\Entries\AuditLog( $wpdb ) )->audit_events( (int) $entry['id'] )[0]['action'] );
 	}
 
 	/**
@@ -214,7 +214,7 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 				'user_email' => 'buyer@example.com',
 			)
 		);
-		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
+		$repository  = new \WP_Buyer_Blacklist\Entries\EntryRepository( $wpdb, new \WP_Buyer_Blacklist\Entries\AuditLog( $wpdb ), new \WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog( $wpdb ) );
 
 		$this->assertSame( 'created', $this->enroll_customer( $customer_id, 'email', 'Fraud' ) );
 		$this->assertSame( 'duplicate', $this->enroll_customer( $customer_id, 'email', 'Fraud' ) );
@@ -232,7 +232,7 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', '0' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
 		$customer_id = self::factory()->user->create( array( 'role' => 'customer' ) );
-		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
+		$repository  = new \WP_Buyer_Blacklist\Entries\EntryRepository( $wpdb, new \WP_Buyer_Blacklist\Entries\AuditLog( $wpdb ), new \WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog( $wpdb ) );
 
 		try {
 			$this->enroll_customer( $customer_id, 'customer_id', 'Fraud' );

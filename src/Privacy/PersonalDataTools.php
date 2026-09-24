@@ -7,7 +7,7 @@
 
 namespace WP_Buyer_Blacklist\Privacy;
 
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 
 /**
  * Exports and erases email identities through the WordPress privacy tools.
@@ -17,17 +17,26 @@ final class PersonalDataTools {
 	/**
 	 * Entry storage.
 	 *
-	 * @var EmailEntryRepository
+	 * @var EntryRepository
 	 */
-	private EmailEntryRepository $entries;
+	private EntryRepository $entries;
+
+	/**
+	 * Identity dossiers.
+	 *
+	 * @var DossierBuilder
+	 */
+	private DossierBuilder $dossiers;
 
 	/**
 	 * Creates the privacy tools.
 	 *
-	 * @param EmailEntryRepository $entries Entry storage.
+	 * @param EntryRepository $entries  Entry storage.
+	 * @param DossierBuilder  $dossiers Identity dossiers.
 	 */
-	public function __construct( EmailEntryRepository $entries ) {
-		$this->entries = $entries;
+	public function __construct( EntryRepository $entries, DossierBuilder $dossiers ) {
+		$this->entries  = $entries;
+		$this->dossiers = $dossiers;
 	}
 
 	/**
@@ -65,7 +74,7 @@ final class PersonalDataTools {
 	public function export_personal_data( string $email_address, int $page ): array {
 		unset( $page );
 		$data = array();
-		foreach ( $this->entries->identity_dossiers_for_email( $email_address ) as $dossier ) {
+		foreach ( $this->dossiers->identity_dossiers_for_email( $email_address ) as $dossier ) {
 			$entry  = $dossier['entry'];
 			$data[] = array(
 				'group_id'    => 'wp-buyer-blacklist',
@@ -119,7 +128,7 @@ final class PersonalDataTools {
 	public function erase_personal_data( string $email_address, int $page ): array {
 		unset( $page );
 		$removed = false;
-		foreach ( $this->entries->identity_dossiers_for_email( $email_address ) as $dossier ) {
+		foreach ( $this->dossiers->identity_dossiers_for_email( $email_address ) as $dossier ) {
 			$removed = $this->entries->erase( (int) $dossier['entry']['id'] ) || $removed;
 		}
 

@@ -10,6 +10,7 @@ namespace WP_Buyer_Blacklist;
 use WP_Buyer_Blacklist\Access\OperatorAccess;
 use WP_Buyer_Blacklist\Admin\AdminPage;
 use WP_Buyer_Blacklist\Enforcement\AddressCheckoutBlocker;
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
 use WP_Buyer_Blacklist\Enforcement\CheckoutEnforcement;
 use WP_Buyer_Blacklist\Enforcement\CustomerIdCheckoutBlocker;
 use WP_Buyer_Blacklist\Enforcement\EmailCheckoutBlocker;
@@ -17,9 +18,14 @@ use WP_Buyer_Blacklist\Enrollment\CustomerScreen;
 use WP_Buyer_Blacklist\Enrollment\Enroller;
 use WP_Buyer_Blacklist\Enrollment\EnrollmentPage;
 use WP_Buyer_Blacklist\Enrollment\OrderScreen;
+use WP_Buyer_Blacklist\Entries\AuditLog;
 use WP_Buyer_Blacklist\Entries\EntriesController;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 use WP_Buyer_Blacklist\ImportExport\CsvExportDownload;
+use WP_Buyer_Blacklist\ImportExport\CsvExporter;
 use WP_Buyer_Blacklist\ImportExport\ImportExportController;
+use WP_Buyer_Blacklist\ImportExport\ImportHistory;
+use WP_Buyer_Blacklist\Privacy\DossierBuilder;
 use WP_Buyer_Blacklist\Privacy\DossierController;
 use WP_Buyer_Blacklist\Privacy\DossierDownload;
 use WP_Buyer_Blacklist\Privacy\PersonalDataTools;
@@ -48,9 +54,13 @@ final class Plugin {
 	/**
 	 * Creates the plugin and its modules.
 	 *
-	 * @param EmailEntryRepository $entries Entry storage.
+	 * @param \wpdb $database WordPress database connection.
 	 */
-	public function __construct( EmailEntryRepository $entries ) {
+	public function __construct( \wpdb $database ) {
+		$audit_log           = new AuditLog( $database );
+		$blocked_attempts    = new BlockedAttemptLog( $database );
+		$entries             = new EntryRepository( $database, $audit_log, $blocked_attempts );
+		$dossiers            = new DossierBuilder( $database, $audit_log, $blocked_attempts );
 		$buyer_block_message = new BuyerBlockMessage();
 		$operator_access     = new OperatorAccess();
 		$privacy_access      = new PrivacyDataAccess();
@@ -58,18 +68,18 @@ final class Plugin {
 		$enrollment_page     = new EnrollmentPage( $enroller, $operator_access );
 
 		$this->modules = array(
-			new DossierController( $entries, $privacy_access ),
-			new DossierDownload( $entries, $privacy_access ),
-			new PersonalDataTools( $entries ),
-			new EntriesController( $entries, $operator_access, $privacy_access ),
-			new ImportExportController( $entries, $operator_access ),
-			new CsvExportDownload( $entries, $privacy_access ),
+			new DossierController( $dossiers, $privacy_access ),
+			new DossierDownload( $dossiers, $privacy_access ),
+			new PersonalDataTools( $entries, $dossiers ),
+			new EntriesController( $entries, $audit_log, $blocked_attempts, $dossiers, $operator_access, $privacy_access ),
+			new ImportExportController( $entries, new ImportHistory( $database ), $operator_access ),
+			new CsvExportDownload( new CsvExporter( $database ), $privacy_access ),
 			new AdminPage( $operator_access, $privacy_access, new SettingsTab( $buyer_block_message ) ),
 			new BlacklistSettings( $buyer_block_message ),
 			new CheckoutEnforcement(
-				new EmailCheckoutBlocker( $entries, $entries ),
-				new CustomerIdCheckoutBlocker( $entries ),
-				new AddressCheckoutBlocker( $entries ),
+				new EmailCheckoutBlocker( $entries, $blocked_attempts ),
+				new CustomerIdCheckoutBlocker( $entries, $blocked_attempts ),
+				new AddressCheckoutBlocker( $entries, $blocked_attempts ),
 				$buyer_block_message
 			),
 			new CustomerScreen( $entries, $enroller, $enrollment_page, $operator_access ),

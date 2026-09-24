@@ -5,8 +5,10 @@
  * @package WP_Buyer_Blacklist
  */
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
+use WP_Buyer_Blacklist\Entries\AuditLog;
 use WP_Buyer_Blacklist\Entries\EmailEntry;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 
 /**
  * Covers the privacy tools registered through core filters.
@@ -19,7 +21,7 @@ class PrivacyToolsIntegrationTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_exports_personal_data_for_an_email(): void {
-		$entries = new EmailEntryRepository( $GLOBALS['wpdb'] );
+		$entries = new EntryRepository( $GLOBALS['wpdb'], new AuditLog( $GLOBALS['wpdb'] ), new BlockedAttemptLog( $GLOBALS['wpdb'] ) );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'buyer@example.com' ), 'Fraud' ) );
 		$entry_id = (int) $entries->all()[0]['id'];
 		do_action( 'woocommerce_after_checkout_validation', array( 'billing_email' => 'buyer@example.com' ), new WP_Error() );
@@ -64,7 +66,7 @@ class PrivacyToolsIntegrationTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_erases_personal_data_for_an_email(): void {
-		$entries = new EmailEntryRepository( $GLOBALS['wpdb'] );
+		$entries = new EntryRepository( $GLOBALS['wpdb'], new AuditLog( $GLOBALS['wpdb'] ), new BlockedAttemptLog( $GLOBALS['wpdb'] ) );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'buyer@example.com' ), 'Fraud' ) );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'other@example.com' ), 'Fraud' ) );
 

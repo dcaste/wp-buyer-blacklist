@@ -6,8 +6,10 @@
  */
 
 use PHPUnit\Framework\TestCase;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
 use WP_Buyer_Blacklist\Enrollment\Enroller;
+use WP_Buyer_Blacklist\Entries\AuditLog;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 
 /**
  * Covers address formatting and email validation for enrollment.
@@ -28,7 +30,7 @@ class EnrollerTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$this->enroller = new Enroller( new EmailEntryRepository( $GLOBALS['wpdb'] ) );
+		$this->enroller = new Enroller( new EntryRepository( $GLOBALS['wpdb'], new AuditLog( $GLOBALS['wpdb'] ), new BlockedAttemptLog( $GLOBALS['wpdb'] ) ) );
 	}
 
 	/**

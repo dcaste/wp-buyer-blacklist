@@ -5,8 +5,11 @@
  * @package WP_Buyer_Blacklist
  */
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
+use WP_Buyer_Blacklist\Entries\AuditLog;
 use WP_Buyer_Blacklist\Entries\EmailEntry;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
+use WP_Buyer_Blacklist\Storage\Schema;
 
 /**
  * Covers the WooCommerce pre-payment checkout hook.
@@ -19,9 +22,9 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 	/**
 	 * Email entry storage.
 	 *
-	 * @var EmailEntryRepository
+	 * @var EntryRepository
 	 */
-	private EmailEntryRepository $entries;
+	private EntryRepository $entries;
 
 	/**
 	 * Entry identifier.
@@ -42,8 +45,8 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 		// The Store API checkout route keeps its draft order between requests, so rebuild the routes for each test.
 		$GLOBALS['wp_rest_server'] = null;
 		wp_set_current_user( self::factory()->user->create( array( 'display_name' => 'Blacklist Operator' ) ) );
-		$this->entries = new EmailEntryRepository( $GLOBALS['wpdb'] );
-		$this->entries->install();
+		$this->entries = new EntryRepository( $GLOBALS['wpdb'], new AuditLog( $GLOBALS['wpdb'] ), new BlockedAttemptLog( $GLOBALS['wpdb'] ) );
+		( new Schema( $GLOBALS['wpdb'] ) )->install();
 		$this->assertTrue( $this->entries->create( EmailEntry::from_email( 'buyer@example.com' ), 'Test entry' ) );
 		$entries        = $this->entries->all();
 		$this->entry_id = (int) $entries[0]['id'];
@@ -166,7 +169,7 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 		rest_get_server()->dispatch( $request );
 		remove_filter( 'woocommerce_store_api_disable_nonce_check', '__return_true' );
 
-		$attempts = $this->entries->blocked_attempts( $this->entry_id );
+		$attempts = ( new BlockedAttemptLog( $GLOBALS['wpdb'] ) )->blocked_attempts( $this->entry_id );
 
 		$this->assertCount( 1, $attempts );
 		$this->assertSame( 'buyer@example.com', $attempts[0]['identity_value'] );
@@ -183,7 +186,7 @@ class CheckoutBlockStoreApiIntegrationTest extends WP_UnitTestCase {
 		$this->assertTrue( $this->entries->update_reason( $this->entry_id, 'Updated reason' ) );
 		$this->assertTrue( $this->entries->set_active( $this->entry_id, false ) );
 
-		$events = $this->entries->audit_events( $this->entry_id );
+		$events = ( new AuditLog( $GLOBALS['wpdb'] ) )->audit_events( $this->entry_id );
 
 		$this->assertSame( array( 'deactivated', 'reason_changed', 'created' ), wp_list_pluck( $events, 'action' ) );
 		$this->assertSame( 'Blacklist Operator', $events[0]['actor_name'] );

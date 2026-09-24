@@ -5,8 +5,10 @@
  * @package WP_Buyer_Blacklist
  */
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
+use WP_Buyer_Blacklist\Entries\AuditLog;
 use WP_Buyer_Blacklist\Entries\EmailEntry;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 
 /**
  * Covers the entry update REST boundary.
@@ -30,12 +32,12 @@ class EntryUpdateIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function test_summary_counts_entries_by_status_and_blocked_attempts(): void {
 		global $wpdb;
-		$entries = new EmailEntryRepository( $wpdb );
+		$entries = new EntryRepository( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'active@example.com' ), 'Fraud' ) );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'inactive@example.com' ), 'Fraud' ) );
 		$all = $entries->all();
 		$this->assertTrue( $entries->set_active( (int) $all[0]['id'], false ) );
-		$this->assertTrue( $entries->record_blocked_attempt( (int) $all[1]['id'], 'active@example.com' ) );
+		$this->assertTrue( ( new BlockedAttemptLog( $wpdb ) )->record_blocked_attempt( (int) $all[1]['id'], 'active@example.com' ) );
 
 		$this->assertSame(
 			array(
@@ -55,7 +57,7 @@ class EntryUpdateIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function test_rejects_identity_fields_when_updating_an_entry(): void {
 		global $wpdb;
-		$entries = new EmailEntryRepository( $wpdb );
+		$entries = new EntryRepository( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'buyer@example.com' ), 'Fraud' ) );
 		$entry_id = (int) $entries->all()[0]['id'];
 		$request  = new WP_REST_Request( 'PATCH', '/wp-buyer-blacklist/v1/email-entries/' . $entry_id );
@@ -80,7 +82,7 @@ class EntryUpdateIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function test_allows_reason_and_status_updates(): void {
 		global $wpdb;
-		$entries = new EmailEntryRepository( $wpdb );
+		$entries = new EntryRepository( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'buyer@example.com' ), 'Fraud' ) );
 		$entry_id = (int) $entries->all()[0]['id'];
 
@@ -93,6 +95,6 @@ class EntryUpdateIntegrationTest extends WP_UnitTestCase {
 		$this->assertSame( 200, rest_do_request( $status_request )->get_status() );
 		$this->assertSame( 'Confirmed fraud', $entries->all()[0]['reason'] );
 		$this->assertSame( '0', $entries->all()[0]['is_active'] );
-		$this->assertSame( array( 'deactivated', 'reason_changed', 'created' ), wp_list_pluck( $entries->audit_events( $entry_id ), 'action' ) );
+		$this->assertSame( array( 'deactivated', 'reason_changed', 'created' ), wp_list_pluck( ( new AuditLog( $wpdb ) )->audit_events( $entry_id ), 'action' ) );
 	}
 }

@@ -52,7 +52,7 @@ class AddressCheckoutBlockerTest extends TestCase {
 			}
 		};
 
-		$blocker = new AddressCheckoutBlocker( $entries );
+		$blocker = new AddressCheckoutBlocker( $entries, $entries );
 
 		$this->assertTrue(
 			$blocker->blocks(
@@ -132,7 +132,7 @@ class AddressCheckoutBlockerTest extends TestCase {
 			}
 		};
 
-		$blocker = new AddressCheckoutBlocker( $entries );
+		$blocker = new AddressCheckoutBlocker( $entries, $entries );
 
 		$this->assertFalse(
 			$blocker->blocks(

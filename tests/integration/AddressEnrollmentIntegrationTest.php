@@ -5,8 +5,11 @@
  * @package WP_Buyer_Blacklist
  */
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
 use WP_Buyer_Blacklist\Entries\AddressEntry;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\AuditLog;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
+use WP_Buyer_Blacklist\Storage\Schema;
 
 /**
  * Covers the address-entry REST endpoint.
@@ -16,9 +19,9 @@ class AddressEnrollmentIntegrationTest extends WP_UnitTestCase {
 	/**
 	 * Address entry storage.
 	 *
-	 * @var EmailEntryRepository
+	 * @var EntryRepository
 	 */
-	private EmailEntryRepository $entries;
+	private EntryRepository $entries;
 
 	/**
 	 * Sets up address entry storage.
@@ -29,8 +32,8 @@ class AddressEnrollmentIntegrationTest extends WP_UnitTestCase {
 		parent::set_up();
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		$this->entries = new EmailEntryRepository( $GLOBALS['wpdb'] );
-		$this->entries->install();
+		$this->entries = new EntryRepository( $GLOBALS['wpdb'], new AuditLog( $GLOBALS['wpdb'] ), new BlockedAttemptLog( $GLOBALS['wpdb'] ) );
+		( new Schema( $GLOBALS['wpdb'] ) )->install();
 		do_action( 'rest_api_init' );
 	}
 

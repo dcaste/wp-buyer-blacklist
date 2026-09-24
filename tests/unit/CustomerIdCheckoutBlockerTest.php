@@ -23,7 +23,7 @@ class CustomerIdCheckoutBlockerTest extends TestCase {
 	public function test_blocks_a_matching_customer_id(): void {
 		$entries = $this->entries( array( 7 => array( 3 ) ) );
 
-		$this->assertTrue( ( new CustomerIdCheckoutBlocker( $entries ) )->blocks( 7 ) );
+		$this->assertTrue( ( new CustomerIdCheckoutBlocker( $entries, $entries ) )->blocks( 7 ) );
 		$this->assertSame(
 			array(
 				array(
@@ -43,7 +43,7 @@ class CustomerIdCheckoutBlockerTest extends TestCase {
 	public function test_allows_an_unlisted_customer_id(): void {
 		$entries = $this->entries( array( 7 => array( 3 ) ) );
 
-		$this->assertFalse( ( new CustomerIdCheckoutBlocker( $entries ) )->blocks( 8 ) );
+		$this->assertFalse( ( new CustomerIdCheckoutBlocker( $entries, $entries ) )->blocks( 8 ) );
 		$this->assertSame( array(), $entries->recorded );
 	}
 
@@ -55,7 +55,7 @@ class CustomerIdCheckoutBlockerTest extends TestCase {
 	public function test_allows_a_guest(): void {
 		$entries = $this->entries( array( 0 => array( 3 ) ) );
 
-		$this->assertFalse( ( new CustomerIdCheckoutBlocker( $entries ) )->blocks( 0 ) );
+		$this->assertFalse( ( new CustomerIdCheckoutBlocker( $entries, $entries ) )->blocks( 0 ) );
 		$this->assertSame( array(), $entries->recorded );
 	}
 

@@ -5,9 +5,12 @@
  * @package WP_Buyer_Blacklist
  */
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
+use WP_Buyer_Blacklist\Entries\AuditLog;
 use WP_Buyer_Blacklist\Entries\EmailEntry;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 use WP_Buyer_Blacklist\ImportExport\CsvExportDownload;
+use WP_Buyer_Blacklist\ImportExport\CsvExporter;
 use WP_Buyer_Blacklist\Privacy\PrivacyDataAccess;
 
 /**
@@ -22,11 +25,11 @@ class DownloadsIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function test_administrator_gets_the_csv_export(): void {
 		global $wpdb;
-		$repository = new EmailEntryRepository( $wpdb );
+		$repository = new EntryRepository( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) );
 		$this->assertTrue( $repository->create( EmailEntry::from_email( 'buyer@example.com' ), 'Fraud' ) );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
-		$csv = ( new CsvExportDownload( $repository, new PrivacyDataAccess() ) )->csv_export_for_download();
+		$csv = ( new CsvExportDownload( new CsvExporter( $wpdb ), new PrivacyDataAccess() ) )->csv_export_for_download();
 
 		$this->assertSame( "match_type,email,customer_id,address_line_1,address_line_2,city,state,postcode,country,reason,status\nemail,buyer@example.com,,,,,,,,Fraud,active\n", $csv );
 	}
@@ -40,7 +43,7 @@ class DownloadsIntegrationTest extends WP_UnitTestCase {
 		global $wpdb;
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
 
-		$result = ( new CsvExportDownload( new EmailEntryRepository( $wpdb ), new PrivacyDataAccess() ) )->csv_export_for_download();
+		$result = ( new CsvExportDownload( new CsvExporter( $wpdb ), new PrivacyDataAccess() ) )->csv_export_for_download();
 
 		$this->assertWPError( $result );
 		$this->assertSame( 403, $result->get_error_data()['status'] );

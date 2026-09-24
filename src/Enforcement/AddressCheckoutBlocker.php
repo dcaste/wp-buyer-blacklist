@@ -15,19 +15,28 @@ use WP_Buyer_Blacklist\Entries\AddressEntry;
 final class AddressCheckoutBlocker {
 
 	/**
-	 * Address entry storage.
+	 * Active address entry lookup.
 	 *
-	 * @var ActiveAddressEntryFinder&BlockedAttemptRecorder
+	 * @var ActiveAddressEntryFinder
 	 */
-	private ActiveAddressEntryFinder&BlockedAttemptRecorder $entries;
+	private ActiveAddressEntryFinder $entries;
+
+	/**
+	 * Blocked attempt persistence.
+	 *
+	 * @var BlockedAttemptRecorder
+	 */
+	private BlockedAttemptRecorder $attempts;
 
 	/**
 	 * Creates the address checkout blocker.
 	 *
-	 * @param ActiveAddressEntryFinder&BlockedAttemptRecorder $entries Address entry storage.
+	 * @param ActiveAddressEntryFinder $entries  Active address entry lookup.
+	 * @param BlockedAttemptRecorder   $attempts Blocked attempt persistence.
 	 */
-	public function __construct( ActiveAddressEntryFinder&BlockedAttemptRecorder $entries ) {
-		$this->entries = $entries;
+	public function __construct( ActiveAddressEntryFinder $entries, BlockedAttemptRecorder $attempts ) {
+		$this->entries  = $entries;
+		$this->attempts = $attempts;
 	}
 
 	/**
@@ -47,7 +56,7 @@ final class AddressCheckoutBlocker {
 
 		$entry_ids = $this->entries->matching_active_address_entry_ids( $entry );
 		foreach ( $entry_ids as $entry_id ) {
-			$this->entries->record_blocked_attempt( $entry_id, wp_json_encode( $entry->canonical_value() ) );
+			$this->attempts->record_blocked_attempt( $entry_id, wp_json_encode( $entry->canonical_value() ) );
 		}
 
 		return array() !== $entry_ids;

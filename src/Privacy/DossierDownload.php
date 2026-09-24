@@ -7,7 +7,6 @@
 
 namespace WP_Buyer_Blacklist\Privacy;
 
-use WP_Buyer_Blacklist\EmailEntryRepository;
 use WP_Error;
 
 /**
@@ -16,11 +15,11 @@ use WP_Error;
 final class DossierDownload {
 
 	/**
-	 * Entry storage.
+	 * Identity dossiers.
 	 *
-	 * @var EmailEntryRepository
+	 * @var DossierBuilder
 	 */
-	private EmailEntryRepository $entries;
+	private DossierBuilder $dossiers;
 
 	/**
 	 * Privacy data access check.
@@ -32,11 +31,11 @@ final class DossierDownload {
 	/**
 	 * Creates the dossier download.
 	 *
-	 * @param EmailEntryRepository $entries        Entry storage.
-	 * @param PrivacyDataAccess    $privacy_access Privacy data access check.
+	 * @param DossierBuilder    $dossiers       Identity dossiers.
+	 * @param PrivacyDataAccess $privacy_access Privacy data access check.
 	 */
-	public function __construct( EmailEntryRepository $entries, PrivacyDataAccess $privacy_access ) {
-		$this->entries        = $entries;
+	public function __construct( DossierBuilder $dossiers, PrivacyDataAccess $privacy_access ) {
+		$this->dossiers       = $dossiers;
 		$this->privacy_access = $privacy_access;
 	}
 
@@ -89,7 +88,7 @@ final class DossierDownload {
 			return new WP_Error( 'wp_buyer_blacklist_invalid_nonce', __( 'The download link has expired. Refresh the page and try again.', 'wp-buyer-blacklist' ), array( 'status' => 403 ) );
 		}
 
-		$dossier = $this->entries->identity_dossier( $entry_id );
+		$dossier = $this->dossiers->identity_dossier( $entry_id );
 		if ( null === $dossier ) {
 			return new WP_Error( 'wp_buyer_blacklist_not_found', __( 'The Blacklist entry could not be found.', 'wp-buyer-blacklist' ), array( 'status' => 404 ) );
 		}
