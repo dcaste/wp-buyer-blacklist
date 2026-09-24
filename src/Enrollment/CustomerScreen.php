@@ -67,6 +67,7 @@ final class CustomerScreen {
 		add_filter( 'manage_users_columns', array( $this, 'add_customer_column' ) );
 		add_filter( 'manage_users_custom_column', array( $this, 'render_customer_column' ), 10, 3 );
 		add_action( 'admin_footer-users.php', array( $this, 'render_customer_enrollment_modal' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dialog_script' ) );
 		add_action( 'admin_notices', array( $this, 'render_customer_enrollment_notice' ) );
 		add_filter( 'bulk_actions-users', array( $this, 'add_customer_bulk_action' ) );
 		add_filter( 'handle_bulk_actions-users', array( $this, 'handle_customer_bulk_action' ), 10, 3 );
@@ -106,7 +107,13 @@ final class CustomerScreen {
 
 		$entries = $this->enroller->matching_customer_entries( $user_id );
 		if ( array() === $entries ) {
-			return '<button type="button" class="button-link wp-buyer-blacklist-enroll-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '">' . esc_html__( 'Enroll', 'wp-buyer-blacklist' ) . '</button>';
+			ob_start();
+			// The template runs in a static closure so it sees only this value, not $this.
+			// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- The required template reads the parameter.
+			( static function ( array $buyer ): void {
+				require WP_BUYER_BLACKLIST_DIR . 'templates/enrollment/customer-column-enroll.php';
+			} )( $this->customer_modal_data( $user_id ) );
+			return (string) ob_get_clean();
 		}
 		$entry_ids = array_column( $entries, 'id' );
 		$entries   = array_values(
@@ -116,11 +123,13 @@ final class CustomerScreen {
 			)
 		);
 
-		$active = in_array( '1', array_column( $entries, 'is_active' ), true );
-		$status = $active ? __( 'Blacklisted', 'wp-buyer-blacklist' ) : __( 'Inactive', 'wp-buyer-blacklist' );
-
-		$description = $active ? ' tabindex="0" aria-label="' . esc_attr__( 'Blacklisted. This Buyer cannot place new orders.', 'wp-buyer-blacklist' ) . '" data-wpbb-tooltip="' . esc_attr__( 'This Buyer is blacklisted from placing new orders in your store.', 'wp-buyer-blacklist' ) . '"' : '';
-		return '<span class="wp-buyer-blacklist-status-badge ' . ( $active ? 'is-active' : 'is-inactive' ) . '"' . $description . '>' . esc_html( $status ) . '</span><br><button type="button" class="button-link wp-buyer-blacklist-manage-customer" data-buyer="' . esc_attr( wp_json_encode( $this->customer_modal_data( $user_id ) ) ) . '" data-entries="' . esc_attr( wp_json_encode( $entries ) ) . '">' . esc_html__( 'Manage', 'wp-buyer-blacklist' ) . '</button>';
+		ob_start();
+		// The template runs in a static closure so it sees only these values, not $this.
+		// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- The required template reads every parameter.
+		( static function ( array $buyer, array $entries, bool $active ): void {
+			require WP_BUYER_BLACKLIST_DIR . 'templates/enrollment/customer-column-status.php';
+		} )( $this->customer_modal_data( $user_id ), $entries, in_array( '1', array_column( $entries, 'is_active' ), true ) );
+		return (string) ob_get_clean();
 	}
 
 	/**
@@ -137,6 +146,26 @@ final class CustomerScreen {
 		( static function (): void {
 			require WP_BUYER_BLACKLIST_DIR . 'templates/enrollment/customer-modal.php';
 		} )();
+	}
+
+	/**
+	 * Loads the script behind the Users-list dialogs.
+	 *
+	 * @param string $hook Current admin hook.
+	 * @return void
+	 */
+	public function enqueue_dialog_script( string $hook ): void {
+		if ( 'users.php' !== $hook || ! $this->operator_access->can_manage_entries() ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'wp-buyer-blacklist-customer-dialogs',
+			WP_BUYER_BLACKLIST_URL . 'assets/js/customer-dialogs.js',
+			array( 'wp-api-fetch' ),
+			(string) filemtime( WP_BUYER_BLACKLIST_DIR . 'assets/js/customer-dialogs.js' ),
+			true
+		);
 	}
 
 	/**
@@ -205,7 +234,11 @@ final class CustomerScreen {
 			return;
 		}
 
-		printf( '<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>', esc_attr( $messages[ $result ][0] ), esc_html( $messages[ $result ][1] ) );
+		// The template runs in a static closure so it sees only these values, not $this.
+		// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- The required template reads every parameter.
+		( static function ( string $type, string $message ): void {
+			require WP_BUYER_BLACKLIST_DIR . 'templates/enrollment/customer-notice.php';
+		} )( $messages[ $result ][0], $messages[ $result ][1] );
 	}
 
 	/**
@@ -270,8 +303,11 @@ final class CustomerScreen {
 		if ( ! in_array( 'customer', $user->roles, true ) || ! $this->operator_access->can_manage_entries() ) {
 			return;
 		}
-		?>
-		<tr><th><?php esc_html_e( 'Buyer Blacklist', 'wp-buyer-blacklist' ); ?></th><td><?php echo wp_kses_post( $this->page->enrollment_link( 'customer', array( $user->ID ), __( 'Enroll in Blacklist', 'wp-buyer-blacklist' ) ) ); ?></td></tr>
-		<?php
+
+		// The template runs in a static closure so it sees only this value, not $this.
+		// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- The required template reads the parameter.
+		( static function ( string $enrollment_url ): void {
+			require WP_BUYER_BLACKLIST_DIR . 'templates/enrollment/customer-profile-row.php';
+		} )( $this->page->enrollment_url( 'customer', array( $user->ID ) ) );
 	}
 }

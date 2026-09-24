@@ -284,6 +284,43 @@ class EnrollmentScreensIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Loads the dialog script on the Users screen instead of printing it with the dialogs.
+	 *
+	 * @return void
+	 */
+	public function test_users_screen_loads_the_dialog_script(): void {
+		$this->enqueue_admin_scripts( 'users.php' );
+
+		$this->assertTrue( wp_script_is( 'wp-buyer-blacklist-customer-dialogs', 'enqueued' ) );
+		$this->assertSame( WP_BUYER_BLACKLIST_URL . 'assets/js/customer-dialogs.js', wp_scripts()->registered['wp-buyer-blacklist-customer-dialogs']->src );
+		$this->assertSame( array( 'wp-api-fetch' ), wp_scripts()->registered['wp-buyer-blacklist-customer-dialogs']->deps );
+		$this->assertStringNotContainsString(
+			'<script',
+			$this->render_at(
+				'/wp-admin/users.php',
+				static function (): void {
+					// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- WordPress defines this Users-screen footer hook with a hyphen and period.
+					do_action( 'admin_footer-users.php' );
+				}
+			)
+		);
+	}
+
+	/**
+	 * Loads the dialog script only on the Users screen and only for Blacklist operators.
+	 *
+	 * @return void
+	 */
+	public function test_dialog_script_needs_the_users_screen_and_operator_access(): void {
+		$this->enqueue_admin_scripts( 'edit.php' );
+		$this->assertFalse( wp_script_is( 'wp-buyer-blacklist-customer-dialogs', 'enqueued' ) );
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		$this->enqueue_admin_scripts( 'users.php' );
+		$this->assertFalse( wp_script_is( 'wp-buyer-blacklist-customer-dialogs', 'enqueued' ) );
+	}
+
+	/**
 	 * Submits the enrollment page for Orders with the email Match type.
 	 *
 	 * @param int[] $ids Order identifiers.
@@ -326,5 +363,18 @@ class EnrollmentScreensIntegrationTest extends WP_UnitTestCase {
 		}
 
 		return $markup;
+	}
+
+	/**
+	 * Fires admin_enqueue_scripts the way wp-admin does, from an empty script queue.
+	 *
+	 * @param string $hook_suffix Admin page hook suffix.
+	 * @return void
+	 */
+	private function enqueue_admin_scripts( string $hook_suffix ): void {
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Each call starts from an empty script queue.
+		$GLOBALS['wp_scripts'] = null;
+		set_current_screen( $hook_suffix );
+		do_action( 'admin_enqueue_scripts', $hook_suffix );
 	}
 }
