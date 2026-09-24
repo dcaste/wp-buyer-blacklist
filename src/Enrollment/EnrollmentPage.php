@@ -72,7 +72,9 @@ final class EnrollmentPage {
 		$source_type = isset( $_GET['source_type'] ) && is_string( $_GET['source_type'] ) ? sanitize_key( wp_unslash( $_GET['source_type'] ) ) : '';
 		$ids         = $this->source_ids_from_request();
 		if ( ! in_array( $source_type, array( 'customer', 'order' ), true ) || array() === $ids ) {
-			echo '<div class="wrap"><p>' . esc_html__( 'Select at least one Customer or Order to enroll.', 'wp-buyer-blacklist' ) . '</p></div>';
+			( static function (): void {
+				require WP_BUYER_BLACKLIST_DIR . 'templates/enrollment/no-sources.php';
+			} )();
 			return;
 		}
 
@@ -99,11 +101,11 @@ final class EnrollmentPage {
 		$duplicates = absint( $_GET['duplicates'] ?? 0 );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- These values only display the prior submission result.
 		$unavailable = absint( $_GET['unavailable'] ?? 0 );
-		printf(
-			'<div class="notice notice-success"><p>%s</p></div>',
-			// translators: 1: entries created, 2: duplicate entries skipped, 3: unavailable sources skipped.
-			esc_html( sprintf( __( '%1$d created, %2$d duplicates skipped, %3$d unavailable sources skipped.', 'wp-buyer-blacklist' ), $created, $duplicates, $unavailable ) )
-		);
+		// The template runs in a static closure so it sees only these values, not $this.
+		// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- The required template reads every parameter.
+		( static function ( int $created, int $duplicates, int $unavailable ): void {
+			require WP_BUYER_BLACKLIST_DIR . 'templates/enrollment/result-notice.php';
+		} )( $created, $duplicates, $unavailable );
 	}
 
 	/**
@@ -147,18 +149,6 @@ final class EnrollmentPage {
 		);
 		wp_safe_redirect( $url );
 		exit;
-	}
-
-	/**
-	 * Builds an enrollment action link.
-	 *
-	 * @param string     $source_type Source type.
-	 * @param array<int> $ids        Source identifiers.
-	 * @param string     $label       Link label.
-	 * @return string
-	 */
-	public function enrollment_link( string $source_type, array $ids, string $label ): string {
-		return '<a href="' . esc_url( $this->enrollment_url( $source_type, $ids ) ) . '">' . esc_html( $label ) . '</a>';
 	}
 
 	/**
