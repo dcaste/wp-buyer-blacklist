@@ -5,7 +5,7 @@
  * @package WP_Buyer_Blacklist
  */
 
-namespace WP_Buyer_Blacklist;
+namespace WP_Buyer_Blacklist\ImportExport;
 
 use InvalidArgumentException;
 use WP_Buyer_Blacklist\Entries\AddressEntry;

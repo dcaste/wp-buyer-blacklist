@@ -7,7 +7,7 @@
 
 use WP_Buyer_Blacklist\Entries\EmailEntry;
 use WP_Buyer_Blacklist\EmailEntryRepository;
-use WP_Buyer_Blacklist\Plugin;
+use WP_Buyer_Blacklist\ImportExport\CsvExportDownload;
 
 /**
  * Covers the admin-post download handlers and their side-effect-free seams.
@@ -25,7 +25,7 @@ class DownloadsIntegrationTest extends WP_UnitTestCase {
 		$this->assertTrue( $repository->create( EmailEntry::from_email( 'buyer@example.com' ), 'Fraud' ) );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
-		$csv = ( new Plugin( $repository ) )->csv_export_for_download();
+		$csv = ( new CsvExportDownload( $repository ) )->csv_export_for_download();
 
 		$this->assertSame( "match_type,email,customer_id,address_line_1,address_line_2,city,state,postcode,country,reason,status\nemail,buyer@example.com,,,,,,,,Fraud,active\n", $csv );
 	}
@@ -39,7 +39,7 @@ class DownloadsIntegrationTest extends WP_UnitTestCase {
 		global $wpdb;
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
 
-		$result = ( new Plugin( new EmailEntryRepository( $wpdb ) ) )->csv_export_for_download();
+		$result = ( new CsvExportDownload( new EmailEntryRepository( $wpdb ) ) )->csv_export_for_download();
 
 		$this->assertWPError( $result );
 		$this->assertSame( 403, $result->get_error_data()['status'] );

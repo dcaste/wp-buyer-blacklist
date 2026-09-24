@@ -7,7 +7,6 @@
 
 namespace WP_Buyer_Blacklist;
 
-use InvalidArgumentException;
 use WP_Buyer_Blacklist\Access\OperatorAccess;
 use WP_Buyer_Blacklist\Admin\AdminPage;
 use WP_Buyer_Blacklist\Enforcement\AddressCheckoutBlocker;
@@ -15,6 +14,8 @@ use WP_Buyer_Blacklist\Enforcement\CheckoutEnforcement;
 use WP_Buyer_Blacklist\Enforcement\CustomerIdCheckoutBlocker;
 use WP_Buyer_Blacklist\Enforcement\EmailCheckoutBlocker;
 use WP_Buyer_Blacklist\Entries\EntriesController;
+use WP_Buyer_Blacklist\ImportExport\CsvExportDownload;
+use WP_Buyer_Blacklist\ImportExport\ImportExportController;
 use WP_Buyer_Blacklist\Settings\BlacklistSettings;
 use WP_Buyer_Blacklist\Settings\BuyerBlockMessage;
 use WP_Buyer_Blacklist\Settings\SettingsTab;
@@ -59,6 +60,20 @@ final class Plugin {
 	private EntriesController $entries_controller;
 
 	/**
+	 * CSV import REST routes.
+	 *
+	 * @var ImportExportController
+	 */
+	private ImportExportController $import_export_controller;
+
+	/**
+	 * Full Blacklist CSV download.
+	 *
+	 * @var CsvExportDownload
+	 */
+	private CsvExportDownload $csv_export_download;
+
+	/**
 	 * Buyer Blacklist admin page.
 	 *
 	 * @var AdminPage
@@ -85,17 +100,19 @@ final class Plugin {
 	 * @param EmailEntryRepository $entries Email entry storage.
 	 */
 	public function __construct( EmailEntryRepository $entries ) {
-		$this->entries              = $entries;
-		$buyer_block_message        = new BuyerBlockMessage();
-		$email_blocker              = new EmailCheckoutBlocker( $entries, $entries );
-		$customer_id_blocker        = new CustomerIdCheckoutBlocker( $entries );
-		$address_blocker            = new AddressCheckoutBlocker( $entries );
-		$this->checkout_enforcement = new CheckoutEnforcement( $email_blocker, $customer_id_blocker, $address_blocker, $buyer_block_message );
-		$this->settings             = new BlacklistSettings( $buyer_block_message );
-		$this->operator_access      = new OperatorAccess();
-		$this->source_enrollment    = new SourceEnrollment( $entries, $this->operator_access );
-		$this->entries_controller   = new EntriesController( $entries, $this->operator_access );
-		$this->admin_page           = new AdminPage( $this->operator_access, new SettingsTab( $buyer_block_message ) );
+		$this->entries                  = $entries;
+		$buyer_block_message            = new BuyerBlockMessage();
+		$email_blocker                  = new EmailCheckoutBlocker( $entries, $entries );
+		$customer_id_blocker            = new CustomerIdCheckoutBlocker( $entries );
+		$address_blocker                = new AddressCheckoutBlocker( $entries );
+		$this->checkout_enforcement     = new CheckoutEnforcement( $email_blocker, $customer_id_blocker, $address_blocker, $buyer_block_message );
+		$this->settings                 = new BlacklistSettings( $buyer_block_message );
+		$this->operator_access          = new OperatorAccess();
+		$this->source_enrollment        = new SourceEnrollment( $entries, $this->operator_access );
+		$this->entries_controller       = new EntriesController( $entries, $this->operator_access );
+		$this->import_export_controller = new ImportExportController( $entries, $this->operator_access );
+		$this->csv_export_download      = new CsvExportDownload( $entries );
+		$this->admin_page               = new AdminPage( $this->operator_access, new SettingsTab( $buyer_block_message ) );
 	}
 
 	/**
@@ -105,11 +122,12 @@ final class Plugin {
 	 */
 	public function register(): void {
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
-		add_action( 'admin_post_wp_buyer_blacklist_export', array( $this, 'download_csv_export' ) );
 		add_action( 'admin_post_wp_buyer_blacklist_dossier_export', array( $this, 'download_identity_dossier' ) );
 		add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_personal_data_exporter' ) );
 		add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_personal_data_eraser' ) );
 		$this->entries_controller->register();
+		$this->import_export_controller->register();
+		$this->csv_export_download->register();
 		$this->admin_page->register();
 		$this->settings->register();
 		$this->checkout_enforcement->register();
@@ -118,33 +136,6 @@ final class Plugin {
 
 	/** Registers the private entry API. @return void */
 	public function register_rest_routes(): void {
-		register_rest_route(
-			self::REST_NAMESPACE,
-			'/csv-import/validate',
-			array(
-				'methods'             => 'POST',
-				'callback'            => array( $this, 'validate_csv_import' ),
-				'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
-			)
-		);
-		register_rest_route(
-			self::REST_NAMESPACE,
-			'/csv-import/confirm',
-			array(
-				'methods'             => 'POST',
-				'callback'            => array( $this, 'confirm_csv_import' ),
-				'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
-			)
-		);
-		register_rest_route(
-			self::REST_NAMESPACE,
-			'/import-history',
-			array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_import_history' ),
-				'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
-			)
-		);
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/email-entries/(?P<id>\\d+)/dossier',
@@ -163,41 +154,6 @@ final class Plugin {
 	 */
 	public function can_manage_privacy_data(): bool {
 		return current_user_can( 'manage_options' );
-	}
-
-	/**
-	 * Sends a full Blacklist CSV export to an administrator.
-	 *
-	 * @return void
-	 */
-	public function download_csv_export(): void {
-		if ( ! $this->can_manage_privacy_data() ) {
-			wp_die( esc_html__( 'You are not allowed to export Blacklist data.', 'wp-buyer-blacklist' ), 403 );
-		}
-		check_admin_referer( 'wp_buyer_blacklist_export' );
-		$csv = $this->csv_export_for_download();
-		if ( is_wp_error( $csv ) ) {
-			wp_die( esc_html( $csv->get_error_message() ), (int) $csv->get_error_data()['status'] );
-		}
-
-		nocache_headers();
-		header( 'Content-Type: text/csv; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename="buyer-blacklist.csv"' );
-		echo $csv; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV values are encoded by fputcsv().
-		exit;
-	}
-
-	/**
-	 * Gets the full Blacklist CSV for an administrator download.
-	 *
-	 * @return string|WP_Error CSV export or download error.
-	 */
-	public function csv_export_for_download(): string|WP_Error {
-		if ( ! $this->can_manage_privacy_data() ) {
-			return new WP_Error( 'wp_buyer_blacklist_forbidden', __( 'You are not allowed to export Blacklist data.', 'wp-buyer-blacklist' ), array( 'status' => 403 ) );
-		}
-
-		return $this->entries->export_csv();
 	}
 
 	/**
@@ -352,112 +308,5 @@ final class Plugin {
 			'messages'       => array(),
 			'done'           => true,
 		);
-	}
-
-	/**
-	 * Validates a CSV file before the operator confirms its import.
-	 *
-	 * @param \WP_REST_Request $request Request containing CSV text.
-	 * @return \WP_REST_Response|\WP_Error
-	 */
-	public function validate_csv_import( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-		$csv = $request->get_param( 'csv' );
-		if ( ! is_string( $csv ) ) {
-			return new \WP_Error( 'wp_buyer_blacklist_invalid_csv', __( 'Select a CSV file to import.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
-		}
-
-		try {
-			$result = CsvImport::validate( $csv, WC()->countries->get_countries() );
-		} catch ( InvalidArgumentException $exception ) {
-			return new \WP_Error( 'wp_buyer_blacklist_invalid_csv', $exception->getMessage(), array( 'status' => 400 ) );
-		}
-
-		foreach ( $result['accepted'] as $index => $entry ) {
-			if ( $this->entries->exists( $entry['match_type'], $entry['canonical_hash'] ) ) {
-				$result['duplicates'][] = array(
-					'row'    => $entry['row'],
-					'reason' => __( 'Duplicate entry.', 'wp-buyer-blacklist' ),
-				);
-				unset( $result['accepted'][ $index ] );
-				continue;
-			}
-			$reason                                 = sanitize_textarea_field( $entry['reason'] );
-			$result['accepted'][ $index ]['reason'] = '' === trim( $reason ) ? __( 'Imported blacklist entry', 'wp-buyer-blacklist' ) : $reason;
-		}
-		$result['accepted']  = array_values( $result['accepted'] );
-		$result['file_name'] = sanitize_file_name( (string) $request->get_param( 'filename' ) );
-		$token               = wp_generate_uuid4();
-		set_transient( $this->csv_import_transient_key( $token ), $result, HOUR_IN_SECONDS );
-
-		return new \WP_REST_Response( $this->csv_import_result( $result, $token ) );
-	}
-
-	/**
-	 * Imports the rows accepted during CSV validation.
-	 *
-	 * @param \WP_REST_Request $request Confirmation token request.
-	 * @return \WP_REST_Response|\WP_Error
-	 */
-	public function confirm_csv_import( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-		$token  = $request->get_param( 'token' );
-		$result = is_string( $token ) ? get_transient( $this->csv_import_transient_key( $token ) ) : false;
-		if ( ! is_array( $result ) || ! isset( $result['accepted'], $result['duplicates'], $result['rejected'] ) ) {
-			return new \WP_Error( 'wp_buyer_blacklist_invalid_import', __( 'Validate the CSV file before importing it.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
-		}
-
-		$created = 0;
-		foreach ( array_chunk( $result['accepted'], 100 ) as $batch ) {
-			foreach ( $batch as $entry ) {
-				$status = $this->entries->create_imported( $entry );
-				if ( 'failed' === $status ) {
-					return new \WP_Error( 'wp_buyer_blacklist_import_failed', __( 'The import stopped because of a technical failure.', 'wp-buyer-blacklist' ), array( 'status' => 500 ) );
-				}
-				if ( 'duplicate' === $status ) {
-					$result['duplicates'][] = array(
-						'row'    => $entry['row'],
-						'reason' => __( 'Duplicate entry.', 'wp-buyer-blacklist' ),
-					);
-					continue;
-				}
-				++$created;
-			}
-		}
-		delete_transient( $this->csv_import_transient_key( $token ) );
-		$this->entries->record_import( (string) ( $result['file_name'] ?? __( 'CSV import', 'wp-buyer-blacklist' ) ), count( $result['accepted'] ) + count( $result['duplicates'] ) + count( $result['rejected'] ), $created, count( $result['duplicates'] ), count( $result['rejected'] ) );
-
-		return new \WP_REST_Response( $this->csv_import_result( $result, '', $created ) );
-	}
-
-	/**
-	 * Gets the transient key for the current operator's validated import.
-	 *
-	 * @param string $token Import confirmation token.
-	 * @return string
-	 */
-	private function csv_import_transient_key( string $token ): string {
-		return 'wp_buyer_blacklist_import_' . get_current_user_id() . '_' . $token;
-	}
-
-	/**
-	 * Formats a validation review or completed import result.
-	 *
-	 * @param array{accepted: list<array<string, mixed>>, duplicates: list<array{row: int, reason: string}>, rejected: list<array{row: int, reason: string}>} $result Import result.
-	 * @param string                                                                                                                                          $token  Confirmation token.
-	 * @param int|null                                                                                                                                        $created Created entry count.
-	 * @return array<string, mixed>
-	 */
-	private function csv_import_result( array $result, string $token, ?int $created = null ): array {
-		return array(
-			'token'      => $token,
-			'valid'      => count( $result['accepted'] ),
-			'created'    => $created,
-			'duplicates' => $result['duplicates'],
-			'rejected'   => $result['rejected'],
-		);
-	}
-
-	/** Gets protected import history. @return list<array<string, string>> */
-	public function get_import_history(): array {
-		return $this->entries->recent_imports();
 	}
 }
