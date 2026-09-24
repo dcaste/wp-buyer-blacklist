@@ -6,7 +6,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
-use WP_Buyer_Blacklist\AddressEntry;
+use WP_Buyer_Blacklist\Entries\AddressEntry;
 
 /**
  * Covers address validation and canonicalization.

@@ -97,7 +97,7 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 			)
 		);
 		$repository = new \WP_Buyer_Blacklist\EmailEntryRepository( $GLOBALS['wpdb'] );
-		$repository->create( \WP_Buyer_Blacklist\EmailEntry::from_email( 'buyer@example.com' ), 'Test entry' );
+		$repository->create( \WP_Buyer_Blacklist\Entries\EmailEntry::from_email( 'buyer@example.com' ), 'Test entry' );
 
 		$output = apply_filters( 'manage_users_custom_column', '', 'wp_buyer_blacklist', $customer->ID );
 
@@ -125,7 +125,7 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 			)
 		);
 		$repository = new \WP_Buyer_Blacklist\EmailEntryRepository( $GLOBALS['wpdb'] );
-		$repository->create( \WP_Buyer_Blacklist\EmailEntry::from_email( 'inactive@example.com' ), 'Test entry' );
+		$repository->create( \WP_Buyer_Blacklist\Entries\EmailEntry::from_email( 'inactive@example.com' ), 'Test entry' );
 		$entry = $repository->all()[0];
 		$repository->set_active( (int) $entry['id'], false );
 
@@ -149,8 +149,8 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 			)
 		);
 		$repository  = new \WP_Buyer_Blacklist\EmailEntryRepository( $GLOBALS['wpdb'] );
-		$repository->create( \WP_Buyer_Blacklist\EmailEntry::from_email( 'multiple@example.com' ), 'Email match' );
-		$repository->create_customer_id( \WP_Buyer_Blacklist\CustomerIdEntry::from_customer_id( $customer_id ), 'Customer ID match' );
+		$repository->create( \WP_Buyer_Blacklist\Entries\EmailEntry::from_email( 'multiple@example.com' ), 'Email match' );
+		$repository->create_customer_id( \WP_Buyer_Blacklist\Entries\CustomerIdEntry::from_customer_id( $customer_id ), 'Customer ID match' );
 
 		$output = apply_filters( 'manage_users_custom_column', '', 'wp_buyer_blacklist', $customer_id );
 

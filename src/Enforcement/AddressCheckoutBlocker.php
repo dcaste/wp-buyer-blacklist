@@ -7,7 +7,7 @@
 
 namespace WP_Buyer_Blacklist\Enforcement;
 
-use WP_Buyer_Blacklist\AddressEntry;
+use WP_Buyer_Blacklist\Entries\AddressEntry;
 
 /**
  * Checks Buyer addresses against active Blacklist entries.

@@ -7,7 +7,7 @@
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use WP_Buyer_Blacklist\EmailEntry;
+use WP_Buyer_Blacklist\Entries\EmailEntry;
 
 /**
  * Covers email entry creation.

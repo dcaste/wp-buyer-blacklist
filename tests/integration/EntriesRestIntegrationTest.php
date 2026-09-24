@@ -5,7 +5,7 @@
  * @package WP_Buyer_Blacklist
  */
 
-use WP_Buyer_Blacklist\EmailEntry;
+use WP_Buyer_Blacklist\Entries\EmailEntry;
 use WP_Buyer_Blacklist\EmailEntryRepository;
 
 /**
