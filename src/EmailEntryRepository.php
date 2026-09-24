@@ -8,13 +8,14 @@
 namespace WP_Buyer_Blacklist;
 
 use WP_Buyer_Blacklist\Enforcement\ActiveAddressEntryFinder;
+use WP_Buyer_Blacklist\Enforcement\ActiveCustomerIdEntryFinder;
 use WP_Buyer_Blacklist\Enforcement\ActiveEmailEntryFinder;
 use WP_Buyer_Blacklist\Enforcement\BlockedAttemptRecorder;
 
 /**
  * Stores and finds email Blacklist entries.
  */
-final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmailEntryFinder, BlockedAttemptRecorder {
+final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveCustomerIdEntryFinder, ActiveEmailEntryFinder, BlockedAttemptRecorder {
 
 	/**
 	 * Current database schema version.
@@ -409,10 +410,10 @@ final class EmailEntryRepository implements ActiveAddressEntryFinder, ActiveEmai
 	}
 
 	/**
-	 * Records an email Blocked attempt.
+	 * Records a Blocked attempt.
 	 *
 	 * @param int    $entry_id       Matching Blacklist entry identifier.
-	 * @param string $identity_value Evaluated Buyer email address.
+	 * @param string $identity_value Evaluated Buyer identity value.
 	 * @return bool Whether the attempt was recorded.
 	 */
 	public function record_blocked_attempt( int $entry_id, string $identity_value ): bool {

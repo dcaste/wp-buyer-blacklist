@@ -47,7 +47,7 @@ class CheckoutEnforcementIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Blocks classic checkout for email and address entries.
+	 * Blocks classic checkout for every Match type.
 	 *
 	 * @dataProvider blocking_match_types
 	 *
@@ -63,7 +63,7 @@ class CheckoutEnforcementIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Blocks Store API checkout for email and address entries.
+	 * Blocks Store API checkout for every Match type.
 	 *
 	 * @dataProvider blocking_match_types
 	 *
@@ -79,42 +79,52 @@ class CheckoutEnforcementIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides the Match types checkout enforces today.
+	 * Provides the Match types checkout enforces.
 	 *
 	 * @return array<string, array{string}>
 	 */
 	public function blocking_match_types(): array {
 		return array(
 			'email'            => array( 'email' ),
+			'customer ID'      => array( 'customer_id' ),
 			'billing address'  => array( 'billing_address' ),
 			'shipping address' => array( 'shipping_address' ),
 		);
 	}
 
 	/**
-	 * Lets classic checkout through for a customer-ID entry.
-	 *
-	 * This pins current behaviour. #86 tracks that the PRD wants customer-ID entries enforced.
+	 * Records a Blocked attempt against a matching customer-ID entry.
 	 *
 	 * @return void
 	 */
-	public function test_classic_checkout_ignores_a_customer_id_entry(): void {
+	public function test_customer_id_block_records_a_blocked_attempt(): void {
 		$this->seed_entry( 'customer_id' );
+		$entry_id = (int) $this->entries->all()[0]['id'];
 
-		$this->assertFalse( $this->validate_classic_checkout()->has_errors() );
+		$this->validate_classic_checkout();
+		$this->validate_store_api_checkout();
+
+		$this->assertSame( array( (string) $this->buyer_id, (string) $this->buyer_id ), array_column( $this->entries->blocked_attempts( $entry_id ), 'identity_value' ) );
 	}
 
 	/**
-	 * Lets Store API checkout through for a customer-ID entry.
-	 *
-	 * This pins current behaviour. #86 tracks that the PRD wants customer-ID entries enforced.
+	 * Lets a guest through a customer-ID entry when nothing else matches.
 	 *
 	 * @return void
 	 */
-	public function test_store_api_checkout_ignores_a_customer_id_entry(): void {
+	public function test_guest_checkout_ignores_customer_id_entries(): void {
 		$this->seed_entry( 'customer_id' );
+		wp_set_current_user( 0 );
+		$order = new WC_Order();
+		$order->set_billing_email( 'guest@example.com' );
+		$store_api_errors = new WP_Error();
+		$classic_errors   = new WP_Error();
 
-		$this->assertFalse( $this->validate_store_api_checkout()->has_errors() );
+		do_action( 'woocommerce_checkout_validate_order_before_payment', $order, $store_api_errors );
+		do_action( 'woocommerce_after_checkout_validation', array( 'billing_email' => 'guest@example.com' ), $classic_errors );
+
+		$this->assertFalse( $store_api_errors->has_errors() );
+		$this->assertFalse( $classic_errors->has_errors() );
 	}
 
 	/**
