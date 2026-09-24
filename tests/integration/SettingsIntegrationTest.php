@@ -21,6 +21,16 @@ class SettingsIntegrationTest extends WP_UnitTestCase {
 	private const DEFAULT_MESSAGE = 'We’re unable to process your order. Please contact us for assistance.';
 
 	/**
+	 * Starts every test with no queued settings messages.
+	 *
+	 * @return void
+	 */
+	public function set_up(): void {
+		parent::set_up();
+		$this->start_new_request();
+	}
+
+	/**
 	 * Registers the three settings with their types and defaults.
 	 *
 	 * @return void
@@ -150,7 +160,7 @@ class SettingsIntegrationTest extends WP_UnitTestCase {
 		$fields = $this->form_fields( $this->render_settings_tab(), admin_url( 'admin-post.php' ) );
 
 		$this->assertSame( 'wp_buyer_blacklist_reset_settings', $fields['action'] );
-		$this->assertStringContainsString( 'wp_buyer_blacklist_settings=reset', $this->submit_admin_post( $fields['action'], $fields ) );
+		$this->assertStringContainsString( 'settings-updated=true', $this->submit_admin_post( $fields['action'], $fields ) );
 		$this->assertFalse( get_option( 'wp_buyer_blacklist_buyer_message' ) );
 	}
 
@@ -188,5 +198,54 @@ class SettingsIntegrationTest extends WP_UnitTestCase {
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * Confirms a reset on the Settings page it redirects to.
+	 *
+	 * @return void
+	 */
+	public function test_reset_confirms_on_the_settings_page(): void {
+		$fields   = $this->form_fields( $this->render_settings_tab(), admin_url( 'admin-post.php' ) );
+		$location = $this->submit_admin_post( $fields['action'], $fields );
+		parse_str( (string) wp_parse_url( $location, PHP_URL_QUERY ), $query );
+		$this->start_new_request();
+
+		$markup = $this->render_admin_page( 'woocommerce_page_wp-buyer-blacklist', $query );
+
+		$this->assertSame( 1, substr_count( $markup, 'Settings restored to their defaults.' ) );
+		$this->assertStringNotContainsString( 'Settings saved.', $markup );
+	}
+
+	/**
+	 * Confirms a save, even when the page was last reloaded after a reset.
+	 *
+	 * @return void
+	 */
+	public function test_save_after_a_reset_confirms_the_save(): void {
+		$fields   = $this->form_fields( $this->render_settings_tab(), admin_url( 'admin-post.php' ) );
+		$location = $this->submit_admin_post( $fields['action'], $fields );
+		parse_str( (string) wp_parse_url( $location, PHP_URL_QUERY ), $after_reset );
+		$this->start_new_request();
+		$this->render_admin_page( 'woocommerce_page_wp-buyer-blacklist', $after_reset );
+		$this->start_new_request();
+
+		// What options.php does after saving: queue its message and return to the page the form came from.
+		add_settings_error( 'general', 'settings_updated', 'Settings saved.', 'success' );
+		set_transient( 'settings_errors', get_settings_errors(), 30 );
+		$this->start_new_request();
+		$markup = $this->render_admin_page( 'woocommerce_page_wp-buyer-blacklist', array_merge( $after_reset, array( 'settings-updated' => 'true' ) ) );
+
+		$this->assertStringContainsString( 'Settings saved.', $markup );
+		$this->assertStringNotContainsString( 'Settings restored to their defaults.', $markup );
+	}
+
+	/**
+	 * Forgets settings messages queued in memory, as a redirect to a new request would.
+	 *
+	 * @return void
+	 */
+	private function start_new_request(): void {
+		$GLOBALS['wp_settings_errors'] = array(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- A new request starts with no queued messages.
 	}
 }

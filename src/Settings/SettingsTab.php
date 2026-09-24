@@ -41,11 +41,9 @@ final class SettingsTab {
 
 		// The template runs in a static closure so it sees only these values, not $this.
 		// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- The required template reads every parameter.
-		( static function ( bool $settings_reset, mixed $buyer_message, mixed $allow_woocommerce_managers, mixed $delete_data_on_uninstall ): void {
+		( static function ( mixed $buyer_message, mixed $allow_woocommerce_managers, mixed $delete_data_on_uninstall ): void {
 			require WP_BUYER_BLACKLIST_DIR . 'templates/settings/page.php';
 		} )(
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This displays a result from the nonce-protected reset action.
-			isset( $_GET['wp_buyer_blacklist_settings'] ) && 'reset' === sanitize_key( wp_unslash( $_GET['wp_buyer_blacklist_settings'] ) ),
 			get_option( 'wp_buyer_blacklist_buyer_message', $this->buyer_block_message->default() ),
 			get_option( 'wp_buyer_blacklist_allow_woocommerce_managers', true ),
 			get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false )

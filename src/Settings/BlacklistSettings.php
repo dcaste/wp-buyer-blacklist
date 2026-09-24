@@ -108,7 +108,10 @@ final class BlacklistSettings {
 
 		check_admin_referer( 'wp_buyer_blacklist_reset_settings' );
 		$this->reset_to_default_settings();
-		wp_safe_redirect( add_query_arg( 'wp_buyer_blacklist_settings', 'reset', admin_url( 'admin.php?page=wp-buyer-blacklist&tab=settings' ) ) );
+		// Queue the confirmation the way options.php does after a save, so the Settings tab shows it through settings_errors().
+		add_settings_error( 'wp_buyer_blacklist', 'settings_reset', __( 'Settings restored to their defaults.', 'wp-buyer-blacklist' ), 'success' );
+		set_transient( 'settings_errors', get_settings_errors(), 30 );
+		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'admin.php?page=wp-buyer-blacklist&tab=settings' ) ) );
 		exit;
 	}
 }

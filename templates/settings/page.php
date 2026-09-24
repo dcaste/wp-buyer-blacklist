@@ -6,7 +6,6 @@
  *
  * Option values arrive as stored, so checked() compares them the way WordPress does.
  *
- * @var bool   $settings_reset             Whether the settings were just restored to their defaults.
  * @var mixed  $buyer_message              Stored Buyer block message.
  * @var mixed  $allow_woocommerce_managers Stored "allow WooCommerce managers" option.
  * @var mixed  $delete_data_on_uninstall   Stored "delete data on uninstall" option.
@@ -14,9 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 ?>
-<?php if ( $settings_reset ) : ?>
-	<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Settings restored to their defaults.', 'wp-buyer-blacklist' ); ?></p></div>
-<?php endif; ?>
+<?php settings_errors(); ?>
 <form class="wpbb-settings" action="options.php" method="post">
 	<?php settings_fields( 'wp_buyer_blacklist' ); ?>
 	<section class="wpbb-settings-card wpbb-settings-message-card">
