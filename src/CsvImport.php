@@ -8,6 +8,9 @@
 namespace WP_Buyer_Blacklist;
 
 use InvalidArgumentException;
+use WP_Buyer_Blacklist\Entries\AddressEntry;
+use WP_Buyer_Blacklist\Entries\CustomerIdEntry;
+use WP_Buyer_Blacklist\Entries\EmailEntry;
 
 /**
  * Validates supported CSV rows before they are imported.

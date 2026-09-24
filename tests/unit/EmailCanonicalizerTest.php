@@ -7,7 +7,7 @@
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use WP_Buyer_Blacklist\EmailCanonicalizer;
+use WP_Buyer_Blacklist\Entries\EmailCanonicalizer;
 
 /**
  * Covers the email Canonical value.

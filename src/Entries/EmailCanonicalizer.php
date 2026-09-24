@@ -5,7 +5,7 @@
  * @package WP_Buyer_Blacklist
  */
 
-namespace WP_Buyer_Blacklist;
+namespace WP_Buyer_Blacklist\Entries;
 
 /**
  * Produces the Canonical value for email entries.

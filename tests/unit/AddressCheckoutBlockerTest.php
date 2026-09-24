@@ -32,10 +32,10 @@ class AddressCheckoutBlockerTest extends TestCase {
 			/**
 			 * Finds matching address entry identifiers.
 			 *
-			 * @param \WP_Buyer_Blacklist\AddressEntry $entry Address to find.
+			 * @param \WP_Buyer_Blacklist\Entries\AddressEntry $entry Address to find.
 			 * @return list<int>
 			 */
-			public function matching_active_address_entry_ids( \WP_Buyer_Blacklist\AddressEntry $entry ): array {
+			public function matching_active_address_entry_ids( \WP_Buyer_Blacklist\Entries\AddressEntry $entry ): array {
 				return array( 4 );
 			}
 
@@ -111,10 +111,10 @@ class AddressCheckoutBlockerTest extends TestCase {
 			/**
 			 * Finds matching address entry identifiers.
 			 *
-			 * @param \WP_Buyer_Blacklist\AddressEntry $entry Address to find.
+			 * @param \WP_Buyer_Blacklist\Entries\AddressEntry $entry Address to find.
 			 * @return list<int>
 			 */
-			public function matching_active_address_entry_ids( \WP_Buyer_Blacklist\AddressEntry $entry ): array {
+			public function matching_active_address_entry_ids( \WP_Buyer_Blacklist\Entries\AddressEntry $entry ): array {
 				++$this->lookups;
 				return array();
 			}

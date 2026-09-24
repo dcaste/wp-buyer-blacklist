@@ -11,6 +11,9 @@ use WP_Buyer_Blacklist\Enforcement\ActiveAddressEntryFinder;
 use WP_Buyer_Blacklist\Enforcement\ActiveCustomerIdEntryFinder;
 use WP_Buyer_Blacklist\Enforcement\ActiveEmailEntryFinder;
 use WP_Buyer_Blacklist\Enforcement\BlockedAttemptRecorder;
+use WP_Buyer_Blacklist\Entries\AddressEntry;
+use WP_Buyer_Blacklist\Entries\CustomerIdEntry;
+use WP_Buyer_Blacklist\Entries\EmailEntry;
 
 /**
  * Stores and finds email Blacklist entries.

@@ -8,6 +8,10 @@
 namespace WP_Buyer_Blacklist;
 
 use InvalidArgumentException;
+use WP_Buyer_Blacklist\Access\OperatorAccess;
+use WP_Buyer_Blacklist\Entries\AddressEntry;
+use WP_Buyer_Blacklist\Entries\CustomerIdEntry;
+use WP_Buyer_Blacklist\Entries\EmailEntry;
 
 /**
  * Adds Customer and Order Blacklist enrollment workflows.

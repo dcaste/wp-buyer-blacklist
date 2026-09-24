@@ -16,10 +16,10 @@ defined( 'ABSPATH' ) || exit;
 define( 'WP_BUYER_BLACKLIST_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WP_BUYER_BLACKLIST_URL', plugin_dir_url( __FILE__ ) );
 
-require_once __DIR__ . '/src/EmailCanonicalizer.php';
-require_once __DIR__ . '/src/EmailEntry.php';
-require_once __DIR__ . '/src/CustomerIdEntry.php';
-require_once __DIR__ . '/src/AddressEntry.php';
+require_once __DIR__ . '/src/Entries/EmailCanonicalizer.php';
+require_once __DIR__ . '/src/Entries/EmailEntry.php';
+require_once __DIR__ . '/src/Entries/CustomerIdEntry.php';
+require_once __DIR__ . '/src/Entries/AddressEntry.php';
 require_once __DIR__ . '/src/CsvImport.php';
 require_once __DIR__ . '/src/Enforcement/ActiveAddressEntryFinder.php';
 require_once __DIR__ . '/src/Enforcement/ActiveCustomerIdEntryFinder.php';
@@ -33,8 +33,9 @@ require_once __DIR__ . '/src/Settings/BuyerBlockMessage.php';
 require_once __DIR__ . '/src/Settings/BlacklistSettings.php';
 require_once __DIR__ . '/src/Settings/SettingsTab.php';
 require_once __DIR__ . '/src/Enforcement/CheckoutEnforcement.php';
-require_once __DIR__ . '/src/OperatorAccess.php';
+require_once __DIR__ . '/src/Access/OperatorAccess.php';
 require_once __DIR__ . '/src/SourceEnrollment.php';
+require_once __DIR__ . '/src/Entries/EntriesController.php';
 require_once __DIR__ . '/src/Admin/AdminPage.php';
 require_once __DIR__ . '/src/Plugin.php';
 

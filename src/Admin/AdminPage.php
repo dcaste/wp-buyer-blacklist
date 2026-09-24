@@ -7,7 +7,7 @@
 
 namespace WP_Buyer_Blacklist\Admin;
 
-use WP_Buyer_Blacklist\OperatorAccess;
+use WP_Buyer_Blacklist\Access\OperatorAccess;
 use WP_Buyer_Blacklist\Settings\SettingsTab;
 
 /**
