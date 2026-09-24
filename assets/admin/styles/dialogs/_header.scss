@@ -35,26 +35,26 @@
 	}
 
 	.wpbb-modal-icon.is-close {
-		mask-image: url('../../assets/admin-icons/close.svg');
+		mask-image: url('../admin-icons/close.svg');
 	}
 
 	.wpbb-modal-icon.is-mail {
-		mask-image: url('../../assets/admin-icons/mail.svg');
+		mask-image: url('../admin-icons/mail.svg');
 	}
 
 	.wpbb-modal-icon.is-user {
-		mask-image: url('../../assets/admin-icons/user.svg');
+		mask-image: url('../admin-icons/user.svg');
 	}
 
 	.wpbb-modal-icon.is-pin {
 		color: var(--wpbb-muted);
 		height: 20px;
-		mask-image: url('../../assets/admin-icons/pin.svg');
+		mask-image: url('../admin-icons/pin.svg');
 		width: 20px;
 	}
 
 	.wpbb-modal-icon.is-locked {
 		color: #8ca1c5;
-		mask-image: url('../../assets/admin-icons/locked.svg');
+		mask-image: url('../admin-icons/locked.svg');
 	}
 }

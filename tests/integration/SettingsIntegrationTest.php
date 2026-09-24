@@ -99,4 +99,31 @@ class SettingsIntegrationTest extends WP_UnitTestCase {
 			)
 		);
 	}
+
+	/**
+	 * Attaches the message preview script to the admin script instead of printing it in the page.
+	 *
+	 * @return void
+	 */
+	public function test_settings_page_adds_the_preview_script_to_the_admin_script(): void {
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- The test starts from an empty script queue.
+		$GLOBALS['wp_scripts'] = null;
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		set_current_screen( 'woocommerce_page_wp-buyer-blacklist' );
+		do_action( 'admin_enqueue_scripts', 'woocommerce_page_wp-buyer-blacklist' );
+
+		$markup = $this->render_admin_page(
+			'woocommerce_page_wp-buyer-blacklist',
+			array(
+				'page' => 'wp-buyer-blacklist',
+				'tab'  => 'settings',
+			)
+		);
+
+		$this->assertStringNotContainsString( '<script', $markup );
+		$this->assertContains(
+			"document.getElementById('wp-buyer-blacklist-buyer-message').addEventListener('input', function () { document.getElementById('wp-buyer-blacklist-message-preview').textContent = this.value || 'We’re unable to process your order. Please contact us for assistance.'; });",
+			wp_scripts()->get_data( 'wp-buyer-blacklist-admin', 'after' )
+		);
+	}
 }

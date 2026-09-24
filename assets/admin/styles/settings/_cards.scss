@@ -72,15 +72,15 @@
 	}
 
 	.wpbb-settings-message-card > header > h2::after {
-		mask-image: url('../../assets/admin-icons/message.svg');
+		mask-image: url('../admin-icons/message.svg');
 	}
 
 	.wpbb-settings-permissions-card > header > h2::after {
-		mask-image: url('../../assets/admin-icons/permissions.svg');
+		mask-image: url('../admin-icons/permissions.svg');
 	}
 
 	.wpbb-settings-cleanup-card > header > h2::after {
-		mask-image: url('../../assets/admin-icons/data-cleanup.svg');
+		mask-image: url('../admin-icons/data-cleanup.svg');
 	}
 
 	.wpbb-settings-card textarea {

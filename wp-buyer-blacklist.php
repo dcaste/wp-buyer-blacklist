@@ -31,9 +31,11 @@ require_once __DIR__ . '/src/Enforcement/CustomerIdCheckoutBlocker.php';
 require_once __DIR__ . '/src/Enforcement/AddressCheckoutBlocker.php';
 require_once __DIR__ . '/src/Settings/BuyerBlockMessage.php';
 require_once __DIR__ . '/src/Settings/BlacklistSettings.php';
+require_once __DIR__ . '/src/Settings/SettingsTab.php';
 require_once __DIR__ . '/src/Enforcement/CheckoutEnforcement.php';
 require_once __DIR__ . '/src/OperatorAccess.php';
 require_once __DIR__ . '/src/SourceEnrollment.php';
+require_once __DIR__ . '/src/Admin/AdminPage.php';
 require_once __DIR__ . '/src/Plugin.php';
 
 /**
