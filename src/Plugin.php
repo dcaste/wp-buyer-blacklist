@@ -10,6 +10,7 @@ namespace WP_Buyer_Blacklist;
 use InvalidArgumentException;
 use WP_Buyer_Blacklist\Enforcement\AddressCheckoutBlocker;
 use WP_Buyer_Blacklist\Enforcement\CheckoutEnforcement;
+use WP_Buyer_Blacklist\Enforcement\CustomerIdCheckoutBlocker;
 use WP_Buyer_Blacklist\Enforcement\EmailCheckoutBlocker;
 use WP_Buyer_Blacklist\Settings\BlacklistSettings;
 use WP_Buyer_Blacklist\Settings\BuyerBlockMessage;
@@ -71,8 +72,9 @@ final class Plugin {
 		$this->entries              = $entries;
 		$this->buyer_block_message  = new BuyerBlockMessage();
 		$email_blocker              = new EmailCheckoutBlocker( $entries, $entries );
+		$customer_id_blocker        = new CustomerIdCheckoutBlocker( $entries );
 		$address_blocker            = new AddressCheckoutBlocker( $entries );
-		$this->checkout_enforcement = new CheckoutEnforcement( $email_blocker, $address_blocker, $this->buyer_block_message );
+		$this->checkout_enforcement = new CheckoutEnforcement( $email_blocker, $customer_id_blocker, $address_blocker, $this->buyer_block_message );
 		$this->settings             = new BlacklistSettings( $this->buyer_block_message );
 		$this->operator_access      = new OperatorAccess();
 		$this->source_enrollment    = new SourceEnrollment( $entries, $this->operator_access );

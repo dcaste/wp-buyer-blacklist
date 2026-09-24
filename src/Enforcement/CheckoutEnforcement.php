@@ -23,6 +23,13 @@ final class CheckoutEnforcement {
 	private EmailCheckoutBlocker $email_blocker;
 
 	/**
+	 * Customer-ID checkout blocking decision.
+	 *
+	 * @var CustomerIdCheckoutBlocker
+	 */
+	private CustomerIdCheckoutBlocker $customer_id_blocker;
+
+	/**
 	 * Address checkout blocking decision.
 	 *
 	 * @var AddressCheckoutBlocker
@@ -39,12 +46,14 @@ final class CheckoutEnforcement {
 	/**
 	 * Creates checkout enforcement.
 	 *
-	 * @param EmailCheckoutBlocker   $email_blocker       Email checkout blocking decision.
-	 * @param AddressCheckoutBlocker $address_blocker     Address checkout blocking decision.
-	 * @param BuyerBlockMessage      $buyer_block_message Message shown to a blocked Buyer.
+	 * @param EmailCheckoutBlocker      $email_blocker       Email checkout blocking decision.
+	 * @param CustomerIdCheckoutBlocker $customer_id_blocker Customer-ID checkout blocking decision.
+	 * @param AddressCheckoutBlocker    $address_blocker     Address checkout blocking decision.
+	 * @param BuyerBlockMessage         $buyer_block_message Message shown to a blocked Buyer.
 	 */
-	public function __construct( EmailCheckoutBlocker $email_blocker, AddressCheckoutBlocker $address_blocker, BuyerBlockMessage $buyer_block_message ) {
+	public function __construct( EmailCheckoutBlocker $email_blocker, CustomerIdCheckoutBlocker $customer_id_blocker, AddressCheckoutBlocker $address_blocker, BuyerBlockMessage $buyer_block_message ) {
 		$this->email_blocker       = $email_blocker;
+		$this->customer_id_blocker = $customer_id_blocker;
 		$this->address_blocker     = $address_blocker;
 		$this->buyer_block_message = $buyer_block_message;
 	}
@@ -69,7 +78,7 @@ final class CheckoutEnforcement {
 	public function validate_classic_checkout( array $data, WP_Error $errors ): void {
 		$email = isset( $data['billing_email'] ) && is_string( $data['billing_email'] ) ? $data['billing_email'] : '';
 
-		if ( $this->email_blocker->blocks( $email ) || $this->blocks_checkout_address( 'billing_address', $data ) || $this->blocks_checkout_address( 'shipping_address', $data ) ) {
+		if ( $this->email_blocker->blocks( $email ) || $this->customer_id_blocker->blocks( get_current_user_id() ) || $this->blocks_checkout_address( 'billing_address', $data ) || $this->blocks_checkout_address( 'shipping_address', $data ) ) {
 			$errors->add( 'wp_buyer_blacklist_blocked', $this->buyer_block_message->current() );
 		}
 	}
@@ -98,7 +107,7 @@ final class CheckoutEnforcement {
 			'postcode'       => $order->get_shipping_postcode(),
 			'country'        => $order->get_shipping_country(),
 		);
-		if ( $this->email_blocker->blocks( $order->get_billing_email() ) || $this->address_blocker->blocks( 'billing_address', $billing_address, WC()->countries->get_countries() ) || $this->address_blocker->blocks( 'shipping_address', $shipping_address, WC()->countries->get_countries() ) ) {
+		if ( $this->email_blocker->blocks( $order->get_billing_email() ) || $this->customer_id_blocker->blocks( $order->get_customer_id() ) || $this->address_blocker->blocks( 'billing_address', $billing_address, WC()->countries->get_countries() ) || $this->address_blocker->blocks( 'shipping_address', $shipping_address, WC()->countries->get_countries() ) ) {
 			$errors->add( 'wp_buyer_blacklist_blocked', $this->buyer_block_message->current() );
 		}
 	}
