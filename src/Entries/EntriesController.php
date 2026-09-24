@@ -11,6 +11,7 @@ use InvalidArgumentException;
 use WP_Buyer_Blacklist\Access\OperatorAccess;
 use WP_Buyer_Blacklist\EmailEntryRepository;
 use WP_Buyer_Blacklist\Plugin;
+use WP_Buyer_Blacklist\Privacy\PrivacyDataAccess;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -35,14 +36,23 @@ final class EntriesController {
 	private OperatorAccess $operator_access;
 
 	/**
+	 * Privacy data access check.
+	 *
+	 * @var PrivacyDataAccess
+	 */
+	private PrivacyDataAccess $privacy_access;
+
+	/**
 	 * Creates the controller.
 	 *
 	 * @param EmailEntryRepository $entries         Entry storage.
 	 * @param OperatorAccess       $operator_access Blacklist operator access policy.
+	 * @param PrivacyDataAccess    $privacy_access  Privacy data access check.
 	 */
-	public function __construct( EmailEntryRepository $entries, OperatorAccess $operator_access ) {
+	public function __construct( EmailEntryRepository $entries, OperatorAccess $operator_access, PrivacyDataAccess $privacy_access ) {
 		$this->entries         = $entries;
 		$this->operator_access = $operator_access;
+		$this->privacy_access  = $privacy_access;
 	}
 
 	/**
@@ -131,19 +141,10 @@ final class EntriesController {
 				array(
 					'methods'             => 'DELETE',
 					'callback'            => array( $this, 'delete_email_entry' ),
-					'permission_callback' => array( $this, 'can_delete_entries' ),
+					'permission_callback' => array( $this->privacy_access, 'can_manage_privacy_data' ),
 				),
 			)
 		);
-	}
-
-	/**
-	 * Checks whether the current user may delete Blacklist entries.
-	 *
-	 * @return bool
-	 */
-	public function can_delete_entries(): bool {
-		return current_user_can( 'manage_options' );
 	}
 
 	/**

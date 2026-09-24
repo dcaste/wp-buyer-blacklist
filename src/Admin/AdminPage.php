@@ -8,6 +8,7 @@
 namespace WP_Buyer_Blacklist\Admin;
 
 use WP_Buyer_Blacklist\Access\OperatorAccess;
+use WP_Buyer_Blacklist\Privacy\PrivacyDataAccess;
 use WP_Buyer_Blacklist\Settings\SettingsTab;
 
 /**
@@ -23,6 +24,13 @@ final class AdminPage {
 	private OperatorAccess $operator_access;
 
 	/**
+	 * Privacy data access check.
+	 *
+	 * @var PrivacyDataAccess
+	 */
+	private PrivacyDataAccess $privacy_access;
+
+	/**
 	 * Settings tab.
 	 *
 	 * @var SettingsTab
@@ -32,11 +40,13 @@ final class AdminPage {
 	/**
 	 * Creates the admin page.
 	 *
-	 * @param OperatorAccess $operator_access Blacklist operator access policy.
-	 * @param SettingsTab    $settings_tab    Settings tab.
+	 * @param OperatorAccess    $operator_access Blacklist operator access policy.
+	 * @param PrivacyDataAccess $privacy_access  Privacy data access check.
+	 * @param SettingsTab       $settings_tab    Settings tab.
 	 */
-	public function __construct( OperatorAccess $operator_access, SettingsTab $settings_tab ) {
+	public function __construct( OperatorAccess $operator_access, PrivacyDataAccess $privacy_access, SettingsTab $settings_tab ) {
 		$this->operator_access = $operator_access;
+		$this->privacy_access  = $privacy_access;
 		$this->settings_tab    = $settings_tab;
 	}
 
@@ -78,7 +88,7 @@ final class AdminPage {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This selects the tab to render and does not change plugin data.
 		$tab = isset( $_GET['tab'] ) && is_string( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'manage';
-		if ( ! in_array( $tab, array( 'manage', 'import-export', 'settings' ), true ) || ( 'settings' === $tab && ! $this->can_manage_settings() ) ) {
+		if ( ! in_array( $tab, array( 'manage', 'import-export', 'settings' ), true ) || ( 'settings' === $tab && ! $this->privacy_access->can_manage_privacy_data() ) ) {
 			$tab = 'manage';
 		}
 
@@ -86,16 +96,7 @@ final class AdminPage {
 		// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- The required template reads every parameter.
 		( static function ( string $tab, bool $can_manage_settings, callable $render_settings_tab ): void {
 			require WP_BUYER_BLACKLIST_DIR . 'templates/admin/page.php';
-		} )( $tab, $this->can_manage_settings(), array( $this->settings_tab, 'render' ) );
-	}
-
-	/**
-	 * Checks whether the current user may open the Settings tab.
-	 *
-	 * @return bool
-	 */
-	private function can_manage_settings(): bool {
-		return current_user_can( 'manage_options' );
+		} )( $tab, $this->privacy_access->can_manage_privacy_data(), array( $this->settings_tab, 'render' ) );
 	}
 
 	/**
