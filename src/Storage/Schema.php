@@ -136,12 +136,15 @@ final class Schema {
 		$entries_table  = $this->database->prefix . self::ENTRIES_TABLE;
 		$audit_table    = $this->database->prefix . self::AUDIT_EVENTS_TABLE;
 		$attempts_table = $this->database->prefix . self::BLOCKED_ATTEMPTS_TABLE;
+		$imports_table  = $this->database->prefix . self::IMPORTS_TABLE;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names use only the WordPress table prefix.
 		$this->database->query( "DROP TABLE IF EXISTS {$entries_table}" );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names use only the WordPress table prefix.
 		$this->database->query( "DROP TABLE IF EXISTS {$audit_table}" );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names use only the WordPress table prefix.
 		$this->database->query( "DROP TABLE IF EXISTS {$attempts_table}" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names use only the WordPress table prefix.
+		$this->database->query( "DROP TABLE IF EXISTS {$imports_table}" );
 		delete_option( 'wp_buyer_blacklist_database_version' );
 	}
 }
