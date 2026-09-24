@@ -9,8 +9,9 @@ namespace WP_Buyer_Blacklist\Entries;
 
 use InvalidArgumentException;
 use WP_Buyer_Blacklist\Access\OperatorAccess;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
 use WP_Buyer_Blacklist\Plugin;
+use WP_Buyer_Blacklist\Privacy\DossierBuilder;
 use WP_Buyer_Blacklist\Privacy\PrivacyDataAccess;
 use WP_Error;
 use WP_REST_Request;
@@ -24,9 +25,30 @@ final class EntriesController {
 	/**
 	 * Entry storage.
 	 *
-	 * @var EmailEntryRepository
+	 * @var EntryRepository
 	 */
-	private EmailEntryRepository $entries;
+	private EntryRepository $entries;
+
+	/**
+	 * Audit events of each entry.
+	 *
+	 * @var AuditLog
+	 */
+	private AuditLog $audit_log;
+
+	/**
+	 * Blocked attempts of each entry.
+	 *
+	 * @var BlockedAttemptLog
+	 */
+	private BlockedAttemptLog $blocked_attempts;
+
+	/**
+	 * Identity dossiers, used to find the current Buyer.
+	 *
+	 * @var DossierBuilder
+	 */
+	private DossierBuilder $dossiers;
 
 	/**
 	 * Blacklist operator access policy.
@@ -45,14 +67,20 @@ final class EntriesController {
 	/**
 	 * Creates the controller.
 	 *
-	 * @param EmailEntryRepository $entries         Entry storage.
-	 * @param OperatorAccess       $operator_access Blacklist operator access policy.
-	 * @param PrivacyDataAccess    $privacy_access  Privacy data access check.
+	 * @param EntryRepository   $entries          Entry storage.
+	 * @param AuditLog          $audit_log        Audit events of each entry.
+	 * @param BlockedAttemptLog $blocked_attempts Blocked attempts of each entry.
+	 * @param DossierBuilder    $dossiers         Identity dossiers, used to find the current Buyer.
+	 * @param OperatorAccess    $operator_access  Blacklist operator access policy.
+	 * @param PrivacyDataAccess $privacy_access   Privacy data access check.
 	 */
-	public function __construct( EmailEntryRepository $entries, OperatorAccess $operator_access, PrivacyDataAccess $privacy_access ) {
-		$this->entries         = $entries;
-		$this->operator_access = $operator_access;
-		$this->privacy_access  = $privacy_access;
+	public function __construct( EntryRepository $entries, AuditLog $audit_log, BlockedAttemptLog $blocked_attempts, DossierBuilder $dossiers, OperatorAccess $operator_access, PrivacyDataAccess $privacy_access ) {
+		$this->entries          = $entries;
+		$this->audit_log        = $audit_log;
+		$this->blocked_attempts = $blocked_attempts;
+		$this->dossiers         = $dossiers;
+		$this->operator_access  = $operator_access;
+		$this->privacy_access   = $privacy_access;
 	}
 
 	/**
@@ -218,7 +246,7 @@ final class EntriesController {
 	 * @return list<array<string, mixed>>
 	 */
 	public function get_email_entry_audit_events( WP_REST_Request $request ): array {
-		return $this->entries->audit_events( absint( $request['id'] ) );
+		return $this->audit_log->audit_events( absint( $request['id'] ) );
 	}
 
 	/**
@@ -228,7 +256,7 @@ final class EntriesController {
 	 * @return list<array<string, string>>
 	 */
 	public function get_email_entry_blocked_attempts( WP_REST_Request $request ): array {
-		return $this->entries->blocked_attempts( absint( $request['id'] ) );
+		return $this->blocked_attempts->blocked_attempts( absint( $request['id'] ) );
 	}
 
 	/**
@@ -238,7 +266,7 @@ final class EntriesController {
 	 * @return array<string, mixed>|WP_Error Buyer context or not-found error.
 	 */
 	public function get_buyer_context( WP_REST_Request $request ): array|WP_Error {
-		$dossier = $this->entries->identity_dossier( absint( $request['id'] ) );
+		$dossier = $this->dossiers->identity_dossier( absint( $request['id'] ) );
 		if ( null === $dossier ) {
 			return new WP_Error( 'wp_buyer_blacklist_not_found', __( 'The Blacklist entry could not be found.', 'wp-buyer-blacklist' ), array( 'status' => 404 ) );
 		}

@@ -5,8 +5,11 @@
  * @package WP_Buyer_Blacklist
  */
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
+use WP_Buyer_Blacklist\Entries\AuditLog;
 use WP_Buyer_Blacklist\Entries\EmailEntry;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
+use WP_Buyer_Blacklist\Privacy\DossierBuilder;
 use WP_Buyer_Blacklist\Privacy\DossierDownload;
 use WP_Buyer_Blacklist\Privacy\PrivacyDataAccess;
 
@@ -22,13 +25,13 @@ class IdentityDossierDownloadIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function test_administrator_can_retrieve_an_identity_dossier_for_download(): void {
 		global $wpdb;
-		$repository = new EmailEntryRepository( $wpdb );
+		$repository = new EntryRepository( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) );
 		$this->assertTrue( $repository->create( EmailEntry::from_email( 'buyer@example.com' ), 'Fraud' ) );
 		$entry_id = (int) $repository->all()[0]['id'];
-		$repository->record_blocked_attempt( $entry_id, 'buyer@example.com' );
+		( new BlockedAttemptLog( $wpdb ) )->record_blocked_attempt( $entry_id, 'buyer@example.com' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
-		$dossier = ( new DossierDownload( $repository, new PrivacyDataAccess() ) )->identity_dossier_for_download( $entry_id, wp_create_nonce( 'wp_buyer_blacklist_dossier_export' ) );
+		$dossier = ( new DossierDownload( new DossierBuilder( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) ), new PrivacyDataAccess() ) )->identity_dossier_for_download( $entry_id, wp_create_nonce( 'wp_buyer_blacklist_dossier_export' ) );
 
 		$this->assertIsArray( $dossier );
 		$this->assertSame( 'buyer@example.com', $dossier['entry']['value'] );
@@ -43,10 +46,9 @@ class IdentityDossierDownloadIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function test_woocommerce_operator_cannot_retrieve_an_identity_dossier_for_download(): void {
 		global $wpdb;
-		$repository = new EmailEntryRepository( $wpdb );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
 
-		$result = ( new DossierDownload( $repository, new PrivacyDataAccess() ) )->identity_dossier_for_download( 1, wp_create_nonce( 'wp_buyer_blacklist_dossier_export' ) );
+		$result = ( new DossierDownload( new DossierBuilder( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) ), new PrivacyDataAccess() ) )->identity_dossier_for_download( 1, wp_create_nonce( 'wp_buyer_blacklist_dossier_export' ) );
 
 		$this->assertWPError( $result );
 		$this->assertSame( 403, $result->get_error_data()['status'] );
@@ -59,10 +61,9 @@ class IdentityDossierDownloadIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function test_administrator_cannot_retrieve_an_identity_dossier_with_an_invalid_nonce(): void {
 		global $wpdb;
-		$repository = new EmailEntryRepository( $wpdb );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
-		$result = ( new DossierDownload( $repository, new PrivacyDataAccess() ) )->identity_dossier_for_download( 1, 'expired-nonce' );
+		$result = ( new DossierDownload( new DossierBuilder( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) ), new PrivacyDataAccess() ) )->identity_dossier_for_download( 1, 'expired-nonce' );
 
 		$this->assertWPError( $result );
 		$this->assertSame( 403, $result->get_error_data()['status'] );

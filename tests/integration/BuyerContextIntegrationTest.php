@@ -5,10 +5,12 @@
  * @package WP_Buyer_Blacklist
  */
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
 use WP_Buyer_Blacklist\Entries\AddressEntry;
+use WP_Buyer_Blacklist\Entries\AuditLog;
 use WP_Buyer_Blacklist\Entries\CustomerIdEntry;
 use WP_Buyer_Blacklist\Entries\EmailEntry;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 
 /**
  * Covers the entry-management Buyer context boundary.
@@ -50,7 +52,7 @@ class BuyerContextIntegrationTest extends WP_UnitTestCase {
 		update_user_meta( $buyer_id, 'shipping_state', 'NY' );
 		update_user_meta( $buyer_id, 'shipping_postcode', '10001' );
 		update_user_meta( $buyer_id, 'shipping_country', 'US' );
-		$entries = new EmailEntryRepository( $wpdb );
+		$entries = new EntryRepository( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) );
 		$this->assertTrue( $entries->create_customer_id( CustomerIdEntry::from_customer_id( $buyer_id ), 'Fraud' ) );
 
 		$result = $this->buyer_context( (int) $entries->all()[0]['id'] );
@@ -75,7 +77,7 @@ class BuyerContextIntegrationTest extends WP_UnitTestCase {
 				'user_email' => 'buyer@example.com',
 			)
 		);
-		$entries = new EmailEntryRepository( $wpdb );
+		$entries = new EntryRepository( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'buyer@example.com' ), 'Fraud' ) );
 		$this->assertTrue( $entries->create( EmailEntry::from_email( 'guest@example.com' ), 'Fraud' ) );
 
@@ -90,7 +92,7 @@ class BuyerContextIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function test_address_entry_has_no_uniquely_identified_buyer(): void {
 		global $wpdb;
-		$entries = new EmailEntryRepository( $wpdb );
+		$entries = new EntryRepository( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) );
 		$address = AddressEntry::from_fields(
 			'billing_address',
 			array(

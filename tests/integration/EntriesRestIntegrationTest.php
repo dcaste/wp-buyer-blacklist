@@ -5,8 +5,10 @@
  * @package WP_Buyer_Blacklist
  */
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
+use WP_Buyer_Blacklist\Entries\AuditLog;
 use WP_Buyer_Blacklist\Entries\EmailEntry;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 
 /**
  * Covers entry listing, creation, history, deletion and import history over REST.
@@ -16,9 +18,9 @@ class EntriesRestIntegrationTest extends WP_UnitTestCase {
 	/**
 	 * Entry storage used to seed and read entries.
 	 *
-	 * @var EmailEntryRepository
+	 * @var EntryRepository
 	 */
-	private EmailEntryRepository $entries;
+	private EntryRepository $entries;
 
 	/**
 	 * Signs in an Administrator.
@@ -27,7 +29,7 @@ class EntriesRestIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function set_up(): void {
 		parent::set_up();
-		$this->entries = new EmailEntryRepository( $GLOBALS['wpdb'] );
+		$this->entries = new EntryRepository( $GLOBALS['wpdb'], new AuditLog( $GLOBALS['wpdb'] ), new BlockedAttemptLog( $GLOBALS['wpdb'] ) );
 		wp_set_current_user(
 			self::factory()->user->create(
 				array(

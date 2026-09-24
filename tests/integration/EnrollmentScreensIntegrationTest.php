@@ -5,7 +5,10 @@
  * @package WP_Buyer_Blacklist
  */
 
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\AuditLog;
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
+
 
 /**
  * Covers the enrollment hooks not exercised by AdminEnrollmentIntegrationTest.
@@ -230,7 +233,7 @@ class EnrollmentScreensIntegrationTest extends WP_UnitTestCase {
 		$with_email->save();
 		$without_email = wc_create_order();
 		$ids           = array( $with_email->get_id(), $without_email->get_id() );
-		$entries       = new EmailEntryRepository( $GLOBALS['wpdb'] );
+		$entries       = new EntryRepository( $GLOBALS['wpdb'], new AuditLog( $GLOBALS['wpdb'] ), new BlockedAttemptLog( $GLOBALS['wpdb'] ) );
 
 		$first = $this->enroll_orders( $ids );
 
@@ -260,7 +263,7 @@ class EnrollmentScreensIntegrationTest extends WP_UnitTestCase {
 		} catch ( WPDieException $denied ) {
 			$this->assertSame( 'You cannot enroll Blacklist entries.', $denied->getMessage() );
 		}
-		$this->assertSame( array(), ( new EmailEntryRepository( $GLOBALS['wpdb'] ) )->all() );
+		$this->assertSame( array(), ( new EntryRepository( $GLOBALS['wpdb'], new AuditLog( $GLOBALS['wpdb'] ), new BlockedAttemptLog( $GLOBALS['wpdb'] ) ) )->all() );
 	}
 
 	/**

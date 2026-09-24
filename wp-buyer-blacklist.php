@@ -25,7 +25,13 @@ require_once __DIR__ . '/src/Enforcement/ActiveAddressEntryFinder.php';
 require_once __DIR__ . '/src/Enforcement/ActiveCustomerIdEntryFinder.php';
 require_once __DIR__ . '/src/Enforcement/ActiveEmailEntryFinder.php';
 require_once __DIR__ . '/src/Enforcement/BlockedAttemptRecorder.php';
-require_once __DIR__ . '/src/EmailEntryRepository.php';
+require_once __DIR__ . '/src/Storage/Schema.php';
+require_once __DIR__ . '/src/Entries/AuditLog.php';
+require_once __DIR__ . '/src/Enforcement/BlockedAttemptLog.php';
+require_once __DIR__ . '/src/Entries/EntryRepository.php';
+require_once __DIR__ . '/src/ImportExport/ImportHistory.php';
+require_once __DIR__ . '/src/ImportExport/CsvExporter.php';
+require_once __DIR__ . '/src/Privacy/DossierBuilder.php';
 require_once __DIR__ . '/src/Enforcement/EmailCheckoutBlocker.php';
 require_once __DIR__ . '/src/Enforcement/CustomerIdCheckoutBlocker.php';
 require_once __DIR__ . '/src/Enforcement/AddressCheckoutBlocker.php';
@@ -60,8 +66,7 @@ function wp_buyer_blacklist_activate(): void {
 
 	global $wpdb;
 
-	$repository = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
-	$repository->install();
+	( new \WP_Buyer_Blacklist\Storage\Schema( $wpdb ) )->install();
 }
 register_activation_hook( __FILE__, 'wp_buyer_blacklist_activate' );
 
@@ -77,8 +82,7 @@ function wp_buyer_blacklist_uninstall(): void {
 
 	global $wpdb;
 
-	$repository = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
-	$repository->uninstall();
+	( new \WP_Buyer_Blacklist\Storage\Schema( $wpdb ) )->uninstall();
 	delete_option( 'wp_buyer_blacklist_delete_data_on_uninstall' );
 }
 register_uninstall_hook( __FILE__, 'wp_buyer_blacklist_uninstall' );
@@ -108,9 +112,8 @@ function wp_buyer_blacklist_boot(): void {
 
 	global $wpdb;
 
-	$repository = new \WP_Buyer_Blacklist\EmailEntryRepository( $wpdb );
-	$repository->install();
-	$plugin = new \WP_Buyer_Blacklist\Plugin( $repository );
+	( new \WP_Buyer_Blacklist\Storage\Schema( $wpdb ) )->install();
+	$plugin = new \WP_Buyer_Blacklist\Plugin( $wpdb );
 	$plugin->register();
 }
 add_action( 'plugins_loaded', 'wp_buyer_blacklist_boot' );

@@ -5,10 +5,13 @@
  * @package WP_Buyer_Blacklist
  */
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
 use WP_Buyer_Blacklist\Entries\AddressEntry;
+use WP_Buyer_Blacklist\Entries\AuditLog;
 use WP_Buyer_Blacklist\Entries\CustomerIdEntry;
 use WP_Buyer_Blacklist\Entries\EmailEntry;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
+use WP_Buyer_Blacklist\ImportExport\CsvExporter;
 
 /**
  * Covers confirmation of validated imports.
@@ -23,7 +26,7 @@ class CsvImportIntegrationTest extends WP_UnitTestCase {
 	public function test_imports_a_validated_csv(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		global $wpdb;
-		$repository = new EmailEntryRepository( $wpdb );
+		$repository = new EntryRepository( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) );
 		$validation = new WP_REST_Request( 'POST', '/wp-buyer-blacklist/v1/csv-import/validate' );
 		$validation->set_param( 'csv', "match_type,email,reason\nemail,imported@example.com,CSV test\n" );
 		$validation = rest_do_request( $validation );
@@ -37,7 +40,7 @@ class CsvImportIntegrationTest extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $result->get_data()['created'] );
 		$this->assertSame( 'imported@example.com', $repository->all()[0]['value'] );
-		$this->assertSame( 'imported', $repository->audit_events( (int) $repository->all()[0]['id'] )[0]['action'] );
+		$this->assertSame( 'imported', ( new AuditLog( $wpdb ) )->audit_events( (int) $repository->all()[0]['id'] )[0]['action'] );
 	}
 
 	/**
@@ -48,7 +51,7 @@ class CsvImportIntegrationTest extends WP_UnitTestCase {
 	public function test_round_trips_all_entry_types_and_statuses(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		global $wpdb;
-		$repository = new EmailEntryRepository( $wpdb );
+		$repository = new EntryRepository( $wpdb, new AuditLog( $wpdb ), new BlockedAttemptLog( $wpdb ) );
 		$address    = array(
 			'address_line_1' => '1 Test Street',
 			'address_line_2' => 'Apt 2',
@@ -69,7 +72,7 @@ class CsvImportIntegrationTest extends WP_UnitTestCase {
 				$this->assertTrue( $repository->set_active( (int) $entry['id'], false ) );
 			}
 		}
-		$csv = $repository->export_csv();
+		$csv = ( new CsvExporter( $wpdb ) )->export_csv();
 		$this->assertSame( array( 'match_type', 'email', 'customer_id', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'reason', 'status' ), str_getcsv( explode( "\n", $csv )[0] ) );
 
 		foreach ( $entries as $entry ) {

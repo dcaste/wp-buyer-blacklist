@@ -8,7 +8,7 @@
 namespace WP_Buyer_Blacklist\Enrollment;
 
 use WP_Buyer_Blacklist\Access\OperatorAccess;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 
 /**
  * Adds Blacklist status, enrollment and management to the Users list and user profiles.
@@ -18,9 +18,9 @@ final class CustomerScreen {
 	/**
 	 * Entry storage.
 	 *
-	 * @var EmailEntryRepository
+	 * @var EntryRepository
 	 */
-	private EmailEntryRepository $entries;
+	private EntryRepository $entries;
 
 	/**
 	 * Shared enrollment operation.
@@ -46,12 +46,12 @@ final class CustomerScreen {
 	/**
 	 * Creates the Users screen enrollment.
 	 *
-	 * @param EmailEntryRepository $entries         Entry storage.
-	 * @param Enroller             $enroller        Shared enrollment operation.
-	 * @param EnrollmentPage       $page            Standalone enrollment page.
-	 * @param OperatorAccess       $operator_access Blacklist operator access policy.
+	 * @param EntryRepository $entries         Entry storage.
+	 * @param Enroller        $enroller        Shared enrollment operation.
+	 * @param EnrollmentPage  $page            Standalone enrollment page.
+	 * @param OperatorAccess  $operator_access Blacklist operator access policy.
 	 */
-	public function __construct( EmailEntryRepository $entries, Enroller $enroller, EnrollmentPage $page, OperatorAccess $operator_access ) {
+	public function __construct( EntryRepository $entries, Enroller $enroller, EnrollmentPage $page, OperatorAccess $operator_access ) {
 		$this->entries         = $entries;
 		$this->enroller        = $enroller;
 		$this->page            = $page;

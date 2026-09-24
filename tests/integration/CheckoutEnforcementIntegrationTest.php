@@ -5,10 +5,12 @@
  * @package WP_Buyer_Blacklist
  */
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
 use WP_Buyer_Blacklist\Entries\AddressEntry;
+use WP_Buyer_Blacklist\Entries\AuditLog;
 use WP_Buyer_Blacklist\Entries\CustomerIdEntry;
 use WP_Buyer_Blacklist\Entries\EmailEntry;
-use WP_Buyer_Blacklist\EmailEntryRepository;
+use WP_Buyer_Blacklist\Entries\EntryRepository;
 
 /**
  * Covers classic checkout and Store API validation for every Match type.
@@ -23,9 +25,9 @@ class CheckoutEnforcementIntegrationTest extends WP_UnitTestCase {
 	/**
 	 * Entry storage used to seed entries.
 	 *
-	 * @var EmailEntryRepository
+	 * @var EntryRepository
 	 */
-	private EmailEntryRepository $entries;
+	private EntryRepository $entries;
 
 	/**
 	 * Registered Buyer placing the order.
@@ -41,7 +43,7 @@ class CheckoutEnforcementIntegrationTest extends WP_UnitTestCase {
 	 */
 	public function set_up(): void {
 		parent::set_up();
-		$this->entries  = new EmailEntryRepository( $GLOBALS['wpdb'] );
+		$this->entries  = new EntryRepository( $GLOBALS['wpdb'], new AuditLog( $GLOBALS['wpdb'] ), new BlockedAttemptLog( $GLOBALS['wpdb'] ) );
 		$this->buyer_id = self::factory()->user->create( array( 'role' => 'customer' ) );
 		wp_set_current_user( $this->buyer_id );
 	}
@@ -104,7 +106,7 @@ class CheckoutEnforcementIntegrationTest extends WP_UnitTestCase {
 		$this->validate_classic_checkout();
 		$this->validate_store_api_checkout();
 
-		$this->assertSame( array( (string) $this->buyer_id, (string) $this->buyer_id ), array_column( $this->entries->blocked_attempts( $entry_id ), 'identity_value' ) );
+		$this->assertSame( array( (string) $this->buyer_id, (string) $this->buyer_id ), array_column( ( new BlockedAttemptLog( $GLOBALS['wpdb'] ) )->blocked_attempts( $entry_id ), 'identity_value' ) );
 	}
 
 	/**
@@ -122,7 +124,7 @@ class CheckoutEnforcementIntegrationTest extends WP_UnitTestCase {
 
 		$this->assertCount( 4, $this->entries->all() );
 		foreach ( $this->entries->all() as $entry ) {
-			$this->assertCount( 2, $this->entries->blocked_attempts( (int) $entry['id'] ), $entry['match_type'] );
+			$this->assertCount( 2, ( new BlockedAttemptLog( $GLOBALS['wpdb'] ) )->blocked_attempts( (int) $entry['id'] ), $entry['match_type'] );
 		}
 	}
 

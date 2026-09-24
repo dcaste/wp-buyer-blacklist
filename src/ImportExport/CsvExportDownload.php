@@ -7,7 +7,6 @@
 
 namespace WP_Buyer_Blacklist\ImportExport;
 
-use WP_Buyer_Blacklist\EmailEntryRepository;
 use WP_Buyer_Blacklist\Privacy\PrivacyDataAccess;
 use WP_Error;
 
@@ -17,11 +16,11 @@ use WP_Error;
 final class CsvExportDownload {
 
 	/**
-	 * Entry storage.
+	 * Writes the CSV document.
 	 *
-	 * @var EmailEntryRepository
+	 * @var CsvExporter
 	 */
-	private EmailEntryRepository $entries;
+	private CsvExporter $exporter;
 
 	/**
 	 * Privacy data access check.
@@ -33,11 +32,11 @@ final class CsvExportDownload {
 	/**
 	 * Creates the download handler.
 	 *
-	 * @param EmailEntryRepository $entries        Entry storage.
-	 * @param PrivacyDataAccess    $privacy_access Privacy data access check.
+	 * @param CsvExporter       $exporter       Writes the CSV document.
+	 * @param PrivacyDataAccess $privacy_access Privacy data access check.
 	 */
-	public function __construct( EmailEntryRepository $entries, PrivacyDataAccess $privacy_access ) {
-		$this->entries        = $entries;
+	public function __construct( CsvExporter $exporter, PrivacyDataAccess $privacy_access ) {
+		$this->exporter       = $exporter;
 		$this->privacy_access = $privacy_access;
 	}
 
@@ -82,6 +81,6 @@ final class CsvExportDownload {
 			return new WP_Error( 'wp_buyer_blacklist_forbidden', __( 'You are not allowed to export Blacklist data.', 'wp-buyer-blacklist' ), array( 'status' => 403 ) );
 		}
 
-		return $this->entries->export_csv();
+		return $this->exporter->export_csv();
 	}
 }
