@@ -67,6 +67,16 @@
 		text-align: right;
 	}
 
+	.wpbb-blocked-attempts ol {
+		margin: 0 0 var(--wpbb-space-16);
+		padding-left: var(--wpbb-space-24);
+	}
+
+	.wpbb-blocked-attempts li {
+		border-top: 1px solid var(--wpbb-border);
+		padding: var(--wpbb-space-12) 0;
+	}
+
 	.wpbb-attempt-count {
 		background: var(--wpbb-neutral-bg);
 		border-radius: var(--wpbb-radius-circle);

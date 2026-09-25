@@ -44,6 +44,33 @@ class CsvImportIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Rejects a Customer ID row whose Customer does not exist before confirmation.
+	 *
+	 * @return void
+	 */
+	public function test_rejects_customer_ids_without_a_customer(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$customer_id = self::factory()->user->create( array( 'role' => 'customer' ) );
+		$missing_id  = $customer_id + 1000;
+		$validation  = new WP_REST_Request( 'POST', '/wp-buyer-blacklist/v1/csv-import/validate' );
+		$validation->set_param( 'csv', "match_type,customer_id\ncustomer_id,{$customer_id}\ncustomer_id,{$missing_id}\n" );
+
+		$validation = rest_do_request( $validation );
+
+		$this->assertSame( 200, $validation->get_status() );
+		$this->assertSame( 1, $validation->get_data()['valid'] );
+		$this->assertSame(
+			array(
+				array(
+					'row'    => 3,
+					'reason' => "No Customer exists with ID {$missing_id}.",
+				),
+			),
+			$validation->get_data()['rejected']
+		);
+	}
+
+	/**
 	 * Round-trips every Match type and preserves active and inactive entries.
 	 *
 	 * @return void
@@ -62,7 +89,7 @@ class CsvImportIntegrationTest extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( $repository->create( EmailEntry::from_email( 'buyer@example.com' ), 'Email reason' ) );
-		$this->assertTrue( $repository->create_customer_id( CustomerIdEntry::from_customer_id( 42 ), 'Customer ID reason' ) );
+		$this->assertTrue( $repository->create_customer_id( CustomerIdEntry::from_customer_id( self::factory()->user->create( array( 'role' => 'customer' ) ) ), 'Customer ID reason' ) );
 		$this->assertTrue( $repository->create_address( AddressEntry::from_fields( 'billing_address', $address, WC()->countries->get_countries() ), 'Billing reason' ) );
 		$this->assertTrue( $repository->create_address( AddressEntry::from_fields( 'shipping_address', $address, WC()->countries->get_countries() ), 'Shipping reason' ) );
 

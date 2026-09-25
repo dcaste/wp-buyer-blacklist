@@ -33,7 +33,7 @@ defined( 'ABSPATH' ) || exit;
 			<p><label for="wp-buyer-blacklist-matching-entry"><?php esc_html_e( 'Matching Blacklist entry', 'wp-buyer-blacklist' ); ?></label><select id="wp-buyer-blacklist-matching-entry"></select></p>
 			<div data-buyer-context></div>
 			<p><label for="wp-buyer-blacklist-manage-reason"><?php esc_html_e( 'Reason', 'wp-buyer-blacklist' ); ?></label><textarea class="large-text" id="wp-buyer-blacklist-manage-reason" required></textarea></p>
-			<p><button type="button" class="button button-primary" data-save-entry><?php esc_html_e( 'Save reason', 'wp-buyer-blacklist' ); ?></button> <button type="button" class="button" data-toggle-entry></button></p>
+			<p><button type="button" class="button" data-save-entry><?php esc_html_e( 'Save reason', 'wp-buyer-blacklist' ); ?></button> <button type="button" class="button button-primary" data-toggle-entry></button></p>
 			<p role="status" data-manage-result></p>
 		</dialog>
 		<?php

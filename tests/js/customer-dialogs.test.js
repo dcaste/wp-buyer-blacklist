@@ -83,4 +83,105 @@ describe( 'customer dialogs', () => {
 			'email'
 		);
 	} );
+
+	it( 'updates the Users-list status after the modal changes it', async () => {
+		const entries = [
+			{
+				id: '3',
+				match_type: 'email',
+				value: 'buyer@example.com',
+				reason: 'Fraud',
+				is_active: '1',
+			},
+		];
+		window.wp = {
+			apiFetch: jest.fn( () => Promise.resolve( { buyer: null } ) ),
+		};
+		require( '../../assets/js/customer-dialogs' );
+		document.body.innerHTML = `<td>
+			<span class="wp-buyer-blacklist-status-badge is-active" tabindex="0" aria-label="Blacklisted." data-wpbb-tooltip="Blacklisted.">Blacklisted</span><br>
+			<button type="button" class="wp-buyer-blacklist-manage-customer" data-entries='${ JSON.stringify(
+				entries
+			) }'>Manage</button>
+		</td>${ dialogs }`;
+		document.dispatchEvent( new window.Event( 'DOMContentLoaded' ) );
+		const manage = document.querySelector(
+			'.wp-buyer-blacklist-manage-customer'
+		);
+		manage.click();
+		const toggle = document.querySelector( '[data-toggle-entry]' );
+
+		toggle.click();
+		await new Promise( ( resolve ) => setTimeout( resolve, 0 ) );
+
+		const badge = document.querySelector(
+			'.wp-buyer-blacklist-status-badge'
+		);
+		expect( badge.textContent ).toBe( 'Inactive' );
+		expect( badge.classList ).toContain( 'is-inactive' );
+		expect( badge.classList ).not.toContain( 'is-active' );
+		expect( badge.hasAttribute( 'data-wpbb-tooltip' ) ).toBe( false );
+		expect( badge.hasAttribute( 'tabindex' ) ).toBe( false );
+		expect( JSON.parse( manage.dataset.entries )[ 0 ].is_active ).toBe(
+			'0'
+		);
+		expect(
+			document.querySelector(
+				'#wp-buyer-blacklist-manage-customer-dialog select'
+			).options[ 0 ].textContent
+		).toBe( 'email: buyer@example.com (Inactive)' );
+
+		toggle.click();
+		await new Promise( ( resolve ) => setTimeout( resolve, 0 ) );
+
+		expect( badge.textContent ).toBe( 'Blacklisted' );
+		expect( badge.classList ).toContain( 'is-active' );
+		expect( badge.getAttribute( 'data-wpbb-tooltip' ) ).toBe(
+			'This Buyer is blacklisted from placing new orders in your store.'
+		);
+	} );
+
+	it( 'marks the status message as success or error', async () => {
+		const entries = [
+			{
+				id: '3',
+				match_type: 'email',
+				value: 'buyer@example.com',
+				reason: 'Fraud',
+				is_active: '1',
+			},
+		];
+		window.wp = {
+			apiFetch: jest.fn( ( { method } ) =>
+				method === 'PATCH'
+					? Promise.resolve( {} )
+					: Promise.resolve( { buyer: null } )
+			),
+		};
+		require( '../../assets/js/customer-dialogs' );
+		document.body.innerHTML = `<button type="button" class="wp-buyer-blacklist-manage-customer" data-entries='${ JSON.stringify(
+			entries
+		) }'>Manage</button>${ dialogs }`;
+		document.dispatchEvent( new window.Event( 'DOMContentLoaded' ) );
+		document.querySelector( '.wp-buyer-blacklist-manage-customer' ).click();
+		const result = document.querySelector( '[data-manage-result]' );
+
+		document.querySelector( '[data-toggle-entry]' ).click();
+		await new Promise( ( resolve ) => setTimeout( resolve, 0 ) );
+
+		expect( result.textContent ).toBe( 'Blacklist entry updated.' );
+		expect( result.classList ).toContain( 'is-success' );
+
+		window.wp.apiFetch.mockImplementation( ( { method } ) =>
+			method === 'PATCH'
+				? Promise.reject( new Error( 'Update failed.' ) )
+				: Promise.resolve( { buyer: null } )
+		);
+		document.querySelector( '[data-save-entry]' ).click();
+		await new Promise( ( resolve ) => setTimeout( resolve, 0 ) );
+
+		expect( result.textContent ).toBe( 'Update failed.' );
+		expect( result.classList ).toContain( 'is-error' );
+		expect( result.classList ).not.toContain( 'is-success' );
+	} );
 } );
