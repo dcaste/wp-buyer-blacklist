@@ -21,7 +21,8 @@ class CsvImportTest extends TestCase {
 	public function test_validates_supported_rows_before_import(): void {
 		$result = CsvImport::validate(
 			"\xEF\xBB\xBFreason,email,match_type,customer_id,address_line_1,address_line_2,city,state,postcode,country\r\nFraud, Buyer@Example.com ,email,,,,,,,\r\n\r\n,,customer_id,42,,,,,,\r\n,,billing_address,,1 Test Street,Apt 2,Testville,CA,90210,US\r\nAgain,buyer@example.com,email,,,,,,,\r\n",
-			array( 'US' => 'United States' )
+			array( 'US' => 'United States' ),
+			static fn(): bool => true
 		);
 
 		$this->assertCount( 3, $result['accepted'] );
@@ -48,7 +49,8 @@ class CsvImportTest extends TestCase {
 	public function test_reports_invalid_rows(): void {
 		$result = CsvImport::validate(
 			"match_type,email,reason\nemail,not an email,Test\ncustomer_id,,Test\n",
-			array()
+			array(),
+			static fn(): bool => true
 		);
 
 		$this->assertSame( array(), $result['accepted'] );
@@ -75,7 +77,8 @@ class CsvImportTest extends TestCase {
 	public function test_validates_import_status(): void {
 		$result = CsvImport::validate(
 			"match_type,email,status\nemail,active@example.com,active\nemail,inactive@example.com,inactive\nemail,default@example.com,\nemail,invalid@example.com,disabled\n",
-			array()
+			array(),
+			static fn(): bool => true
 		);
 
 		$this->assertSame( true, $result['accepted'][0]['is_active'] );
@@ -100,10 +103,34 @@ class CsvImportTest extends TestCase {
 	public function test_validates_downloadable_example_csv(): void {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- This test reads a local static fixture.
 		$csv    = file_get_contents( dirname( __DIR__, 2 ) . '/assets/buyer-blacklist-example.csv' );
-		$result = CsvImport::validate( $csv, array( 'US' => 'United States' ) );
+		$result = CsvImport::validate( $csv, array( 'US' => 'United States' ), static fn(): bool => true );
 
 		$this->assertCount( 4, $result['accepted'] );
 		$this->assertSame( array(), $result['duplicates'] );
 		$this->assertSame( array(), $result['rejected'] );
+	}
+
+	/**
+	 * Rejects a Customer ID row when no Customer has that ID.
+	 *
+	 * @return void
+	 */
+	public function test_rejects_a_customer_id_that_does_not_exist(): void {
+		$result = CsvImport::validate(
+			"match_type,customer_id\ncustomer_id,4821\ncustomer_id,42\n",
+			array(),
+			static fn( int $customer_id ): bool => 42 === $customer_id
+		);
+
+		$this->assertSame( array( '42' ), array_column( $result['accepted'], 'value' ) );
+		$this->assertSame(
+			array(
+				array(
+					'row'    => 2,
+					'reason' => 'No Customer exists with ID 4821.',
+				),
+			),
+			$result['rejected']
+		);
 	}
 }
