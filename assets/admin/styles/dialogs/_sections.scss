@@ -35,4 +35,12 @@
 		line-height: 28px;
 		margin: 0 0 var(--wpbb-space-4);
 	}
+
+	.wpbb-buyer-identity span,
+	.wpbb-buyer-details-card > p,
+	.wpbb-entry-reason-editor > p,
+	.wpbb-entry-status-editor > p,
+	.wpbb-entry-status-editor > small {
+		color: var(--wpbb-muted);
+	}
 }
