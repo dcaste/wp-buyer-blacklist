@@ -37,6 +37,23 @@ test( 'filters entries by status and Match type', async () => {
 	expect( container.textContent ).not.toContain( 'Test entry' );
 } );
 
+test( 'filters entries down to Customer ID entries', async () => {
+	( apiFetch as jest.Mock ).mockResolvedValue( [
+		{ id: '1', value: 'buyer@example.com', reason: 'Email entry', is_active: '1', match_type: 'email', created_at: '' },
+		{ id: '2', value: '42', reason: 'Customer entry', is_active: '1', match_type: 'customer_id', created_at: '' },
+	] );
+	const container = document.createElement( 'div' );
+	await act( async () => { createRoot( container ).render( <App /> ); } );
+	const type = container.querySelector( '#wp-buyer-blacklist-type-filter' ) as HTMLSelectElement;
+	await act( async () => {
+		type.value = 'customer_id';
+		type.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+	} );
+	expect( type.value ).toBe( 'customer_id' );
+	expect( container.textContent ).toContain( 'Customer entry' );
+	expect( container.textContent ).not.toContain( 'Email entry' );
+} );
+
 test( 'paginates entries in groups of 20', async () => {
 	( apiFetch as jest.Mock ).mockResolvedValue( Array.from( { length: 21 }, ( _, index ) => ( { id: String( index ), value: `buyer${ index }@example.com`, reason: 'Test entry', is_active: index === 0 ? '0' : '1', match_type: 'email', created_at: '' } ) ) );
 	const container = document.createElement( 'div' );
