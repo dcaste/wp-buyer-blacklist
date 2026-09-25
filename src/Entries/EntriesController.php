@@ -272,7 +272,11 @@ final class EntriesController {
 		}
 
 		$entry = $dossier['entry'];
-		$user  = 'customer_id' === $entry['match_type'] ? get_userdata( absint( $entry['value'] ) ) : ( 'email' === $entry['match_type'] ? get_user_by( 'email', $entry['value'] ) : false );
+		$user  = match ( $entry['match_type'] ) {
+			'customer_id' => get_userdata( absint( $entry['value'] ) ),
+			'email'       => get_user_by( 'email', $entry['value'] ),
+			default       => $this->only_customer_with_address( $entry['match_type'], (array) $entry['value'] ),
+		};
 		if ( ! $user instanceof \WP_User ) {
 			return array(
 				'buyer'   => null,
@@ -290,6 +294,38 @@ final class EntriesController {
 				'shipping_address' => $this->customer_address( $customer, 'shipping' ),
 			),
 		);
+	}
+
+	/**
+	 * Finds the one registered Customer whose current address matches an address entry.
+	 *
+	 * @param string                $match_type      Address Match type.
+	 * @param array<string, string> $canonical_value Entry address, already canonical.
+	 * @return \WP_User|false The Customer, or false when none or several match.
+	 */
+	private function only_customer_with_address( string $match_type, array $canonical_value ): \WP_User|false {
+		$prefix    = 'shipping_address' === $match_type ? 'shipping' : 'billing';
+		$countries = WC()->countries->get_countries();
+		$matches   = array();
+		// Postcode narrows the candidates. The database collation ignores its case; every field is compared canonically below.
+		$candidates = get_users(
+			array(
+				'meta_key'   => "{$prefix}_postcode", // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Only runs when an operator opens one address entry.
+				'meta_value' => $canonical_value['postcode'] ?? '', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Only runs when an operator opens one address entry.
+			)
+		);
+		foreach ( $candidates as $candidate ) {
+			try {
+				$address = AddressEntry::from_fields( $match_type, $this->customer_address( new \WC_Customer( $candidate->ID ), $prefix ), $countries );
+			} catch ( InvalidArgumentException $exception ) {
+				continue;
+			}
+			if ( $address->canonical_value() === $canonical_value ) {
+				$matches[] = $candidate;
+			}
+		}
+
+		return 1 === count( $matches ) ? $matches[0] : false;
 	}
 
 	/**
