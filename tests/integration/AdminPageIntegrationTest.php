@@ -40,8 +40,10 @@ class AdminPageIntegrationTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'data-export-url="http://example.org/wp-admin/admin-post.php?action=wp_buyer_blacklist_export&#038;_wpnonce=' . wp_create_nonce( 'wp_buyer_blacklist_export' ) . '"', $markup );
 		$this->assertStringContainsString( 'data-dossier-export-url="http://example.org/wp-admin/admin-post.php?action=wp_buyer_blacklist_dossier_export&#038;_wpnonce=' . wp_create_nonce( 'wp_buyer_blacklist_dossier_export' ) . '"', $markup );
 		$this->assertStringContainsString( 'data-example-csv-url="' . esc_url( WP_BUYER_BLACKLIST_URL . 'assets/buyer-blacklist-example.csv' ) . '"', $markup );
+		$this->assertStringContainsString( 'data-users-url="http://example.org/wp-admin/users.php"', $markup );
 		$this->assertStringContainsString( 'class="nav-tab nav-tab-active" href="http://example.org/wp-admin/admin.php?page=wp-buyer-blacklist"', $markup );
 		$this->assertStringContainsString( 'tab=settings', $markup );
+		$this->assertStringContainsString( 'data-can-manage-privacy-data="1"', $markup );
 	}
 
 	/**
@@ -101,6 +103,7 @@ class AdminPageIntegrationTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'data-tab="manage"', $markup );
 		$this->assertStringNotContainsString( 'tab=settings', $markup );
 		$this->assertStringNotContainsString( 'wpbb-settings', $markup );
+		$this->assertStringNotContainsString( 'data-can-manage-privacy-data', $markup );
 	}
 
 	/**
