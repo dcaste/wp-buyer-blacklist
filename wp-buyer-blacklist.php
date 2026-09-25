@@ -83,7 +83,6 @@ function wp_buyer_blacklist_uninstall(): void {
 	global $wpdb;
 
 	( new \WP_Buyer_Blacklist\Storage\Schema( $wpdb ) )->uninstall();
-	delete_option( 'wp_buyer_blacklist_delete_data_on_uninstall' );
 }
 register_uninstall_hook( __FILE__, 'wp_buyer_blacklist_uninstall' );
 
