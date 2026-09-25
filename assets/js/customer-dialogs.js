@@ -71,6 +71,11 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	const selector = manageDialog.querySelector( 'select' );
 	const reason = manageDialog.querySelector( 'textarea' );
 	const result = manageDialog.querySelector( '[data-manage-result]' );
+	const showResult = ( message, status = '' ) => {
+		result.textContent = message;
+		result.classList.toggle( 'is-success', status === 'success' );
+		result.classList.toggle( 'is-error', status === 'error' );
+	};
 	const selected = () =>
 		entries.find( ( entry ) => String( entry.id ) === selector.value );
 	const renderEntry = async () => {
@@ -81,7 +86,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		reason.value = entry.reason;
 		manageDialog.querySelector( '[data-toggle-entry]' ).textContent =
 			entry.is_active === '1' ? 'Deactivate' : 'Activate';
-		result.textContent = '';
+		showResult( '' );
 		try {
 			const context = await window.wp.apiFetch( {
 				path: `/wp-buyer-blacklist/v1/email-entries/${ entry.id }/buyer-context`,
@@ -129,9 +134,9 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					data: { reason: reason.value },
 				} );
 				entry.reason = reason.value;
-				result.textContent = 'Blacklist entry updated.';
+				showResult( 'Blacklist entry updated.', 'success' );
 			} catch ( error ) {
-				result.textContent = error.message;
+				showResult( error.message, 'error' );
 			}
 		} );
 	manageDialog
@@ -146,9 +151,9 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				} );
 				entry.is_active = entry.is_active === '1' ? '0' : '1';
 				renderEntry();
-				result.textContent = 'Blacklist entry updated.';
+				showResult( 'Blacklist entry updated.', 'success' );
 			} catch ( error ) {
-				result.textContent = error.message;
+				showResult( error.message, 'error' );
 			}
 		} );
 	manageDialog
