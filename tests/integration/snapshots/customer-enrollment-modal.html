@@ -1,4 +1,5 @@
 		<dialog id="wp-buyer-blacklist-enroll-customer-dialog" aria-labelledby="wp-buyer-blacklist-enroll-customer-title">
+			<button type="button" class="wpbb-dialog-close" aria-label="Close dialog" commandfor="wp-buyer-blacklist-enroll-customer-dialog" command="close"><span class="wpbb-modal-icon is-close" aria-hidden="true"></span></button>
 			<form class="wp-buyer-blacklist-enrollment-form" method="post" action="http://example.org/wp-admin/admin-post.php">
 				<h2 id="wp-buyer-blacklist-enroll-customer-title">Enroll Buyer in Blacklist</h2>
 				<input type="hidden" id="_wpnonce" name="_wpnonce" value="{enroll-customer-nonce}" /><input type="hidden" name="_wp_http_referer" value="/wp-admin/users.php" />				<input type="hidden" name="action" value="wp_buyer_blacklist_enroll_customer">
@@ -17,11 +18,12 @@
 			</form>
 		</dialog>
 		<dialog id="wp-buyer-blacklist-manage-customer-dialog" aria-labelledby="wp-buyer-blacklist-manage-customer-title">
+			<button type="button" class="wpbb-dialog-close" aria-label="Close dialog" commandfor="wp-buyer-blacklist-manage-customer-dialog" command="close"><span class="wpbb-modal-icon is-close" aria-hidden="true"></span></button>
 			<h2 id="wp-buyer-blacklist-manage-customer-title">Manage Blacklist entry</h2>
 			<p><label for="wp-buyer-blacklist-matching-entry">Matching Blacklist entry</label><select id="wp-buyer-blacklist-matching-entry"></select></p>
 			<div data-buyer-context></div>
 			<p><label for="wp-buyer-blacklist-manage-reason">Reason</label><textarea class="large-text" id="wp-buyer-blacklist-manage-reason" required></textarea></p>
-			<p><button type="button" class="button button-primary" data-save-entry>Save reason</button> <button type="button" class="button" data-toggle-entry></button> <button type="button" class="button" data-close-manage-dialog>Close</button></p>
+			<p><button type="button" class="button button-primary" data-save-entry>Save reason</button> <button type="button" class="button" data-toggle-entry></button></p>
 			<p role="status" data-manage-result></p>
 		</dialog>
 		
