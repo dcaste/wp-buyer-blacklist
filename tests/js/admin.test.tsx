@@ -111,6 +111,7 @@ test( 'loads Audit history and Blocked attempts when an entry is managed', async
 	const container = document.createElement( 'div' );
 	container.id = 'wp-buyer-blacklist-admin';
 	container.dataset.dossierExportUrl = '/wp-admin/admin-post.php?action=wp_buyer_blacklist_dossier_export&_wpnonce=nonce';
+	container.dataset.canManagePrivacyData = '1';
 	document.body.append( container );
 	await act( async () => { createRoot( container ).render( <App /> ); } );
 	await act( async () => { Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Manage' )?.click(); } );
@@ -131,5 +132,32 @@ test( 'loads Audit history and Blocked attempts when an entry is managed', async
 	expect( container.querySelector( '.wpbb-modal-icon.is-user' ) ).not.toBeNull();
 	expect( container.querySelector( '.wpbb-modal-icon.is-pin' ) ).not.toBeNull();
 	expect( container.querySelector( '.wpbb-button-icon.is-trash' ) ).not.toBeNull();
+	container.remove();
+} );
+
+test( 'hides Administrator-only entry actions from Blacklist operators', async () => {
+	( apiFetch as jest.Mock ).mockImplementation( ( { path } ) => path === '/wp-buyer-blacklist/v1/email-entries' ? Promise.resolve( [ { id: '1', value: 'buyer@example.com', reason: 'Test entry', is_active: '1', created_at: '2026-01-01 00:00:00' } ] ) : Promise.resolve( [] ) );
+	const container = document.createElement( 'div' );
+	container.id = 'wp-buyer-blacklist-admin';
+	container.dataset.dossierExportUrl = '/wp-admin/admin-post.php?action=wp_buyer_blacklist_dossier_export&_wpnonce=nonce';
+	document.body.append( container );
+	await act( async () => { createRoot( container ).render( <App /> ); } );
+	await act( async () => { Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Manage' )?.click(); } );
+	expect( container.textContent ).toContain( 'Audit history' );
+	expect( container.querySelector( '.wp-buyer-blacklist-delete-entry' ) ).toBeNull();
+	expect( container.textContent ).not.toContain( 'Export dossier' );
+	container.remove();
+} );
+
+test( 'hides the Blacklist export from Blacklist operators', async () => {
+	( apiFetch as jest.Mock ).mockImplementation( () => Promise.resolve( [] ) );
+	const container = document.createElement( 'div' );
+	container.id = 'wp-buyer-blacklist-admin';
+	container.dataset.tab = 'import-export';
+	container.dataset.exportUrl = '/export';
+	document.body.append( container );
+	await act( async () => { createRoot( container ).render( <App /> ); } );
+	expect( container.textContent ).toContain( 'Import Blacklist entries' );
+	expect( container.textContent ).not.toContain( 'Export Blacklist entries' );
 	container.remove();
 } );
