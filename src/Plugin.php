@@ -19,6 +19,7 @@ use WP_Buyer_Blacklist\Enrollment\Enroller;
 use WP_Buyer_Blacklist\Enrollment\EnrollmentPage;
 use WP_Buyer_Blacklist\Enrollment\OrderScreen;
 use WP_Buyer_Blacklist\Entries\AuditLog;
+use WP_Buyer_Blacklist\Entries\BuyerLookup;
 use WP_Buyer_Blacklist\Entries\EntriesController;
 use WP_Buyer_Blacklist\Entries\EntryRepository;
 use WP_Buyer_Blacklist\ImportExport\CsvExportDownload;
@@ -71,7 +72,7 @@ final class Plugin {
 			new DossierController( $dossiers, $privacy_access ),
 			new DossierDownload( $dossiers, $privacy_access ),
 			new PersonalDataTools( $entries, $dossiers ),
-			new EntriesController( $entries, $audit_log, $blocked_attempts, $dossiers, $operator_access, $privacy_access ),
+			new EntriesController( $entries, $audit_log, $blocked_attempts, $dossiers, $operator_access, $privacy_access, new BuyerLookup() ),
 			new ImportExportController( $entries, new ImportHistory( $database ), $operator_access ),
 			new CsvExportDownload( new CsvExporter( $database ), $privacy_access ),
 			new AdminPage( $operator_access, $privacy_access, new SettingsTab( $buyer_block_message ) ),

@@ -65,6 +65,13 @@ final class EntriesController {
 	private PrivacyDataAccess $privacy_access;
 
 	/**
+	 * Finds the registered Buyer an entry identifies.
+	 *
+	 * @var BuyerLookup
+	 */
+	private BuyerLookup $buyers;
+
+	/**
 	 * Creates the controller.
 	 *
 	 * @param EntryRepository   $entries          Entry storage.
@@ -73,14 +80,16 @@ final class EntriesController {
 	 * @param DossierBuilder    $dossiers         Identity dossiers, used to find the current Buyer.
 	 * @param OperatorAccess    $operator_access  Blacklist operator access policy.
 	 * @param PrivacyDataAccess $privacy_access   Privacy data access check.
+	 * @param BuyerLookup       $buyers           Current Buyer for an entry.
 	 */
-	public function __construct( EntryRepository $entries, AuditLog $audit_log, BlockedAttemptLog $blocked_attempts, DossierBuilder $dossiers, OperatorAccess $operator_access, PrivacyDataAccess $privacy_access ) {
+	public function __construct( EntryRepository $entries, AuditLog $audit_log, BlockedAttemptLog $blocked_attempts, DossierBuilder $dossiers, OperatorAccess $operator_access, PrivacyDataAccess $privacy_access, BuyerLookup $buyers ) {
 		$this->entries          = $entries;
 		$this->audit_log        = $audit_log;
 		$this->blocked_attempts = $blocked_attempts;
 		$this->dossiers         = $dossiers;
 		$this->operator_access  = $operator_access;
 		$this->privacy_access   = $privacy_access;
+		$this->buyers           = $buyers;
 	}
 
 	/**
@@ -271,8 +280,7 @@ final class EntriesController {
 			return new WP_Error( 'wp_buyer_blacklist_not_found', __( 'The Blacklist entry could not be found.', 'wp-buyer-blacklist' ), array( 'status' => 404 ) );
 		}
 
-		$entry = $dossier['entry'];
-		$user  = 'customer_id' === $entry['match_type'] ? get_userdata( absint( $entry['value'] ) ) : ( 'email' === $entry['match_type'] ? get_user_by( 'email', $entry['value'] ) : false );
+		$user = $this->buyers->find( $dossier['entry'] );
 		if ( ! $user instanceof \WP_User ) {
 			return array(
 				'buyer'   => null,
@@ -280,34 +288,7 @@ final class EntriesController {
 			);
 		}
 
-		$customer = new \WC_Customer( $user->ID );
-		return array(
-			'buyer' => array(
-				'id'               => $user->ID,
-				'name'             => trim( $user->first_name . ' ' . $user->last_name ),
-				'email'            => $user->user_email,
-				'billing_address'  => $this->customer_address( $customer, 'billing' ),
-				'shipping_address' => $this->customer_address( $customer, 'shipping' ),
-			),
-		);
-	}
-
-	/**
-	 * Gets a current customer address.
-	 *
-	 * @param \WC_Customer $customer Customer.
-	 * @param string       $prefix   Address prefix.
-	 * @return array<string, string> Address fields.
-	 */
-	private function customer_address( \WC_Customer $customer, string $prefix ): array {
-		return array(
-			'address_line_1' => $customer->{"get_{$prefix}_address_1"}(),
-			'address_line_2' => $customer->{"get_{$prefix}_address_2"}(),
-			'city'           => $customer->{"get_{$prefix}_city"}(),
-			'state'          => $customer->{"get_{$prefix}_state"}(),
-			'postcode'       => $customer->{"get_{$prefix}_postcode"}(),
-			'country'        => $customer->{"get_{$prefix}_country"}(),
-		);
+		return array( 'buyer' => $this->buyers->details( $user ) );
 	}
 
 	/**

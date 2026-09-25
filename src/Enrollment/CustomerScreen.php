@@ -83,6 +83,9 @@ final class CustomerScreen {
 	 * @return array<string, string> List columns.
 	 */
 	public function add_customer_column( array $columns ): array {
+		if ( ! $this->operator_access->can_manage_entries() ) {
+			return $columns;
+		}
 		$columns['wp_buyer_blacklist'] = __( 'Buyer Blacklist', 'wp-buyer-blacklist' );
 		return $columns;
 	}
