@@ -26,7 +26,8 @@
 	input:not([type='checkbox']):not([type='radio']),
 	select,
 	textarea {
-		background: var(--wpbb-surface);
+		/* background-color, not the shorthand, keeps the chevron WordPress draws on select. */
+		background-color: var(--wpbb-surface);
 		border: 1px solid var(--wpbb-input-border);
 		border-radius: var(--wpbb-radius-md);
 		box-shadow: none;
@@ -41,6 +42,10 @@
 	input:not([type='checkbox']):not([type='radio']),
 	select {
 		min-height: 38px;
+	}
+
+	select {
+		padding-right: 32px;
 	}
 
 	textarea.large-text {
