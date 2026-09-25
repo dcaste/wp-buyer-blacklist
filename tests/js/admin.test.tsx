@@ -21,6 +21,20 @@ test( 'renders WordPress-style Manage entries controls', async () => {
 	expect( container.textContent ).toContain( 'Blocked attempts' );
 } );
 
+test( 'points operators to the Users screen for Customer ID entries', async () => {
+	const container = document.createElement( 'div' );
+	container.id = 'wp-buyer-blacklist-admin';
+	container.dataset.usersUrl = 'http://example.org/wp-admin/users.php';
+	document.body.append( container );
+	await act( async () => { createRoot( container ).render( <App /> ); } );
+	const description = container.querySelector( '#wp-buyer-blacklist-match-type-description' );
+	expect( description?.textContent ).toContain( 'To block by Customer ID, enroll the Customer from the Users screen.' );
+	expect( description?.querySelector( 'a' )?.getAttribute( 'href' ) ).toBe( 'http://example.org/wp-admin/users.php' );
+	expect( description?.querySelector( 'a' )?.textContent ).toBe( 'Users screen' );
+	expect( Array.from( ( container.querySelector( '#wp-buyer-blacklist-match-type' ) as HTMLSelectElement ).options ).map( ( option ) => option.value ) ).toEqual( [ 'email', 'billing_address', 'shipping_address' ] );
+	container.remove();
+} );
+
 test( 'filters entries by status and Match type', async () => {
 	( apiFetch as jest.Mock ).mockResolvedValue( [
 		{ id: '1', value: 'buyer@example.com', reason: 'Test entry', is_active: '1', match_type: 'email', created_at: '' },
