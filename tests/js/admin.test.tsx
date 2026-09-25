@@ -119,7 +119,9 @@ test( 'loads Audit history and Blocked attempts when an entry is managed', async
 	expect( container.textContent ).toContain( 'Blocked attempts' );
 	expect( container.textContent ).toContain( 'Billing address1 Test Street, Testville, CA, 90210, US' );
 	expect( container.textContent ).toContain( 'Shipping address2 Test Street, Testville, CA, 90210, US' );
-	expect( container.textContent ).toContain( 'blocked buyer@example.com' );
+	const attemptItems = container.querySelectorAll( '.wpbb-blocked-attempts ol > li' );
+	expect( attemptItems ).toHaveLength( 1 );
+	expect( attemptItems[ 0 ].textContent ).toBe( '2026-01-01 00:00:00' );
 	expect( container.querySelector( 'a[href="/wp-admin/admin-post.php?action=wp_buyer_blacklist_dossier_export&_wpnonce=nonce&entry_id=1"]' )?.textContent ).toBe( 'Export dossier' );
 	expect( container.querySelector( 'dialog' ) ).not.toBeNull();
 	expect( Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Manage' )?.getAttribute( 'commandfor' ) ).toBe( 'wp-buyer-blacklist-entry-dialog' );
