@@ -161,7 +161,12 @@ test( 'loads Audit history and Blocked attempts when an entry is managed', async
 	expect( deleteButton?.classList ).toContain( 'wp-buyer-blacklist-delete-entry' );
 	expect( deleteButton?.closest( '.wpbb-entry-dialog-footer' ) ).not.toBeNull();
 	expect( container.querySelector( '.wpbb-entry-dialog-close' )?.getAttribute( 'aria-label' ) ).toBe( 'Close dialog' );
-	expect( container.querySelector( '.wpbb-modal-icon.is-mail' ) ).not.toBeNull();
+	expect( container.querySelector( '.wpbb-entry-summary' ) ).toBeNull();
+	const buyerCard = container.querySelector( '.wpbb-buyer-details-card' );
+	expect( buyerCard?.querySelector( '.wpbb-buyer-entry' )?.textContent ).toBe( 'Emailbuyer@example.com' );
+	expect( buyerCard?.textContent ).toContain( 'Ada Lovelace (#1)' );
+	expect( container.querySelector( '.wpbb-buyer-details > h3 .wpbb-buyer-avatar .wpbb-modal-icon.is-user' ) ).not.toBeNull();
+	expect( container.querySelector( 'a[href$="&entry_id=1"]' )?.classList ).toContain( 'button' );
 	expect( container.querySelector( '.wpbb-modal-icon.is-user' ) ).not.toBeNull();
 	expect( container.querySelector( '.wpbb-modal-icon.is-pin' ) ).not.toBeNull();
 	expect( container.querySelector( '.wpbb-button-icon.is-trash' ) ).not.toBeNull();
@@ -192,5 +197,29 @@ test( 'hides the Blacklist export from Blacklist operators', async () => {
 	await act( async () => { createRoot( container ).render( <App /> ); } );
 	expect( container.textContent ).toContain( 'Import Blacklist entries' );
 	expect( container.textContent ).not.toContain( 'Export Blacklist entries' );
+	container.remove();
+} );
+
+test( 'shows the entry identity without a Buyer and no primary tile in empty Blocked attempts', async () => {
+	( apiFetch as jest.Mock ).mockImplementation( ( { path } ) => {
+		if ( path === '/wp-buyer-blacklist/v1/email-entries' ) {
+			return Promise.resolve( [ { id: '1', value: '{"address_line_1":"1 Test Street","address_line_2":"","city":"Testville","state":"CA","postcode":"90210","country":"US"}', reason: 'Test entry', is_active: '1', match_type: 'billing_address', created_at: '2026-01-01 00:00:00' } ] );
+		}
+		if ( path === '/wp-buyer-blacklist/v1/email-entries/1/buyer-context' ) {
+			return Promise.resolve( { buyer: null, message: 'No uniquely identified registered Buyer.' } );
+		}
+		return Promise.resolve( [] );
+	} );
+	const container = document.createElement( 'div' );
+	container.id = 'wp-buyer-blacklist-admin';
+	document.body.append( container );
+	await act( async () => { createRoot( container ).render( <App /> ); } );
+	await act( async () => { Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Manage' )?.click(); } );
+	const buyerCard = container.querySelector( '.wpbb-buyer-details-card' );
+	expect( buyerCard?.querySelector( '.wpbb-buyer-entry' )?.textContent ).toContain( 'Billing address' );
+	expect( buyerCard?.querySelector( '.wpbb-buyer-entry' )?.textContent ).toContain( '1 Test Street' );
+	expect( buyerCard?.textContent ).toContain( 'No uniquely identified registered Buyer.' );
+	expect( container.querySelector( '.wpbb-no-attempts' ) ).not.toBeNull();
+	expect( container.querySelector( '.wpbb-blocked-attempts .wpbb-icon-tile.is-primary' ) ).toBeNull();
 	container.remove();
 } );

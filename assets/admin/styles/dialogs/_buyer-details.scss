@@ -2,14 +2,18 @@
 #wp-buyer-blacklist-admin,
 .users-php {
 	.wpbb-buyer-details-card {
-		align-items: center;
 		border: 1px solid var(--wpbb-border);
 		border-radius: var(--wpbb-radius-md);
 		display: grid;
-		gap: var(--wpbb-space-12) var(--wpbb-space-16);
-		grid-template-columns: 56px minmax(0, 1fr);
+		gap: var(--wpbb-space-12);
 		margin-top: var(--wpbb-space-16);
 		padding: var(--wpbb-space-16);
+	}
+
+	.wpbb-buyer-details > h3 {
+		align-items: center;
+		display: flex;
+		gap: var(--wpbb-space-12);
 	}
 
 	.wpbb-buyer-avatar {
@@ -18,9 +22,25 @@
 		border-radius: var(--wpbb-radius-circle);
 		color: var(--wpbb-muted);
 		display: flex;
-		height: 56px;
+		flex: 0 0 40px;
+		height: 40px;
 		justify-content: center;
-		width: 56px;
+		width: 40px;
+	}
+
+	.wpbb-buyer-entry span,
+	.wpbb-buyer-entry strong {
+		display: block;
+	}
+
+	.wpbb-buyer-entry span {
+		color: var(--wpbb-muted);
+		font-size: 12px;
+	}
+
+	.wpbb-buyer-entry strong {
+		font-size: 16px;
+		overflow-wrap: anywhere;
 	}
 
 	.wpbb-buyer-identity strong,
@@ -36,7 +56,6 @@
 		border-top: 1px solid var(--wpbb-border);
 		display: grid;
 		gap: var(--wpbb-space-16);
-		grid-column: 1 / -1;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		padding-top: var(--wpbb-space-12);
 	}
