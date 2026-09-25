@@ -48,6 +48,7 @@ require_once __DIR__ . '/src/Privacy/PrivacyDataAccess.php';
 require_once __DIR__ . '/src/Privacy/DossierController.php';
 require_once __DIR__ . '/src/Privacy/DossierDownload.php';
 require_once __DIR__ . '/src/Privacy/PersonalDataTools.php';
+require_once __DIR__ . '/src/Entries/BuyerLookup.php';
 require_once __DIR__ . '/src/Entries/EntriesController.php';
 require_once __DIR__ . '/src/ImportExport/ImportExportController.php';
 require_once __DIR__ . '/src/ImportExport/CsvExportDownload.php';
