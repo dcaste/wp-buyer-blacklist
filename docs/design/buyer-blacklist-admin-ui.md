@@ -109,6 +109,8 @@ shows Match type and its relevant identity fields, a reason field marked optiona
 a primary "Add entry" action, and a secondary "Import CSV" link to the Import &
 Export tab. Match types must reflect supported manual creation endpoints. Do not
 show WooCommerce customer ID as manually creatable until the backend supports it end to end.
+The Match type description says Customer ID entries come from enrolling the
+Customer on the Users screen, and links "Users screen" to `users.php`.
 
 The "Blacklist entries" card contains a search field, Match type and status filters,
 a Reset action, sortable Updated column, pagination, and a semantic table. The
