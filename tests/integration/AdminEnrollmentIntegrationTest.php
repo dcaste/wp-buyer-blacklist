@@ -31,6 +31,30 @@ class AdminEnrollmentIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Hides the Blacklist column from a shop manager when manager access is off.
+	 *
+	 * @return void
+	 */
+	public function test_hides_the_column_from_shop_managers_without_manager_access(): void {
+		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', '0' );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
+
+		$this->assertArrayNotHasKey( 'wp_buyer_blacklist', apply_filters( 'manage_users_columns', array() ) );
+	}
+
+	/**
+	 * Shows the Blacklist column to a shop manager when manager access is on.
+	 *
+	 * @return void
+	 */
+	public function test_shows_the_column_to_shop_managers_with_manager_access(): void {
+		update_option( 'wp_buyer_blacklist_allow_woocommerce_managers', '1' );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
+
+		$this->assertArrayHasKey( 'wp_buyer_blacklist', apply_filters( 'manage_users_columns', array() ) );
+	}
+
+	/**
 	 * Renders the Users-list modal with the current Buyer data fields.
 	 *
 	 * @return void
