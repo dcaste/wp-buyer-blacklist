@@ -124,18 +124,20 @@ focus management. On open, focus the dialog heading or first actionable control.
 Escape and the close control dismiss it without saving. Restore focus to the Manage
 button that opened it.
 
-At wide widths, show a two-column layout. The left column holds the entry identity
-card, status, Buyer details when uniquely identified, editable reason with a
-500-character counter, an accessible Active switch, and footer actions. The right
-column holds Audit history and Blocked attempts. At 960px or below, show the same
-sections in one column.
+At wide widths, show a two-column layout. The left column holds Buyer details,
+editable reason with a 500-character counter, an accessible Active switch, and
+footer actions. The right column holds Audit history and Blocked attempts. At
+960px or below, show the same sections in one column.
 
-The entry identity card shows Match type, Canonical value, created time, entry
-identifier, and an Active or Inactive text chip. Buyer details must clearly say
-when there is no uniquely identified registered Buyer or an address is not provided.
+The Buyer details heading has the Buyer avatar beside it. Its card always starts
+with the entry's Match type and Canonical value, followed by the Buyer's name,
+email and addresses when the entry identifies one registered Buyer. Otherwise the
+card must clearly say there is no uniquely identified registered Buyer, and an
+address that is missing reads "Not provided".
 Audit events form a chronological timeline. Blocked attempts have a count and an
 explicit empty state. Deleting requires a clear confirmation and uses danger
-styling. "Export dossier" is secondary. "Save changes" is the only primary footer action.
+styling, with the danger background shown by default. "Export dossier" is a
+secondary button. "Save changes" is the only primary footer action.
 
 ## Import & Export
 

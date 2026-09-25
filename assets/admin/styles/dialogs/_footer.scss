@@ -17,7 +17,7 @@
 	}
 
 	.wp-buyer-blacklist-delete-entry {
-		background: var(--wpbb-surface);
+		background: var(--wpbb-danger-bg);
 		border-color: var(--wpbb-danger);
 		color: var(--wpbb-danger);
 	}
@@ -41,8 +41,6 @@
 	}
 
 	.wpbb-entry-dialog-footer > a {
-		color: var(--wpbb-primary);
-		font-weight: 600;
 		margin-left: auto;
 	}
 }
