@@ -42,6 +42,7 @@ class AdminPageIntegrationTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'data-example-csv-url="' . esc_url( WP_BUYER_BLACKLIST_URL . 'assets/buyer-blacklist-example.csv' ) . '"', $markup );
 		$this->assertStringContainsString( 'class="nav-tab nav-tab-active" href="http://example.org/wp-admin/admin.php?page=wp-buyer-blacklist"', $markup );
 		$this->assertStringContainsString( 'tab=settings', $markup );
+		$this->assertStringContainsString( 'data-can-manage-privacy-data="1"', $markup );
 	}
 
 	/**
@@ -101,6 +102,7 @@ class AdminPageIntegrationTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'data-tab="manage"', $markup );
 		$this->assertStringNotContainsString( 'tab=settings', $markup );
 		$this->assertStringNotContainsString( 'wpbb-settings', $markup );
+		$this->assertStringNotContainsString( 'data-can-manage-privacy-data', $markup );
 	}
 
 	/**

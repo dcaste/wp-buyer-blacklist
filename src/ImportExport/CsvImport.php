@@ -20,12 +20,13 @@ final class CsvImport {
 	/**
 	 * Validates CSV content and identifies duplicate identities within it.
 	 *
-	 * @param string                $csv       CSV content.
-	 * @param array<string, string> $countries WooCommerce country codes and names.
+	 * @param string                $csv             CSV content.
+	 * @param array<string, string> $countries       WooCommerce country codes and names.
+	 * @param callable(int): bool   $customer_exists Whether a Customer with the given ID exists.
 	 * @return array{accepted: list<array<string, mixed>>, duplicates: list<array{row: int, reason: string}>, rejected: list<array{row: int, reason: string}>}
 	 * @throws InvalidArgumentException When the CSV is not valid UTF-8 or has no supported header.
 	 */
-	public static function validate( string $csv, array $countries ): array {
+	public static function validate( string $csv, array $countries, callable $customer_exists ): array {
 		if ( '' === $csv || 1 !== preg_match( '//u', $csv ) ) {
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- The REST response serializes this translated validation message.
 			throw new InvalidArgumentException( __( 'The file must be a UTF-8 CSV file with a header row.', 'wp-buyer-blacklist' ) );
@@ -73,7 +74,7 @@ final class CsvImport {
 
 			$fields = self::fields( $headers, $values );
 			try {
-				$entry = self::entry( $fields, $countries );
+				$entry = self::entry( $fields, $countries, $customer_exists );
 			} catch ( InvalidArgumentException $exception ) {
 				$result['rejected'][] = array(
 					'row'    => $row,
@@ -186,12 +187,13 @@ final class CsvImport {
 	/**
 	 * Builds one validated entry representation.
 	 *
-	 * @param array<string, string> $fields    CSV fields.
-	 * @param array<string, string> $countries WooCommerce country codes and names.
+	 * @param array<string, string> $fields          CSV fields.
+	 * @param array<string, string> $countries       WooCommerce country codes and names.
+	 * @param callable(int): bool   $customer_exists Whether a Customer with the given ID exists.
 	 * @return array{match_type: string, value: string|array<string, string>, canonical_hash: string}
 	 * @throws InvalidArgumentException When the fields do not identify a valid entry.
 	 */
-	private static function entry( array $fields, array $countries ): array {
+	private static function entry( array $fields, array $countries, callable $customer_exists ): array {
 		$match_type = trim( $fields['match_type'] );
 		if ( 'email' === $match_type ) {
 			try {
@@ -211,6 +213,10 @@ final class CsvImport {
 			if ( ! ctype_digit( $customer_id ) || 0 === (int) $customer_id ) {
 				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- The REST response serializes this translated validation message.
 				throw new InvalidArgumentException( __( 'Enter a positive Customer ID.', 'wp-buyer-blacklist' ) );
+			}
+			if ( ! $customer_exists( (int) $customer_id ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- The REST response serializes this translated validation message.
+				throw new InvalidArgumentException( sprintf( /* translators: %d: Customer ID from the CSV row. */ __( 'No Customer exists with ID %d.', 'wp-buyer-blacklist' ), (int) $customer_id ) );
 			}
 			$entry = CustomerIdEntry::from_customer_id( (int) $customer_id );
 			return array(
