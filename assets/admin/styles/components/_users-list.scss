@@ -2,8 +2,12 @@
 .users-php {
 	.column-wp_buyer_blacklist .button-link {
 		color: var(--wpbb-primary);
-		font-weight: 600;
+		font-weight: 400;
 		margin-top: var(--wpbb-space-6);
+	}
+
+	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge {
+		font-weight: 400;
 	}
 
 	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge::before {
@@ -20,6 +24,12 @@
 	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge.is-active {
 		background: var(--wpbb-danger-bg);
 		color: var(--wpbb-danger);
+	}
+
+	/* Same colors as the "Completed with warnings" import status. */
+	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge.is-inactive {
+		background: var(--wpbb-warning-bg);
+		color: var(--wpbb-warning);
 	}
 
 	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge:focus-visible {
