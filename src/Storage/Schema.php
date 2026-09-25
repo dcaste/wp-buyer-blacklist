@@ -38,6 +38,18 @@ final class Schema {
 	public const IMPORTS_TABLE = 'buyer_blacklist_imports';
 
 	/**
+	 * Every option the plugin stores, including names used by earlier versions.
+	 */
+	private const OPTIONS = array(
+		'wp_buyer_blacklist_database_version',
+		'wp_buyer_blacklist_buyer_message',
+		'wp_buyer_blacklist_allow_woocommerce_managers',
+		'wp_buyer_blacklist_delete_data_on_uninstall',
+		'wp_buyer_blacklist_block_message',
+		'wp_buyer_blacklist_message_editing_delegated',
+	);
+
+	/**
 	 * WordPress database connection.
 	 *
 	 * @var \wpdb
@@ -145,6 +157,16 @@ final class Schema {
 		$this->database->query( "DROP TABLE IF EXISTS {$attempts_table}" );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names use only the WordPress table prefix.
 		$this->database->query( "DROP TABLE IF EXISTS {$imports_table}" );
-		delete_option( 'wp_buyer_blacklist_database_version' );
+		foreach ( self::OPTIONS as $option ) {
+			delete_option( $option );
+		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-off cleanup of unconfirmed import transients, which have no delete-by-prefix API.
+		$this->database->query(
+			$this->database->prepare(
+				"DELETE FROM {$this->database->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+				$this->database->esc_like( '_transient_wp_buyer_blacklist_import_' ) . '%',
+				$this->database->esc_like( '_transient_timeout_wp_buyer_blacklist_import_' ) . '%'
+			)
+		);
 	}
 }

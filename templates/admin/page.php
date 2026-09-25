@@ -23,6 +23,6 @@ defined( 'ABSPATH' ) || exit;
 	<?php if ( 'settings' === $tab ) : ?>
 		<?php $render_settings_tab(); ?>
 	<?php else : ?>
-		<div id="wp-buyer-blacklist-admin" data-tab="<?php echo esc_attr( $tab ); ?>" data-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_export' ), 'wp_buyer_blacklist_export' ) ); ?>" data-example-csv-url="<?php echo esc_url( WP_BUYER_BLACKLIST_URL . 'assets/buyer-blacklist-example.csv' ); ?>" data-dossier-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_dossier_export' ), 'wp_buyer_blacklist_dossier_export' ) ); ?>"></div>
+		<div id="wp-buyer-blacklist-admin" data-tab="<?php echo esc_attr( $tab ); ?>" data-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_export' ), 'wp_buyer_blacklist_export' ) ); ?>" data-users-url="<?php echo esc_url( admin_url( 'users.php' ) ); ?>" data-example-csv-url="<?php echo esc_url( WP_BUYER_BLACKLIST_URL . 'assets/buyer-blacklist-example.csv' ); ?>" data-dossier-export-url="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wp_buyer_blacklist_dossier_export' ), 'wp_buyer_blacklist_dossier_export' ) ); ?>"<?php echo $can_manage_settings ? ' data-can-manage-privacy-data="1"' : ''; ?>></div>
 	<?php endif; ?>
 </div>
