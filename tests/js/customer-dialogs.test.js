@@ -38,7 +38,6 @@ const dialogs = `
 		<textarea></textarea>
 		<button type="button" data-save-entry>Save reason</button>
 		<button type="button" data-toggle-entry></button>
-		<button type="button" data-close-manage-dialog>Close</button>
 		<p data-manage-result></p>
 	</dialog>
 `;

@@ -196,7 +196,4 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				showResult( error.message, 'error' );
 			}
 		} );
-	manageDialog
-		.querySelector( '[data-close-manage-dialog]' )
-		.addEventListener( 'click', () => manageDialog.close() );
 } );
