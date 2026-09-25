@@ -74,6 +74,59 @@ class UninstallIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Deletes every plugin option when the administrator opted in, including
+	 * option names left behind by earlier versions.
+	 *
+	 * @return void
+	 */
+	public function test_deletes_every_plugin_option_after_opting_in(): void {
+		$options = array(
+			'wp_buyer_blacklist_buyer_message',
+			'wp_buyer_blacklist_allow_woocommerce_managers',
+			'wp_buyer_blacklist_block_message',
+			'wp_buyer_blacklist_message_editing_delegated',
+		);
+		foreach ( $options as $option ) {
+			update_option( $option, 'stored' );
+		}
+		update_option( 'wp_buyer_blacklist_delete_data_on_uninstall', true );
+
+		wp_buyer_blacklist_uninstall();
+
+		foreach ( $options as $option ) {
+			$this->assertFalse( get_option( $option ), $option );
+		}
+	}
+
+	/**
+	 * Deletes unconfirmed CSV import reviews when the administrator opted in.
+	 *
+	 * @return void
+	 */
+	public function test_deletes_pending_import_transients_after_opting_in(): void {
+		set_transient( 'wp_buyer_blacklist_import_1_token', array( 'accepted' => array() ), HOUR_IN_SECONDS );
+		update_option( 'wp_buyer_blacklist_delete_data_on_uninstall', true );
+
+		wp_buyer_blacklist_uninstall();
+		wp_cache_flush();
+
+		$this->assertFalse( get_transient( 'wp_buyer_blacklist_import_1_token' ) );
+	}
+
+	/**
+	 * Keeps every option when the administrator did not opt in.
+	 *
+	 * @return void
+	 */
+	public function test_keeps_options_without_opting_in(): void {
+		update_option( 'wp_buyer_blacklist_buyer_message', 'stored' );
+
+		wp_buyer_blacklist_uninstall();
+
+		$this->assertSame( 'stored', get_option( 'wp_buyer_blacklist_buyer_message' ) );
+	}
+
+	/**
 	 * Keeps every table when the administrator did not opt in.
 	 *
 	 * @return void

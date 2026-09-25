@@ -48,6 +48,7 @@ require_once __DIR__ . '/src/Privacy/PrivacyDataAccess.php';
 require_once __DIR__ . '/src/Privacy/DossierController.php';
 require_once __DIR__ . '/src/Privacy/DossierDownload.php';
 require_once __DIR__ . '/src/Privacy/PersonalDataTools.php';
+require_once __DIR__ . '/src/Entries/BuyerLookup.php';
 require_once __DIR__ . '/src/Entries/EntriesController.php';
 require_once __DIR__ . '/src/ImportExport/ImportExportController.php';
 require_once __DIR__ . '/src/ImportExport/CsvExportDownload.php';
@@ -83,7 +84,6 @@ function wp_buyer_blacklist_uninstall(): void {
 	global $wpdb;
 
 	( new \WP_Buyer_Blacklist\Storage\Schema( $wpdb ) )->uninstall();
-	delete_option( 'wp_buyer_blacklist_delete_data_on_uninstall' );
 }
 register_uninstall_hook( __FILE__, 'wp_buyer_blacklist_uninstall' );
 

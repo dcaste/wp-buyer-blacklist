@@ -111,7 +111,7 @@ final class ImportExportController {
 		}
 
 		try {
-			$result = CsvImport::validate( $csv, WC()->countries->get_countries() );
+			$result = CsvImport::validate( $csv, WC()->countries->get_countries(), static fn( int $customer_id ): bool => false !== get_userdata( $customer_id ) );
 		} catch ( InvalidArgumentException $exception ) {
 			return new WP_Error( 'wp_buyer_blacklist_invalid_csv', $exception->getMessage(), array( 'status' => 400 ) );
 		}
