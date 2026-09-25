@@ -68,11 +68,63 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		return;
 	}
 	let entries = [];
+	let manageButton = null;
 	const selector = manageDialog.querySelector( 'select' );
 	const reason = manageDialog.querySelector( 'textarea' );
 	const result = manageDialog.querySelector( '[data-manage-result]' );
+	const showResult = ( message, status = '' ) => {
+		result.textContent = message;
+		result.classList.toggle( 'is-success', status === 'success' );
+		result.classList.toggle( 'is-error', status === 'error' );
+	};
 	const selected = () =>
 		entries.find( ( entry ) => String( entry.id ) === selector.value );
+	const renderOptions = () => {
+		const value = selector.value;
+		selector.replaceChildren(
+			...entries.map(
+				( entry ) =>
+					new window.Option(
+						`${ entry.match_type }: ${ entry.value } (${
+							entry.is_active === '1' ? 'Active' : 'Inactive'
+						})`,
+						entry.id
+					)
+			)
+		);
+		if ( value ) {
+			selector.value = value;
+		}
+	};
+	// Keeps the Users-list row in step with changes made in the dialog.
+	const renderRow = () => {
+		manageButton.dataset.entries = JSON.stringify( entries );
+		const badge = manageButton.parentElement.querySelector(
+			'.wp-buyer-blacklist-status-badge'
+		);
+		if ( ! badge ) {
+			return;
+		}
+		const active = entries.some( ( entry ) => entry.is_active === '1' );
+		badge.classList.toggle( 'is-active', active );
+		badge.classList.toggle( 'is-inactive', ! active );
+		badge.textContent = active ? 'Blacklisted' : 'Inactive';
+		if ( active ) {
+			badge.setAttribute( 'tabindex', '0' );
+			badge.setAttribute(
+				'aria-label',
+				'Blacklisted. This Buyer cannot place new orders.'
+			);
+			badge.setAttribute(
+				'data-wpbb-tooltip',
+				'This Buyer is blacklisted from placing new orders in your store.'
+			);
+		} else {
+			badge.removeAttribute( 'tabindex' );
+			badge.removeAttribute( 'aria-label' );
+			badge.removeAttribute( 'data-wpbb-tooltip' );
+		}
+	};
 	const renderEntry = async () => {
 		const entry = selected();
 		if ( ! entry ) {
@@ -81,7 +133,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		reason.value = entry.reason;
 		manageDialog.querySelector( '[data-toggle-entry]' ).textContent =
 			entry.is_active === '1' ? 'Deactivate' : 'Activate';
-		result.textContent = '';
+		showResult( '' );
 		try {
 			const context = await window.wp.apiFetch( {
 				path: `/wp-buyer-blacklist/v1/email-entries/${ entry.id }/buyer-context`,
@@ -99,20 +151,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		.querySelectorAll( '.wp-buyer-blacklist-manage-customer' )
 		.forEach( ( button ) =>
 			button.addEventListener( 'click', () => {
+				manageButton = button;
 				entries = JSON.parse( button.dataset.entries || '[]' );
-				selector.replaceChildren(
-					...entries.map(
-						( entry ) =>
-							new window.Option(
-								`${ entry.match_type }: ${ entry.value } (${
-									entry.is_active === '1'
-										? 'Active'
-										: 'Inactive'
-								})`,
-								entry.id
-							)
-					)
-				);
+				selector.value = '';
+				renderOptions();
 				renderEntry();
 				manageDialog.showModal();
 			} )
@@ -129,9 +171,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					data: { reason: reason.value },
 				} );
 				entry.reason = reason.value;
-				result.textContent = 'Blacklist entry updated.';
+				renderRow();
+				showResult( 'Blacklist entry updated.', 'success' );
 			} catch ( error ) {
-				result.textContent = error.message;
+				showResult( error.message, 'error' );
 			}
 		} );
 	manageDialog
@@ -145,10 +188,12 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					data: { is_active: entry.is_active !== '1' },
 				} );
 				entry.is_active = entry.is_active === '1' ? '0' : '1';
+				renderOptions();
+				renderRow();
 				renderEntry();
-				result.textContent = 'Blacklist entry updated.';
+				showResult( 'Blacklist entry updated.', 'success' );
 			} catch ( error ) {
-				result.textContent = error.message;
+				showResult( error.message, 'error' );
 			}
 		} );
 	manageDialog

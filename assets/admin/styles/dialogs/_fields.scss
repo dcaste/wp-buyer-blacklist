@@ -47,4 +47,21 @@
 		margin-top: var(--wpbb-space-4);
 		text-align: right;
 	}
+
+	#wp-buyer-blacklist-manage-customer-dialog .is-success,
+	#wp-buyer-blacklist-manage-customer-dialog .is-error {
+		border-left: 4px solid;
+		border-radius: var(--wpbb-radius-sm);
+		padding: var(--wpbb-space-8) var(--wpbb-space-12);
+	}
+
+	#wp-buyer-blacklist-manage-customer-dialog .is-success {
+		background: var(--wpbb-success-bg);
+		color: var(--wpbb-success);
+	}
+
+	#wp-buyer-blacklist-manage-customer-dialog .is-error {
+		background: var(--wpbb-danger-bg);
+		color: var(--wpbb-danger);
+	}
 }
