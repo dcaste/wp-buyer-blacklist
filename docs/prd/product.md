@@ -44,7 +44,7 @@ A Blacklist operator must be able to create entries by selecting existing Custom
 
 **Acceptance criteria**
 
-- The operator can start enrollment from the Customers list (single or bulk selection), Customer detail, Orders list, and Order detail.
+- The operator can start enrollment from the WordPress Users screen (the Buyer Blacklist column, the **Enroll in Blacklist** bulk action for single or bulk selection, and the user profile) and from the Orders list and Order detail. Customer enrollment applies to users with the `customer` role.
 - The normal enrollment path selects an existing Customer or Order; it does not require the operator to type an identifier.
 - The operator selects one available Match type; email is selected by default.
 - A Match type with no usable value in the selected source is unavailable and explains why; the plugin does not create an incomplete entry.
@@ -233,16 +233,14 @@ V1 must use standard WordPress and WooCommerce capabilities only; it creates no 
 - Users with `manage_options` can perform all day-to-day operations.
 - Users with `manage_options` exclusively export, erase data, configure settings, and configure blacklist permissions.
 
-#### REQ-PERM-02 — Delegable buyer-message editing
+#### REQ-PERM-02 — Administrator-only buyer-message editing
 
-An Administrator must be able to optionally allow `manage_woocommerce` users to change the global buyer message.
+Only an Administrator (`manage_options`) can change the global buyer message. V1 has no setting that delegates this to `manage_woocommerce` users.
 
 **Acceptance criteria**
 
-- The delegation is disabled by default.
-- When disabled, only an Administrator can change the message.
-- When enabled, `manage_woocommerce` users can change the message.
-- Export and erasure remain Administrator-only regardless of this setting.
+- The buyer message is part of the Settings tab, which only an Administrator can open.
+- Export and erasure remain Administrator-only.
 
 ## 5. V1 non-goals
 
