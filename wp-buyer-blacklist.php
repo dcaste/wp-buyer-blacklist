@@ -8,6 +8,8 @@
  * Requires PHP: 8.3
  * Requires Plugins: woocommerce
  * Author: Dax Castellón
+ * License: MIT
+ * License URI: https://opensource.org/licenses/MIT
  * Text Domain: wp-buyer-blacklist
  *
  * @package WP_Buyer_Blacklist
