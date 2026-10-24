@@ -293,7 +293,8 @@ class EnrollmentScreensIntegrationTest extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_script_is( 'wp-buyer-blacklist-customer-dialogs', 'enqueued' ) );
 		$this->assertSame( WP_BUYER_BLACKLIST_URL . 'assets/js/customer-dialogs.js', wp_scripts()->registered['wp-buyer-blacklist-customer-dialogs']->src );
-		$this->assertSame( array( 'wp-api-fetch' ), wp_scripts()->registered['wp-buyer-blacklist-customer-dialogs']->deps );
+		$this->assertSame( array( 'wp-api-fetch', 'wp-i18n' ), wp_scripts()->registered['wp-buyer-blacklist-customer-dialogs']->deps );
+		$this->assertSame( 'wp-buyer-blacklist', wp_scripts()->registered['wp-buyer-blacklist-customer-dialogs']->textdomain );
 		$this->assertStringNotContainsString(
 			'<script',
 			$this->render_at(

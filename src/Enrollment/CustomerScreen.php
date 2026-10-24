@@ -165,10 +165,11 @@ final class CustomerScreen {
 		wp_enqueue_script(
 			'wp-buyer-blacklist-customer-dialogs',
 			WP_BUYER_BLACKLIST_URL . 'assets/js/customer-dialogs.js',
-			array( 'wp-api-fetch' ),
+			array( 'wp-api-fetch', 'wp-i18n' ),
 			(string) filemtime( WP_BUYER_BLACKLIST_DIR . 'assets/js/customer-dialogs.js' ),
 			true
 		);
+		wp_set_script_translations( 'wp-buyer-blacklist-customer-dialogs', 'wp-buyer-blacklist' );
 	}
 
 	/**

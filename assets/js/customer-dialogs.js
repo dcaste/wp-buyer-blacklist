@@ -5,6 +5,7 @@
  * this waits for the whole page to be parsed.
  */
 document.addEventListener( 'DOMContentLoaded', () => {
+	const { __, sprintf } = window.wp.i18n;
 	const dialog = document.getElementById(
 		'wp-buyer-blacklist-enroll-customer-dialog'
 	);
@@ -37,15 +38,19 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				const matchType = dialog.querySelector( '[name="match_type"]' );
 				matchType.replaceChildren();
 				Object.entries( {
-					email: 'Email',
-					customer_id: 'Customer ID',
-					billing_address: 'Billing address',
-					shipping_address: 'Shipping address',
+					email: __( 'Email', 'wp-buyer-blacklist' ),
+					customer_id: __( 'Customer ID', 'wp-buyer-blacklist' ),
+					billing_address: __( 'Billing address', 'wp-buyer-blacklist' ),
+					shipping_address: __( 'Shipping address', 'wp-buyer-blacklist' ),
 				} ).forEach( ( [ value, label ] ) => {
 					const option = new window.Option(
 						buyer.match_types[ value ]
 							? label
-							: `${ label } (unavailable)`,
+							: sprintf(
+									/* translators: %s: Match type name. */
+									__( '%s (unavailable)', 'wp-buyer-blacklist' ),
+									label
+								),
 						value,
 						false,
 						value === 'email' && buyer.match_types.email
@@ -85,9 +90,15 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			...entries.map(
 				( entry ) =>
 					new window.Option(
-						`${ entry.match_type }: ${ entry.value } (${
-							entry.is_active === '1' ? 'Active' : 'Inactive'
-						})`,
+						sprintf(
+							/* translators: 1: Match type, 2: entry value, 3: entry status. */
+							__( '%1$s: %2$s (%3$s)', 'wp-buyer-blacklist' ),
+							entry.match_type,
+							entry.value,
+							entry.is_active === '1'
+								? __( 'Active', 'wp-buyer-blacklist' )
+								: __( 'Inactive', 'wp-buyer-blacklist' )
+						),
 						entry.id
 					)
 			)
@@ -108,16 +119,21 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		const active = entries.some( ( entry ) => entry.is_active === '1' );
 		badge.classList.toggle( 'is-active', active );
 		badge.classList.toggle( 'is-inactive', ! active );
-		badge.textContent = active ? 'Blacklisted' : 'Inactive';
+		badge.textContent = active
+			? __( 'Blacklisted', 'wp-buyer-blacklist' )
+			: __( 'Inactive', 'wp-buyer-blacklist' );
 		if ( active ) {
 			badge.setAttribute( 'tabindex', '0' );
 			badge.setAttribute(
 				'aria-label',
-				'Blacklisted. This Buyer cannot place new orders.'
+				__( 'Blacklisted. This Buyer cannot place new orders.', 'wp-buyer-blacklist' )
 			);
 			badge.setAttribute(
 				'data-wpbb-tooltip',
-				'This Buyer is blacklisted from placing new orders in your store.'
+				__(
+						'This Buyer is blacklisted from placing new orders in your store.',
+						'wp-buyer-blacklist'
+					)
 			);
 		} else {
 			badge.removeAttribute( 'tabindex' );
@@ -132,7 +148,9 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		}
 		reason.value = entry.reason;
 		manageDialog.querySelector( '[data-toggle-entry]' ).textContent =
-			entry.is_active === '1' ? 'Deactivate' : 'Activate';
+			entry.is_active === '1'
+				? __( 'Deactivate', 'wp-buyer-blacklist' )
+				: __( 'Activate', 'wp-buyer-blacklist' );
 		showResult( '' );
 		try {
 			const context = await window.wp.apiFetch( {
@@ -140,7 +158,12 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			} );
 			manageDialog.querySelector( '[data-buyer-context]' ).textContent =
 				context.buyer
-					? `Current Buyer: ${ context.buyer.name } (#${ context.buyer.id })`
+					? sprintf(
+							/* translators: 1: Buyer name, 2: Buyer ID. */
+							__( 'Current Buyer: %1$s (#%2$d)', 'wp-buyer-blacklist' ),
+							context.buyer.name,
+							context.buyer.id
+						)
 					: context.message;
 		} catch {
 			manageDialog.querySelector( '[data-buyer-context]' ).textContent =
@@ -172,7 +195,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				} );
 				entry.reason = reason.value;
 				renderRow();
-				showResult( 'Blacklist entry updated.', 'success' );
+				showResult(
+						__( 'Blacklist entry updated.', 'wp-buyer-blacklist' ),
+						'success'
+					);
 			} catch ( error ) {
 				showResult( error.message, 'error' );
 			}
@@ -191,7 +217,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				renderOptions();
 				renderRow();
 				renderEntry();
-				showResult( 'Blacklist entry updated.', 'success' );
+				showResult(
+						__( 'Blacklist entry updated.', 'wp-buyer-blacklist' ),
+						'success'
+					);
 			} catch ( error ) {
 				showResult( error.message, 'error' );
 			}
