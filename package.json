@@ -7,6 +7,7 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
+    "@wordpress/a11y": "^4.53.0",
     "@wordpress/api-fetch": "^7.54.0",
     "@wordpress/element": "^8.6.0",
     "@wordpress/i18n": "^6.29.0",
