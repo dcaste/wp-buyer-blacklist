@@ -74,7 +74,7 @@ Exact click-path depends on the repo’s GitHub plan; the social rule in `AGENTS
 
 ## Releases
 
-1. On an issue branch from `dev`, set the version in the `Version:` header of `wp-buyer-blacklist.php` and in the fallback in `src/Admin/AdminPage.php`, and add the version to `CHANGELOG.md`. Merge it into `dev` like any other change.
+1. On an issue branch from `dev`, set the version in the `Version:` header of `wp-buyer-blacklist.php` and in the fallback in `src/Admin/AdminPage.php`, and add the version to `CHANGELOG.md`. Also update `Stable tag` and the changelog in `readme.txt`, which ships in the ZIP. Merge it into `dev` like any other change.
 2. The maintainer merges `dev` into `main`.
 3. On `main`, run `bin/build-zip.sh`. It builds `dist/wp-buyer-blacklist-<version>.zip` from the files not listed in `.distignore`. It stops if `build/` or `assets/admin/` has uncommitted changes.
 4. Tag the merge commit `v<version>` and create a GitHub release with the ZIP attached.

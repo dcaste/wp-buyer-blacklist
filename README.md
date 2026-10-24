@@ -40,9 +40,12 @@ WordPress won't activate the plugin until WooCommerce is active. If WooCommerce 
 
 ### From a ZIP file
 
-1. In WordPress, go to **Plugins > Add New > Upload Plugin**.
-2. Choose the plugin ZIP and select **Install Now**.
-3. Select **Activate Plugin**.
+1. Download `wp-buyer-blacklist-<version>.zip` from the [latest release](https://github.com/dcaste/wp-buyer-blacklist/releases/latest). Use that file, not the **Source code** archives GitHub adds to every release. Those hold development files and unpack into a differently named folder.
+2. In WordPress, go to **Plugins > Add New > Upload Plugin**.
+3. Choose the ZIP and select **Install Now**.
+4. Select **Activate Plugin**.
+
+WordPress does not announce new versions of a plugin installed this way. To update, download the newer ZIP and upload it the same way. WordPress asks whether to replace the installed version, and your entries stay in the database.
 
 ### From source
 
