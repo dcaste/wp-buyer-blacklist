@@ -105,7 +105,7 @@ plain-language explanation.
 
 Below the summary is an initially open "Add new Blacklist entry" card. It has a
 keyboard-operable disclosure control with an accessible expanded state. The form
-shows Match type and its relevant identity fields, a reason field marked optional,
+shows Match type and its relevant identity fields, a required reason field,
 a primary "Add entry" action, and a secondary "Import CSV" link to the Import &
 Export tab. Match types must reflect supported manual creation endpoints. Do not
 show WooCommerce customer ID as manually creatable until the backend supports it end to end.
