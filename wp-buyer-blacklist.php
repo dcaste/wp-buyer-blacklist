@@ -16,44 +16,24 @@ defined( 'ABSPATH' ) || exit;
 define( 'WP_BUYER_BLACKLIST_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WP_BUYER_BLACKLIST_URL', plugin_dir_url( __FILE__ ) );
 
-require_once __DIR__ . '/src/Entries/EmailCanonicalizer.php';
-require_once __DIR__ . '/src/Entries/EmailEntry.php';
-require_once __DIR__ . '/src/Entries/CustomerIdEntry.php';
-require_once __DIR__ . '/src/Entries/AddressEntry.php';
-require_once __DIR__ . '/src/ImportExport/CsvImport.php';
-require_once __DIR__ . '/src/Enforcement/ActiveAddressEntryFinder.php';
-require_once __DIR__ . '/src/Enforcement/ActiveCustomerIdEntryFinder.php';
-require_once __DIR__ . '/src/Enforcement/ActiveEmailEntryFinder.php';
-require_once __DIR__ . '/src/Enforcement/BlockedAttemptRecorder.php';
-require_once __DIR__ . '/src/Storage/Schema.php';
-require_once __DIR__ . '/src/Entries/AuditLog.php';
-require_once __DIR__ . '/src/Enforcement/BlockedAttemptLog.php';
-require_once __DIR__ . '/src/Entries/EntryRepository.php';
-require_once __DIR__ . '/src/ImportExport/ImportHistory.php';
-require_once __DIR__ . '/src/ImportExport/CsvExporter.php';
-require_once __DIR__ . '/src/Privacy/DossierBuilder.php';
-require_once __DIR__ . '/src/Enforcement/EmailCheckoutBlocker.php';
-require_once __DIR__ . '/src/Enforcement/CustomerIdCheckoutBlocker.php';
-require_once __DIR__ . '/src/Enforcement/AddressCheckoutBlocker.php';
-require_once __DIR__ . '/src/Settings/BuyerBlockMessage.php';
-require_once __DIR__ . '/src/Settings/BlacklistSettings.php';
-require_once __DIR__ . '/src/Settings/SettingsTab.php';
-require_once __DIR__ . '/src/Enforcement/CheckoutEnforcement.php';
-require_once __DIR__ . '/src/Access/OperatorAccess.php';
-require_once __DIR__ . '/src/Enrollment/Enroller.php';
-require_once __DIR__ . '/src/Enrollment/EnrollmentPage.php';
-require_once __DIR__ . '/src/Enrollment/CustomerScreen.php';
-require_once __DIR__ . '/src/Enrollment/OrderScreen.php';
-require_once __DIR__ . '/src/Privacy/PrivacyDataAccess.php';
-require_once __DIR__ . '/src/Privacy/DossierController.php';
-require_once __DIR__ . '/src/Privacy/DossierDownload.php';
-require_once __DIR__ . '/src/Privacy/PersonalDataTools.php';
-require_once __DIR__ . '/src/Entries/BuyerLookup.php';
-require_once __DIR__ . '/src/Entries/EntriesController.php';
-require_once __DIR__ . '/src/ImportExport/ImportExportController.php';
-require_once __DIR__ . '/src/ImportExport/CsvExportDownload.php';
-require_once __DIR__ . '/src/Admin/AdminPage.php';
-require_once __DIR__ . '/src/Plugin.php';
+/**
+ * Loads plugin classes from src/ by PSR-4 mapping.
+ *
+ * The plugin ships without vendor/, so this does not use the Composer autoloader.
+ */
+spl_autoload_register(
+	static function ( string $class_name ): void {
+		$prefix = 'WP_Buyer_Blacklist\\';
+		if ( ! str_starts_with( $class_name, $prefix ) ) {
+			return;
+		}
+
+		$file = __DIR__ . '/src/' . str_replace( '\\', '/', substr( $class_name, strlen( $prefix ) ) ) . '.php';
+		if ( is_file( $file ) ) {
+			require_once $file;
+		}
+	}
+);
 
 /**
  * Creates plugin database tables when WooCommerce is available.
