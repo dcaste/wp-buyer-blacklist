@@ -130,6 +130,26 @@ class EntriesRestIntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Rejects requests that break a route's declared argument schema.
+	 *
+	 * @return void
+	 */
+	public function test_rejects_requests_that_break_the_argument_schema(): void {
+		$missing_email = $this->request( 'POST', '/email-entries', array( 'reason' => 'Fraud' ) );
+		$this->assertSame( 400, $missing_email->get_status() );
+		$this->assertSame( 'rest_missing_callback_param', $missing_email->get_data()['code'] );
+
+		$bad_match_type = $this->request( 'POST', '/address-entries', array( 'match_type' => 'email' ) );
+		$this->assertSame( 400, $bad_match_type->get_status() );
+		$this->assertSame( 'rest_invalid_param', $bad_match_type->get_data()['code'] );
+
+		$bad_status = $this->request( 'PATCH', '/email-entries/' . $this->seed_entry(), array( 'is_active' => 'maybe' ) );
+		$this->assertSame( 400, $bad_status->get_status() );
+		$this->assertSame( 'rest_invalid_param', $bad_status->get_data()['code'] );
+		$this->assertCount( 1, $this->entries->all() );
+	}
+
+	/**
 	 * Lists an entry's Audit events, newest first.
 	 *
 	 * @return void

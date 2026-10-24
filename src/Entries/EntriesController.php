@@ -129,6 +129,13 @@ final class EntriesController {
 					'methods'             => 'POST',
 					'callback'            => array( $this, 'create_email_entry' ),
 					'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
+					'args'                => array(
+						'email'  => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'reason' => array( 'type' => 'string' ),
+					),
 				),
 			)
 		);
@@ -140,6 +147,20 @@ final class EntriesController {
 					'methods'             => 'POST',
 					'callback'            => array( $this, 'create_address_entry' ),
 					'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
+					'args'                => array(
+						'match_type'     => array(
+							'type'     => 'string',
+							'required' => true,
+							'enum'     => array( 'billing_address', 'shipping_address' ),
+						),
+						'address_line_1' => array( 'type' => 'string' ),
+						'address_line_2' => array( 'type' => 'string' ),
+						'city'           => array( 'type' => 'string' ),
+						'state'          => array( 'type' => 'string' ),
+						'postcode'       => array( 'type' => 'string' ),
+						'country'        => array( 'type' => 'string' ),
+						'reason'         => array( 'type' => 'string' ),
+					),
 				),
 			)
 		);
@@ -150,6 +171,7 @@ final class EntriesController {
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_email_entry_blocked_attempts' ),
 				'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
+				'args'                => $this->id_args(),
 			)
 		);
 		register_rest_route(
@@ -159,6 +181,7 @@ final class EntriesController {
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_buyer_context' ),
 				'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
+				'args'                => $this->id_args(),
 			)
 		);
 		register_rest_route(
@@ -169,18 +192,40 @@ final class EntriesController {
 					'methods'             => 'GET',
 					'callback'            => array( $this, 'get_email_entry_audit_events' ),
 					'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
+					'args'                => $this->id_args(),
 				),
 				array(
 					'methods'             => 'PATCH',
 					'callback'            => array( $this, 'update_email_entry' ),
 					'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
+					'args'                => $this->id_args() + array(
+						'reason'    => array( 'type' => 'string' ),
+						'is_active' => array( 'type' => 'boolean' ),
+					),
 				),
 				array(
 					'methods'             => 'DELETE',
 					'callback'            => array( $this, 'delete_email_entry' ),
 					'permission_callback' => array( $this->privacy_access, 'can_manage_privacy_data' ),
+					'args'                => $this->id_args() + array(
+						'confirm' => array( 'type' => 'boolean' ),
+					),
 				),
 			)
+		);
+	}
+
+	/**
+	 * Declares the entry ID taken from the route path.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private function id_args(): array {
+		return array(
+			'id' => array(
+				'type'     => 'integer',
+				'required' => true,
+			),
 		);
 	}
 
@@ -232,8 +277,7 @@ final class EntriesController {
 
 		$fields = array();
 		foreach ( array( 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country' ) as $field ) {
-			$value            = $request->get_param( $field );
-			$fields[ $field ] = is_string( $value ) ? $value : '';
+			$fields[ $field ] = (string) $request->get_param( $field );
 		}
 
 		try {
@@ -308,7 +352,7 @@ final class EntriesController {
 		if ( null !== $request->get_param( 'reason' ) ) {
 			$updated = $this->entries->update_reason( $entry_id, $this->reason_from_request( $request ) );
 		} elseif ( null !== $request->get_param( 'is_active' ) ) {
-			$updated = $this->entries->set_active( $entry_id, rest_sanitize_boolean( $request->get_param( 'is_active' ) ) );
+			$updated = $this->entries->set_active( $entry_id, (bool) $request->get_param( 'is_active' ) );
 		} else {
 			return new WP_Error( 'wp_buyer_blacklist_missing_update', __( 'Provide a reason or status to update.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
 		}
@@ -343,7 +387,7 @@ final class EntriesController {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function delete_email_entry( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		if ( true !== rest_sanitize_boolean( $request->get_param( 'confirm' ) ) ) {
+		if ( true !== $request->get_param( 'confirm' ) ) {
 			return new WP_Error( 'wp_buyer_blacklist_delete_not_confirmed', __( 'Confirm deletion before removing this Blacklist entry.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
 		}
 		if ( ! $this->entries->delete( absint( $request['id'] ) ) ) {
