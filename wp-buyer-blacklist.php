@@ -1,11 +1,13 @@
 <?php
 /**
  * Plugin Name: WP Buyer Blacklist
+ * Plugin URI: https://github.com/dcaste/wp-buyer-blacklist
  * Description: Blocks specified Buyers from completing WooCommerce checkout.
  * Version: 1.0.0
  * Requires at least: 6.9
  * Requires PHP: 8.3
  * Requires Plugins: woocommerce
+ * Author: Dax Castellón
  * Text Domain: wp-buyer-blacklist
  *
  * @package WP_Buyer_Blacklist
