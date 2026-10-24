@@ -84,7 +84,6 @@ class UninstallIntegrationTest extends WP_UnitTestCase {
 			'wp_buyer_blacklist_buyer_message',
 			'wp_buyer_blacklist_allow_woocommerce_managers',
 			'wp_buyer_blacklist_block_message',
-			'wp_buyer_blacklist_message_editing_delegated',
 		);
 		foreach ( $options as $option ) {
 			update_option( $option, 'stored' );

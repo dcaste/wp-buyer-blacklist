@@ -46,7 +46,6 @@ final class Schema {
 		'wp_buyer_blacklist_allow_woocommerce_managers',
 		'wp_buyer_blacklist_delete_data_on_uninstall',
 		'wp_buyer_blacklist_block_message',
-		'wp_buyer_blacklist_message_editing_delegated',
 	);
 
 	/**
