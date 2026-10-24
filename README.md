@@ -8,17 +8,17 @@ The terms used here (Buyer, Blacklist entry, Match type, Canonical value, Blocke
 
 ## Screenshots
 
-**Manage entries.** Add entries, then search, filter and open them from one table.
+**Manage entries.** See the totals at a glance and add an entry. Below the form, a table lets you search, filter and open every entry.
 
-![The Manage entries tab with the summary cards, the Add new Blacklist entry form and the Blacklist entries table](docs/screenshots/manage-entries.png)
+![The Manage entries tab with the summary cards and the Add new Blacklist entry form](docs/screenshots/manage-entries.png)
 
 **Entry dialog.** Edit the reason, switch an entry on or off, and see its Audit history, Blocked attempts and current Buyer.
 
 ![The Manage Blacklist entry dialog](docs/screenshots/entry-dialog.png)
 
-**Import & Export.** Check a CSV file before anything is created, then confirm the import.
+**Import and export.** Check a CSV file before anything is created, then confirm the import.
 
-![The Import & Export tab](docs/screenshots/import-export.png)
+![The Import and export tab](docs/screenshots/import-export.png)
 
 **Settings.** Set the message a blocked Buyer sees, who can use the plugin, and what happens on uninstall.
 
