@@ -6,6 +6,28 @@ The list belongs to one store and you fill it by hand. The plugin does not score
 
 The terms used here (Buyer, Blacklist entry, Match type, Canonical value, Blocked attempt, Audit event) are defined in [CONTEXT.md](CONTEXT.md).
 
+## Screenshots
+
+**Manage entries.** Add entries, then search, filter and open them from one table.
+
+![The Manage entries tab with the summary cards, the Add new Blacklist entry form and the Blacklist entries table](docs/screenshots/manage-entries.png)
+
+**Entry dialog.** Edit the reason, switch an entry on or off, and see its Audit history, Blocked attempts and current Buyer.
+
+![The Manage Blacklist entry dialog](docs/screenshots/entry-dialog.png)
+
+**Import & Export.** Check a CSV file before anything is created, then confirm the import.
+
+![The Import & Export tab](docs/screenshots/import-export.png)
+
+**Settings.** Set the message a blocked Buyer sees, who can use the plugin, and what happens on uninstall.
+
+![The Settings tab](docs/screenshots/settings.png)
+
+**Users screen.** Enroll a Customer and see which Customers are blacklisted.
+
+![The Buyer Blacklist column on the Users screen](docs/screenshots/users-list.png)
+
 ## Requirements
 
 - WordPress 6.9 or later
