@@ -64,6 +64,12 @@ final class DossierController {
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_identity_dossier' ),
 				'permission_callback' => array( $this->privacy_access, 'can_manage_privacy_data' ),
+				'args'                => array(
+					'id' => array(
+						'type'     => 'integer',
+						'required' => true,
+					),
+				),
 			)
 		);
 	}

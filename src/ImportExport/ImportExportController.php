@@ -76,6 +76,13 @@ final class ImportExportController {
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'validate_csv_import' ),
 				'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
+				'args'                => array(
+					'csv'      => array(
+						'type'     => 'string',
+						'required' => true,
+					),
+					'filename' => array( 'type' => 'string' ),
+				),
 			)
 		);
 		register_rest_route(
@@ -85,6 +92,12 @@ final class ImportExportController {
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'confirm_csv_import' ),
 				'permission_callback' => array( $this->operator_access, 'can_manage_entries' ),
+				'args'                => array(
+					'token' => array(
+						'type'     => 'string',
+						'required' => true,
+					),
+				),
 			)
 		);
 		register_rest_route(
@@ -105,13 +118,8 @@ final class ImportExportController {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function validate_csv_import( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		$csv = $request->get_param( 'csv' );
-		if ( ! is_string( $csv ) ) {
-			return new WP_Error( 'wp_buyer_blacklist_invalid_csv', __( 'Select a CSV file to import.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
-		}
-
 		try {
-			$result = CsvImport::validate( $csv, WC()->countries->get_countries(), static fn( int $customer_id ): bool => false !== get_userdata( $customer_id ) );
+			$result = CsvImport::validate( (string) $request->get_param( 'csv' ), WC()->countries->get_countries(), static fn( int $customer_id ): bool => false !== get_userdata( $customer_id ) );
 		} catch ( InvalidArgumentException $exception ) {
 			return new WP_Error( 'wp_buyer_blacklist_invalid_csv', $exception->getMessage(), array( 'status' => 400 ) );
 		}
@@ -143,8 +151,8 @@ final class ImportExportController {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function confirm_csv_import( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		$token  = $request->get_param( 'token' );
-		$result = is_string( $token ) ? get_transient( $this->csv_import_transient_key( $token ) ) : false;
+		$token  = (string) $request->get_param( 'token' );
+		$result = get_transient( $this->csv_import_transient_key( $token ) );
 		if ( ! is_array( $result ) || ! isset( $result['accepted'], $result['duplicates'], $result['rejected'] ) ) {
 			return new WP_Error( 'wp_buyer_blacklist_invalid_import', __( 'Validate the CSV file before importing it.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
 		}
