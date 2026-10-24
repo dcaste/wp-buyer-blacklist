@@ -54,14 +54,31 @@ Maintainer (human), when `dev` is verified:
 - When those decisions produce **files in the repo**, land the files via the same git rules (branch from `dev`, PR into `dev`, squash).
 - Throwaway exploration may use a short-lived branch; if the artifact should stay, bring it into `dev` through a PR tied to an issue.
 
-## Branch protection (recommended)
+## Branch protection
 
-On GitHub, protect:
+The social rule in `AGENTS.md` applies even where protection is missing. These GitHub rulesets make it automatic. Create them in **Settings > Rules > Rulesets > New ruleset > New branch ruleset**. Set **Enforcement status** to **Active**.
 
-- **`main`:** no direct pushes; no merges except by the maintainer; do not allow agents to bypass.
-- **`dev`:** no direct pushes; require pull request; allow squash merge.
+| | `main` | `dev` |
+|---|---|---|
+| Bypass list | empty | empty |
+| Restrict deletions | on | on |
+| Block force pushes | on | on |
+| Require a pull request before merging | on, 0 approvals | on, 0 approvals |
+| Allowed merge methods | **Merge** only | **Squash** only |
+| Required status check | **Check source branch** | none |
 
-Exact click-path depends on the repo’s GitHub plan; the social rule in `AGENTS.md` applies even before protection is enabled.
+Use 0 approvals because a project with one maintainer can't approve its own pull request.
+
+### Only `dev` can be merged into `main`
+
+A branch rule decides who can write to a branch and which checks must pass. It doesn't know which branch a pull request comes from. The workflow `.github/workflows/main-source-branch.yml` fills that gap. For every pull request into `main` it runs the check **Check source branch**, which fails unless the head branch is `dev` in this same repository. A fork's branch named `dev` doesn't pass.
+
+The check only works as a rule once it is **required**:
+
+1. Merge the workflow into `dev`, then merge `dev` into `main`. That pull request is the first run of the check.
+2. Create the `main` ruleset and add **Check source branch** under **Require status checks to pass**. The name is not in the list until the check has run once.
+
+If you rename the job, update the required check in the ruleset too.
 
 ## Checklist for an agent starting work
 
