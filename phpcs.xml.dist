@@ -19,7 +19,10 @@
 	</rule>
 	<rule ref="WordPress-Docs"/>
 
-	<config name="minimum_supported_wp_version" value="6.0"/>
+	<rule ref="PHPCompatibilityWP"/>
+
+	<config name="testVersion" value="8.3-"/>
+	<config name="minimum_supported_wp_version" value="6.9"/>
 
 	<rule ref="WordPress.WP.I18n">
 		<properties>
