@@ -206,7 +206,7 @@ The WordPress tools can't find Customer ID or address entries. For those, use **
 
 ## Development
 
-The product requirements are in [docs/prd/product.md](docs/prd/product.md), and architecture decisions are in [docs/adr/](docs/adr/). Branching rules are in [docs/engineering/git-workflow.md](docs/engineering/git-workflow.md).
+The product requirements are in [docs/prd/product.md](docs/prd/product.md), and architecture decisions are in [docs/adr/](docs/adr/). Branching rules are in [docs/engineering/git-workflow.md](docs/engineering/git-workflow.md). To contribute, read [CONTRIBUTING.md](CONTRIBUTING.md). To report a vulnerability, read [SECURITY.md](SECURITY.md).
 
 Install the tools and run the checks:
 
