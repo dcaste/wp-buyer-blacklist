@@ -1,0 +1,28 @@
+# GitHub branch rules can't limit which branch a pull request comes from, so
+# this check does it. Make "Check source branch" a required status check in the
+# ruleset for main (see docs/engineering/git-workflow.md).
+name: Main source branch
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check-source:
+    name: Check source branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only dev in this repository can be merged into main
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ] || [ "$HEAD_REF" != "dev" ]; then
+            echo "main only accepts pull requests from dev in $GITHUB_REPOSITORY." >&2
+            echo "This one comes from $HEAD_REF in $HEAD_REPO." >&2
+            exit 1
+          fi
+          echo "Source branch is dev."
