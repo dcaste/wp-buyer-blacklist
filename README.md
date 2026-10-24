@@ -33,7 +33,7 @@ npm install
 npm run build
 ```
 
-`composer install` is not needed to run the plugin. The main plugin file loads every class with `require_once`, and the plugin has no runtime Composer dependencies. You only need Composer for the development checks below.
+`composer install` is not needed to run the plugin. The main plugin file registers its own autoloader for the classes in `src/`, and the plugin has no runtime Composer dependencies. You only need Composer for the development checks below.
 
 The plugin creates its database tables when it is activated, and checks them again on every load.
 
