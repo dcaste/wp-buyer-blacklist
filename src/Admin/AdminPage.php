@@ -119,6 +119,7 @@ final class AdminPage {
 		}
 		if ( in_array( $hook, array( 'woocommerce_page_wp-buyer-blacklist', 'users.php' ), true ) ) {
 			wp_enqueue_script( 'wp-buyer-blacklist-admin', WP_BUYER_BLACKLIST_URL . 'build/index.js', $asset['dependencies'], $asset['version'], true );
+			wp_set_script_translations( 'wp-buyer-blacklist-admin', 'wp-buyer-blacklist' );
 		}
 	}
 }

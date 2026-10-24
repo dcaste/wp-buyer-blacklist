@@ -134,6 +134,7 @@ class AdminPageIntegrationTest extends WP_UnitTestCase {
 		$this->assertSame( 'replace', wp_styles()->get_data( 'wp-buyer-blacklist-admin', 'rtl' ) );
 		$this->assertSame( WP_BUYER_BLACKLIST_URL . 'build/index.js', wp_scripts()->registered['wp-buyer-blacklist-admin']->src );
 		$this->assertSame( WP_BUYER_BLACKLIST_URL . 'build/style-index.tsx.css', wp_styles()->registered['wp-buyer-blacklist-admin']->src );
+		$this->assertSame( 'wp-buyer-blacklist', wp_scripts()->registered['wp-buyer-blacklist-admin']->textdomain );
 	}
 
 	/**

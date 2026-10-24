@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-	"build": "wp-scripts build assets/admin/index.tsx --output-path=build --output-filename=index.js",
+    "build": "wp-scripts build assets/admin/index.tsx --output-path=build --output-filename=index.js",
     "test": "wp-scripts test-unit-js --runInBand",
     "test:unit": "npm test"
   },
@@ -9,6 +9,7 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@wordpress/api-fetch": "^7.54.0",
     "@wordpress/element": "^8.6.0",
+    "@wordpress/i18n": "^6.29.0",
     "@wordpress/jest-preset-default": "^14.1.0",
     "@wordpress/scripts": "^34.2.0"
   }

@@ -52,6 +52,7 @@ describe( 'customer dialogs', () => {
 	} );
 
 	it( 'binds the Enroll button once the page has loaded', () => {
+		window.wp = { i18n: require( '@wordpress/i18n' ) };
 		// The footer script runs before WordPress prints the dialogs.
 		require( '../../assets/js/customer-dialogs' );
 		document.body.innerHTML = dialogs;
@@ -95,6 +96,7 @@ describe( 'customer dialogs', () => {
 			},
 		];
 		window.wp = {
+			i18n: require( '@wordpress/i18n' ),
 			apiFetch: jest.fn( () => Promise.resolve( { buyer: null } ) ),
 		};
 		require( '../../assets/js/customer-dialogs' );
@@ -152,6 +154,7 @@ describe( 'customer dialogs', () => {
 			},
 		];
 		window.wp = {
+			i18n: require( '@wordpress/i18n' ),
 			apiFetch: jest.fn( ( { method } ) =>
 				method === 'PATCH'
 					? Promise.resolve( {} )
