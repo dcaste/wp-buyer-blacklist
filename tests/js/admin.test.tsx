@@ -1,9 +1,11 @@
+import { speak } from '@wordpress/a11y';
 import apiFetch from '@wordpress/api-fetch';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from '../../assets/admin/index';
 
 jest.mock( '@wordpress/api-fetch', () => jest.fn().mockResolvedValue( [] ) );
+jest.mock( '@wordpress/a11y', () => ( { speak: jest.fn() } ) );
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -222,4 +224,126 @@ test( 'shows the entry identity without a Buyer and no primary tile in empty Blo
 	expect( container.querySelector( '.wpbb-no-attempts' ) ).not.toBeNull();
 	expect( container.querySelector( '.wpbb-blocked-attempts .wpbb-icon-tile.is-primary' ) ).toBeNull();
 	container.remove();
+} );
+
+const twoEntries = [
+	{ id: '1', value: 'first@example.com', reason: 'First', is_active: '1', match_type: 'email', created_at: '2026-01-01 00:00:00' },
+	{ id: '2', value: 'second@example.com', reason: 'Second', is_active: '1', match_type: 'email', created_at: '2026-01-02 00:00:00' },
+];
+const audit = ( action: string ) => [ { action, actor_id: '1', actor_name: 'Admin', created_at: '2026-01-01 00:00:00' } ];
+// Rows are sorted newest first, so find the row by its value instead of its position.
+const manage = ( container: HTMLElement, value: string ) => ( Array.from( container.querySelectorAll( 'tbody tr' ) ).find( ( row ) => row.textContent?.includes( value ) )?.querySelector( 'button' ) as HTMLButtonElement ).click();
+
+/**
+ * Answers entry requests from a table of handlers, keyed by path. Unlisted paths return an empty list.
+ */
+const mockApi = ( handlers: Record< string, () => Promise< unknown > > ) => {
+	( apiFetch as jest.Mock ).mockImplementation( ( { path }: { path: string } ) => ( handlers[ path ] ?? ( () => Promise.resolve( [] ) ) )() );
+};
+
+const renderApp = async () => {
+	const container = document.createElement( 'div' );
+	container.id = 'wp-buyer-blacklist-admin';
+	document.body.append( container );
+	await act( async () => { createRoot( container ).render( <App /> ); } );
+	return container;
+};
+
+describe( 'entry dialog details', () => {
+	beforeEach( () => { ( speak as jest.Mock ).mockClear(); } );
+
+	test( 'clears the previous entry details and shows a loading state while another entry loads', async () => {
+		let release: ( value: unknown ) => void = () => {};
+		mockApi( {
+			'/wp-buyer-blacklist/v1/email-entries': () => Promise.resolve( twoEntries ),
+			'/wp-buyer-blacklist/v1/email-entries/1': () => Promise.resolve( audit( 'first-entry-event' ) ),
+			'/wp-buyer-blacklist/v1/email-entries/2': () => new Promise( ( resolve ) => { release = resolve; } ),
+		} );
+		const container = await renderApp();
+		await act( async () => { manage( container, 'first@example.com' ); } );
+		expect( container.textContent ).toContain( 'first-entry-event' );
+		await act( async () => { manage( container, 'second@example.com' ); } );
+		expect( container.textContent ).not.toContain( 'first-entry-event' );
+		expect( container.querySelector( '.wpbb-entry-dialog-panel' )?.textContent ).toContain( 'Loading…' );
+		await act( async () => { release( audit( 'second-entry-event' ) ); } );
+		expect( container.textContent ).toContain( 'second-entry-event' );
+		container.remove();
+	} );
+
+	test( 'ignores details that arrive after another entry was selected', async () => {
+		let releaseFirst: ( value: unknown ) => void = () => {};
+		mockApi( {
+			'/wp-buyer-blacklist/v1/email-entries': () => Promise.resolve( twoEntries ),
+			'/wp-buyer-blacklist/v1/email-entries/1': () => new Promise( ( resolve ) => { releaseFirst = resolve; } ),
+			'/wp-buyer-blacklist/v1/email-entries/2': () => Promise.resolve( audit( 'second-entry-event' ) ),
+		} );
+		const container = await renderApp();
+		await act( async () => { manage( container, 'first@example.com' ); } );
+		await act( async () => { manage( container, 'second@example.com' ); } );
+		await act( async () => { releaseFirst( audit( 'first-entry-event' ) ); } );
+		expect( container.textContent ).toContain( 'second-entry-event' );
+		expect( container.textContent ).not.toContain( 'first-entry-event' );
+		container.remove();
+	} );
+
+	test( 'shows an error instead of stale data when the details fail to load', async () => {
+		mockApi( {
+			'/wp-buyer-blacklist/v1/email-entries': () => Promise.resolve( twoEntries ),
+			'/wp-buyer-blacklist/v1/email-entries/1': () => Promise.resolve( audit( 'first-entry-event' ) ),
+			'/wp-buyer-blacklist/v1/email-entries/2': () => Promise.reject( new Error( 'Details request failed.' ) ),
+		} );
+		const container = await renderApp();
+		await act( async () => { manage( container, 'first@example.com' ); } );
+		await act( async () => { manage( container, 'second@example.com' ); } );
+		const dialog = container.querySelector( 'dialog' );
+		expect( dialog?.textContent ).toContain( 'Details request failed.' );
+		expect( dialog?.textContent ).toContain( 'This information could not be loaded.' );
+		expect( dialog?.textContent ).not.toContain( 'first-entry-event' );
+		expect( speak ).toHaveBeenCalledWith( 'Details request failed.', 'assertive' );
+		container.remove();
+	} );
+
+	test( 'shows a message when the entries fail to load', async () => {
+		mockApi( { '/wp-buyer-blacklist/v1/email-entries': () => Promise.reject( new Error( 'Entries request failed.' ) ) } );
+		const container = await renderApp();
+		expect( container.querySelector( '.wpbb-notice' )?.textContent ).toBe( 'Entries request failed.' );
+		expect( speak ).toHaveBeenCalledWith( 'Entries request failed.', 'assertive' );
+		container.remove();
+	} );
+} );
+
+describe( 'status messages', () => {
+	beforeEach( () => { ( speak as jest.Mock ).mockClear(); } );
+
+	test( 'announces each result and shows dialog results inside the dialog', async () => {
+		mockApi( {
+			'/wp-buyer-blacklist/v1/email-entries': () => Promise.resolve( twoEntries ),
+			'/wp-buyer-blacklist/v1/email-entries/1': () => Promise.resolve( audit( 'first-entry-event' ) ),
+		} );
+		const container = await renderApp();
+		await act( async () => { manage( container, 'first@example.com' ); } );
+		const save = Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Save changes' ) as HTMLButtonElement;
+		await act( async () => { save.click(); } );
+		const dialog = container.querySelector( 'dialog' );
+		expect( dialog?.querySelector( '.wpbb-entry-dialog-notice' )?.textContent ).toBe( 'Blacklist entry updated.' );
+		expect( container.querySelector( 'main > .wpbb-notice' ) ).toBeNull();
+		expect( speak ).toHaveBeenCalledWith( 'Blacklist entry updated.', 'polite' );
+		await act( async () => { save.click(); } );
+		expect( speak ).toHaveBeenCalledTimes( 2 );
+		container.remove();
+	} );
+
+	test( 'announces dialog errors assertively and keeps them in the dialog', async () => {
+		( apiFetch as jest.Mock ).mockImplementation( ( { path, method }: { path: string; method?: string } ) => {
+			if ( 'PATCH' === method ) return Promise.reject( new Error( 'Update failed.' ) );
+			return Promise.resolve( '/wp-buyer-blacklist/v1/email-entries' === path ? twoEntries : [] );
+		} );
+		const container = await renderApp();
+		await act( async () => { manage( container, 'first@example.com' ); } );
+		const save = Array.from( container.querySelectorAll( 'button' ) ).find( ( button ) => button.textContent === 'Save changes' ) as HTMLButtonElement;
+		await act( async () => { save.click(); } );
+		expect( container.querySelector( 'dialog .wpbb-entry-dialog-notice' )?.textContent ).toBe( 'Update failed.' );
+		expect( speak ).toHaveBeenCalledWith( 'Update failed.', 'assertive' );
+		container.remove();
+	} );
 } );
