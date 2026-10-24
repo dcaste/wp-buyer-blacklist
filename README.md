@@ -6,6 +6,28 @@ The list belongs to one store and you fill it by hand. The plugin does not score
 
 The terms used here (Buyer, Blacklist entry, Match type, Canonical value, Blocked attempt, Audit event) are defined in [CONTEXT.md](CONTEXT.md).
 
+## Screenshots
+
+**Manage entries.** See the totals at a glance and add an entry. Below the form, a table lets you search, filter and open every entry.
+
+![The Manage entries tab with the summary cards and the Add new Blacklist entry form](docs/screenshots/manage-entries.png)
+
+**Entry dialog.** Edit the reason, switch an entry on or off, and see its Audit history, Blocked attempts and current Buyer.
+
+![The Manage Blacklist entry dialog](docs/screenshots/entry-dialog.png)
+
+**Import and export.** Check a CSV file before anything is created, then confirm the import.
+
+![The Import and export tab](docs/screenshots/import-export.png)
+
+**Settings.** Set the message a blocked Buyer sees, who can use the plugin, and what happens on uninstall.
+
+![The Settings tab](docs/screenshots/settings.png)
+
+**Users screen.** Enroll a Customer and see which Customers are blacklisted.
+
+![The Buyer Blacklist column on the Users screen](docs/screenshots/users-list.png)
+
 ## Requirements
 
 - WordPress 6.9 or later
@@ -18,9 +40,12 @@ WordPress won't activate the plugin until WooCommerce is active. If WooCommerce 
 
 ### From a ZIP file
 
-1. In WordPress, go to **Plugins > Add New > Upload Plugin**.
-2. Choose the plugin ZIP and select **Install Now**.
-3. Select **Activate Plugin**.
+1. Download `wp-buyer-blacklist-<version>.zip` from the [latest release](https://github.com/dcaste/wp-buyer-blacklist/releases/latest). Use that file, not the **Source code** archives GitHub adds to every release. Those hold development files and unpack into a differently named folder.
+2. In WordPress, go to **Plugins > Add New > Upload Plugin**.
+3. Choose the ZIP and select **Install Now**.
+4. Select **Activate Plugin**.
+
+WordPress does not announce new versions of a plugin installed this way. To update, download the newer ZIP and upload it the same way. WordPress asks whether to replace the installed version, and your entries stay in the database.
 
 ### From source
 

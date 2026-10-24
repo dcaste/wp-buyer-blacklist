@@ -111,7 +111,7 @@ final class AdminPage {
 		}
 		$asset = file_exists( WP_BUYER_BLACKLIST_DIR . 'build/index.asset.php' ) ? require WP_BUYER_BLACKLIST_DIR . 'build/index.asset.php' : array(
 			'dependencies' => array(),
-			'version'      => '0.1.0',
+			'version'      => '1.0.0',
 		);
 		if ( file_exists( WP_BUYER_BLACKLIST_DIR . 'build/style-index.tsx.css' ) ) {
 			wp_enqueue_style( 'wp-buyer-blacklist-admin', WP_BUYER_BLACKLIST_URL . 'build/style-index.tsx.css', array(), $asset['version'] );
