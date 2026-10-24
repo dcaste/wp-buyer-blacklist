@@ -1,4 +1,4 @@
-# WP Buyer Blacklist
+# WP Buyer Blacklist 2
 
 WP Buyer Blacklist stops listed Buyers from completing checkout in a WooCommerce store. You keep a list of Blacklist entries. Each entry names one Buyer identity: an email address, a WooCommerce Customer ID, a billing address or a shipping address. When an active entry matches the Buyer at checkout, the order is refused before payment.
 
