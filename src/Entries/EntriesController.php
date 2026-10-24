@@ -134,7 +134,10 @@ final class EntriesController {
 							'type'     => 'string',
 							'required' => true,
 						),
-						'reason' => array( 'type' => 'string' ),
+						'reason' => array(
+							'type'     => 'string',
+							'required' => true,
+						),
 					),
 				),
 			)
@@ -159,7 +162,10 @@ final class EntriesController {
 						'state'          => array( 'type' => 'string' ),
 						'postcode'       => array( 'type' => 'string' ),
 						'country'        => array( 'type' => 'string' ),
-						'reason'         => array( 'type' => 'string' ),
+						'reason'         => array(
+							'type'     => 'string',
+							'required' => true,
+						),
 					),
 				),
 			)
@@ -255,6 +261,9 @@ final class EntriesController {
 	 */
 	public function create_email_entry( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$reason = $this->reason_from_request( $request );
+		if ( '' === trim( $reason ) ) {
+			return $this->reason_required_error();
+		}
 		try {
 			$entry = EmailEntry::from_email( (string) $request->get_param( 'email' ) );
 		} catch ( InvalidArgumentException $exception ) {
@@ -274,6 +283,9 @@ final class EntriesController {
 	 */
 	public function create_address_entry( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$reason = $this->reason_from_request( $request );
+		if ( '' === trim( $reason ) ) {
+			return $this->reason_required_error();
+		}
 
 		$fields = array();
 		foreach ( array( 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country' ) as $field ) {
@@ -350,7 +362,11 @@ final class EntriesController {
 			return new WP_Error( 'wp_buyer_blacklist_multiple_updates', __( 'Update either the reason or status in one request.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
 		}
 		if ( null !== $request->get_param( 'reason' ) ) {
-			$updated = $this->entries->update_reason( $entry_id, $this->reason_from_request( $request ) );
+			$reason = $this->reason_from_request( $request );
+			if ( '' === trim( $reason ) ) {
+				return $this->reason_required_error();
+			}
+			$updated = $this->entries->update_reason( $entry_id, $reason );
 		} elseif ( null !== $request->get_param( 'is_active' ) ) {
 			$updated = $this->entries->set_active( $entry_id, (bool) $request->get_param( 'is_active' ) );
 		} else {
@@ -395,6 +411,15 @@ final class EntriesController {
 		}
 
 		return new WP_REST_Response( array( 'message' => __( 'Blacklist entry deleted.', 'wp-buyer-blacklist' ) ) );
+	}
+
+	/**
+	 * Builds the error for an entry reason that is empty.
+	 *
+	 * @return WP_Error
+	 */
+	private function reason_required_error(): WP_Error {
+		return new WP_Error( 'wp_buyer_blacklist_reason_required', __( 'Enter a reason for this Blacklist entry.', 'wp-buyer-blacklist' ), array( 'status' => 400 ) );
 	}
 
 	/**

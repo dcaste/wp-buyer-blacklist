@@ -347,3 +347,11 @@ describe( 'status messages', () => {
 		container.remove();
 	} );
 } );
+
+test( 'marks the reason of a new entry as required', async () => {
+	const container = await renderApp();
+	const reason = container.querySelector( '#wp-buyer-blacklist-reason' ) as HTMLTextAreaElement;
+	expect( reason.required ).toBe( true );
+	expect( container.querySelector( 'label[for="wp-buyer-blacklist-reason"]' )?.textContent ).toBe( 'Reason' );
+	container.remove();
+} );

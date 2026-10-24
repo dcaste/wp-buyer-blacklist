@@ -139,7 +139,14 @@ class EntriesRestIntegrationTest extends WP_UnitTestCase {
 		$this->assertSame( 400, $missing_email->get_status() );
 		$this->assertSame( 'rest_missing_callback_param', $missing_email->get_data()['code'] );
 
-		$bad_match_type = $this->request( 'POST', '/address-entries', array( 'match_type' => 'email' ) );
+		$bad_match_type = $this->request(
+			'POST',
+			'/address-entries',
+			array(
+				'match_type' => 'email',
+				'reason'     => 'Fraud',
+			)
+		);
 		$this->assertSame( 400, $bad_match_type->get_status() );
 		$this->assertSame( 'rest_invalid_param', $bad_match_type->get_data()['code'] );
 
@@ -147,6 +154,67 @@ class EntriesRestIntegrationTest extends WP_UnitTestCase {
 		$this->assertSame( 400, $bad_status->get_status() );
 		$this->assertSame( 'rest_invalid_param', $bad_status->get_data()['code'] );
 		$this->assertCount( 1, $this->entries->all() );
+	}
+
+	/**
+	 * Requires a reason when creating or updating an entry.
+	 *
+	 * @return void
+	 */
+	public function test_requires_a_reason(): void {
+		$no_reason = $this->request( 'POST', '/email-entries', array( 'email' => 'buyer@example.com' ) );
+		$this->assertSame( 400, $no_reason->get_status() );
+		$this->assertSame( 'rest_missing_callback_param', $no_reason->get_data()['code'] );
+
+		$blank_email = $this->request(
+			'POST',
+			'/email-entries',
+			array(
+				'email'  => 'buyer@example.com',
+				'reason' => '   ',
+			)
+		);
+		$this->assertSame( 400, $blank_email->get_status() );
+		$this->assertSame( 'wp_buyer_blacklist_reason_required', $blank_email->get_data()['code'] );
+
+		$blank_address = $this->request(
+			'POST',
+			'/address-entries',
+			array(
+				'match_type'     => 'billing_address',
+				'address_line_1' => '1 Test Street',
+				'city'           => 'Testville',
+				'state'          => 'CA',
+				'postcode'       => '90210',
+				'country'        => 'US',
+				'reason'         => '',
+			)
+		);
+		$this->assertSame( 400, $blank_address->get_status() );
+		$this->assertSame( 'wp_buyer_blacklist_reason_required', $blank_address->get_data()['code'] );
+		$this->assertSame( array(), $this->entries->all() );
+
+		$entry_id     = $this->seed_entry();
+		$blank_update = $this->request( 'PATCH', '/email-entries/' . $entry_id, array( 'reason' => '  ' ) );
+		$this->assertSame( 400, $blank_update->get_status() );
+		$this->assertSame( 'wp_buyer_blacklist_reason_required', $blank_update->get_data()['code'] );
+		$this->assertSame( 'Fraud', $this->entries->all()[0]['reason'] );
+	}
+
+	/**
+	 * Lets an entry that already has an empty reason change status.
+	 *
+	 * @return void
+	 */
+	public function test_entry_with_an_empty_reason_can_still_change_status(): void {
+		$this->assertTrue( $this->entries->create( EmailEntry::from_email( 'legacy@example.com' ), '' ) );
+		$entry_id = (int) $this->entries->all()[0]['id'];
+
+		$response = $this->request( 'PATCH', '/email-entries/' . $entry_id, array( 'is_active' => false ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '0', $this->entries->all()[0]['is_active'] );
+		$this->assertSame( '', $this->entries->all()[0]['reason'] );
 	}
 
 	/**

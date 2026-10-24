@@ -42,7 +42,7 @@ The plugin creates its database tables when it is activated, and checks them aga
 This walkthrough blocks a test email and finds the record of the blocked checkout.
 
 1. Go to **WooCommerce > Buyer Blacklist**. The **Manage entries** tab opens.
-2. In **Add new Blacklist entry**, leave **Match type** set to **Email**, enter a test address such as `blocked@example.test`, and optionally add a reason. Select **Add entry**.
+2. In **Add new Blacklist entry**, leave **Match type** set to **Email**, enter a test address such as `blocked@example.test`, and add a reason. Select **Add entry**.
 3. The entry appears in the **Blacklist entries** table as **Active**.
 4. In a private browser window, add a product to the cart and go to checkout. Use `blocked@example.test` as the billing email and place the order.
 5. Checkout stops with the message "We're unable to process your order. Please contact us for assistance." No order is created and no payment is taken.
@@ -58,7 +58,7 @@ The plugin page is **WooCommerce > Buyer Blacklist**. It has three tabs: **Manag
 
 The top of the tab shows four totals: **Total entries**, **Active entries**, **Inactive entries** and **Blocked attempts**.
 
-**Add new Blacklist entry.** Choose a **Match type**: **Email**, **Billing address** or **Shipping address**. An email needs the full address. An address needs **Address line 1**, **City**, **State**, **Postcode** and a two-letter **Country** code such as `US`. **Address line 2** is optional. **Reason (optional)** is a note for other operators. Select **Add entry**.
+**Add new Blacklist entry.** Choose a **Match type**: **Email**, **Billing address** or **Shipping address**. An email needs the full address. An address needs **Address line 1**, **City**, **State**, **Postcode** and a two-letter **Country** code such as `US`. **Address line 2** is optional. **Reason** is required. It is a note for other operators. Select **Add entry**.
 
 Manual entry has no Customer ID option. See [Rules to be aware of](#rules-to-be-aware-of).
 
@@ -125,7 +125,7 @@ Select **Save changes** to save. **Reset to defaults** asks for confirmation, th
 
 ## Rules to be aware of
 
-**Entries can't be edited in place.** You can't change an entry's Match type or value after creating it. To replace one, deactivate the old entry and create a new one. The reason and the status can always change.
+**Entries can't be edited in place.** You can't change an entry's Match type or value after creating it. To replace one, deactivate the old entry and create a new one. The reason and the status can always change, but a reason can't be saved empty. Entries created before the reason became required can keep an empty reason until someone edits it.
 
 **No duplicates.** The plugin refuses a second entry with the same Match type and Canonical value, even if the existing entry is inactive. Reactivate the existing entry instead.
 
