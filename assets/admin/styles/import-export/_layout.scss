@@ -1,0 +1,22 @@
+/* Import and export card layout. */
+#wp-buyer-blacklist-admin {
+	.wpbb-import-cards {
+		display: grid;
+		gap: var(--wpbb-space-24);
+		grid-template-columns: 1fr;
+	}
+
+	.wpbb-import-cards > .wpbb-card > .wpbb-icon-tile {
+		float: left;
+		margin: 0 var(--wpbb-space-16) var(--wpbb-space-16) 0;
+	}
+
+	.wpbb-import-cards h2 {
+		margin: 0 0 var(--wpbb-space-8);
+	}
+
+	.wpbb-import-cards p {
+		color: var(--wpbb-muted);
+		margin: 0 0 var(--wpbb-space-16);
+	}
+}

@@ -1,0 +1,83 @@
+/* Dialog header, close button and modal icons. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	.wpbb-entry-dialog-header {
+		align-items: flex-start;
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: var(--wpbb-space-24);
+	}
+
+	.wpbb-entry-dialog-header h2 {
+		font-size: 28px !important;
+		line-height: 34px !important;
+		margin: 0 0 var(--wpbb-space-4) !important;
+	}
+
+	.wpbb-entry-dialog-header p {
+		color: var(--wpbb-muted);
+		margin: 0 !important;
+	}
+
+	.wpbb-entry-dialog-close {
+		background: transparent;
+		border: 0;
+		cursor: pointer;
+		padding: var(--wpbb-space-4);
+	}
+
+	/* Keeps the title clear of the corner close button. */
+	#wp-buyer-blacklist-enroll-customer-dialog h2,
+	#wp-buyer-blacklist-manage-customer-dialog h2 {
+		padding-right: 40px;
+	}
+
+	.wpbb-dialog-close {
+		background: transparent;
+		border: 0;
+		color: var(--wpbb-text);
+		cursor: pointer;
+		line-height: 0;
+		padding: var(--wpbb-space-4);
+		position: absolute;
+		right: var(--wpbb-space-12);
+		top: var(--wpbb-space-12);
+	}
+
+	.wpbb-dialog-close:focus-visible {
+		outline: 2px solid var(--wpbb-focus);
+		outline-offset: 2px;
+	}
+
+	.wpbb-modal-icon {
+		background: currentcolor;
+		display: inline-block;
+		height: 24px;
+		mask: center / contain no-repeat;
+		width: 24px;
+	}
+
+	.wpbb-modal-icon.is-close {
+		mask-image: url('../admin-icons/close.svg');
+	}
+
+	.wpbb-modal-icon.is-mail {
+		mask-image: url('../admin-icons/mail.svg');
+	}
+
+	.wpbb-modal-icon.is-user {
+		mask-image: url('../admin-icons/user.svg');
+	}
+
+	.wpbb-modal-icon.is-pin {
+		color: var(--wpbb-muted);
+		height: 20px;
+		mask-image: url('../admin-icons/pin.svg');
+		width: 20px;
+	}
+
+	.wpbb-modal-icon.is-locked {
+		color: #8ca1c5;
+		mask-image: url('../admin-icons/locked.svg');
+	}
+}

@@ -1,0 +1,66 @@
+/* Icon tiles. */
+#wp-buyer-blacklist-admin {
+	.wpbb-icon-tile {
+		align-items: center;
+		background: var(--wpbb-neutral-bg);
+		border-radius: var(--wpbb-radius-xl);
+		display: inline-flex;
+		flex: 0 0 56px;
+		height: 56px;
+		justify-content: center;
+		width: 56px;
+	}
+
+	.wpbb-icon-tile::before {
+		background: var(--wpbb-primary);
+		content: '';
+		display: block;
+		height: 24px;
+		mask: center / contain no-repeat;
+		width: 24px;
+	}
+
+	.wpbb-icon-tile.is-entries::before {
+		mask-image: url('../admin-icons/entries.svg');
+	}
+
+	.wpbb-icon-tile.is-active::before {
+		mask-image: url('../admin-icons/active.svg');
+	}
+
+	.wpbb-icon-tile.is-inactive::before {
+		mask-image: url('../admin-icons/inactive.svg');
+	}
+
+	.wpbb-icon-tile.is-blocked-attempts::before {
+		mask-image: url('../admin-icons/blocked-attempts.svg');
+	}
+
+	.wpbb-icon-tile.is-upload::before {
+		mask-image: url('../admin-icons/upload.svg');
+	}
+
+	.wpbb-icon-tile.is-audit-history::before {
+		mask-image: url('../admin-icons/audit-history.svg');
+	}
+
+	.wpbb-icon-tile.is-primary {
+		background: #eaf1ff;
+	}
+
+	.wpbb-icon-tile.is-success {
+		background: var(--wpbb-success-bg);
+	}
+
+	.wpbb-icon-tile.is-success::before {
+		background: var(--wpbb-success);
+	}
+
+	.wpbb-icon-tile.is-danger {
+		background: var(--wpbb-danger-bg);
+	}
+
+	.wpbb-icon-tile.is-danger::before {
+		background: var(--wpbb-danger);
+	}
+}

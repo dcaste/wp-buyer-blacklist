@@ -1,0 +1,24 @@
+/* Status badge shared by the admin app and the Users list. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	.wp-buyer-blacklist-status-badge {
+		border-radius: var(--wpbb-radius-pill);
+		display: inline-block;
+		font-size: 12px;
+		font-weight: 600;
+		line-height: 18px;
+		padding: var(--wpbb-space-2) var(--wpbb-space-8);
+		white-space: nowrap;
+	}
+
+	.wp-buyer-blacklist-status-badge.is-active {
+		background: var(--wpbb-success-bg);
+		color: var(--wpbb-success);
+	}
+
+	.wp-buyer-blacklist-status-badge.is-inactive,
+	.wp-buyer-blacklist-status-badge.is-not-listed {
+		background: var(--wpbb-neutral-bg);
+		color: var(--wpbb-neutral);
+	}
+}

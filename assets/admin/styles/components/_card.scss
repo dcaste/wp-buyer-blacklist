@@ -1,0 +1,61 @@
+/* Cards and page spacing. */
+#wp-buyer-blacklist-admin .wpbb-card,
+.woocommerce_page_wp-buyer-blacklist .wpbb-settings-card {
+	background: var(--wpbb-surface);
+	border: 1px solid var(--wpbb-border);
+	border-radius: var(--wpbb-radius-lg);
+	box-shadow: 0 1px 2px rgb(15 23 42 / 8%);
+	margin: 0 0 var(--wpbb-space-24);
+	padding: var(--wpbb-space-16);
+}
+
+#wp-buyer-blacklist-admin {
+	.wpbb-page > * + * {
+		margin-top: var(--wpbb-space-24);
+	}
+
+	.wpbb-card {
+		h2,
+		h3 {
+			color: var(--wpbb-text);
+			font-weight: 700;
+			margin: 0 0 var(--wpbb-space-8);
+		}
+
+		h2 {
+			font-size: 20px;
+			line-height: 28px;
+		}
+
+		h3 {
+			font-size: 16px;
+			line-height: 24px;
+		}
+
+		h3 .dashicons {
+			color: var(--wpbb-primary);
+			font-size: 18px;
+			height: 18px;
+			margin-right: var(--wpbb-space-6);
+			vertical-align: text-bottom;
+			width: 18px;
+		}
+
+		form > p,
+		section > p {
+			margin: var(--wpbb-space-16) 0;
+		}
+
+		strong {
+			display: block;
+			font-size: 28px;
+			line-height: 34px;
+		}
+
+		small {
+			color: var(--wpbb-muted);
+			font-size: 12px;
+			line-height: 18px;
+		}
+	}
+}

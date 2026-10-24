@@ -1,0 +1,17 @@
+/* Users list enrollment dialog details. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	#wp-buyer-blacklist-enroll-customer-dialog dl {
+		display: grid;
+		gap: var(--wpbb-space-8) var(--wpbb-space-16);
+		grid-template-columns: max-content minmax(0, 1fr);
+	}
+
+	#wp-buyer-blacklist-enroll-customer-dialog dt {
+		font-weight: 600;
+	}
+
+	#wp-buyer-blacklist-enroll-customer-dialog dd {
+		margin: 0;
+	}
+}

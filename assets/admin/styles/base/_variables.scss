@@ -1,0 +1,38 @@
+/* Design tokens. */
+.woocommerce_page_wp-buyer-blacklist,
+.users-php {
+	--wpbb-page: #f7f9fc;
+	--wpbb-surface: #fff;
+	--wpbb-surface-subtle: #f8fafc;
+	--wpbb-border: #dce3ee;
+	--wpbb-input-border: #64748b;
+	--wpbb-text: #0f172a;
+	--wpbb-muted: #64748b;
+	--wpbb-primary: #1463f3;
+	--wpbb-primary-hover: #0c52d4;
+	--wpbb-focus: #1463f3;
+	--wpbb-success: #166534;
+	--wpbb-success-bg: #dcfce7;
+	--wpbb-danger: #b42318;
+	--wpbb-danger-bg: #fee2e2;
+	--wpbb-warning: #92400e;
+	--wpbb-warning-bg: #fef3c7;
+	--wpbb-neutral: #475569;
+	--wpbb-neutral-bg: #f1f5f9;
+
+	--wpbb-radius-sm: 4px;
+	--wpbb-radius-md: 6px;
+	--wpbb-radius-lg: 8px;
+	--wpbb-radius-xl: 12px;
+	--wpbb-radius-pill: 9999px;
+	--wpbb-radius-circle: 50%;
+
+	--wpbb-space-2: 2px;
+	--wpbb-space-4: 4px;
+	--wpbb-space-6: 6px;
+	--wpbb-space-8: 8px;
+	--wpbb-space-12: 12px;
+	--wpbb-space-16: 16px;
+	--wpbb-space-20: 20px;
+	--wpbb-space-24: 24px;
+}

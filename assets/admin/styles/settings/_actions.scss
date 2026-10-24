@@ -1,0 +1,29 @@
+/* Settings action buttons. */
+.woocommerce_page_wp-buyer-blacklist {
+	.wpbb-settings-actions {
+		align-items: center;
+		display: flex;
+		gap: var(--wpbb-space-16);
+		grid-column: 1 / -1;
+		margin: 0;
+
+		.submit {
+			margin: 0;
+			padding: 0;
+		}
+	}
+
+	.wpbb-settings-actions .button {
+		border-radius: var(--wpbb-radius-md);
+	}
+
+	.wpbb-settings-reset-icon {
+		background: currentcolor;
+		display: inline-block;
+		height: 18px;
+		margin-right: var(--wpbb-space-8);
+		mask: center / contain no-repeat url('../admin-icons/reset.svg');
+		vertical-align: text-bottom;
+		width: 18px;
+	}
+}

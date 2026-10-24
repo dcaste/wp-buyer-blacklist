@@ -1,0 +1,47 @@
+/* Status editor and active toggle. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	.wpbb-entry-active-toggle {
+		align-items: center;
+		background: transparent;
+		border: 0;
+		cursor: pointer;
+		display: flex;
+		font-size: 16px;
+		font-weight: 600;
+		gap: var(--wpbb-space-12);
+		margin: var(--wpbb-space-16) 0 var(--wpbb-space-4);
+		padding: 0;
+	}
+
+	.wpbb-entry-active-toggle > span {
+		background: var(--wpbb-neutral);
+		border-radius: var(--wpbb-radius-pill);
+		height: 32px;
+		position: relative;
+		width: 56px;
+	}
+
+	.wpbb-entry-active-toggle > span::after {
+		background: var(--wpbb-surface);
+		border-radius: var(--wpbb-radius-circle);
+		content: '';
+		height: 24px;
+		left: 4px;
+		position: absolute;
+		top: 4px;
+		width: 24px;
+	}
+
+	.wpbb-entry-active-toggle[aria-checked='true'] > span {
+		background: #16a34a;
+	}
+
+	.wpbb-entry-active-toggle[aria-checked='true'] > span::after {
+		transform: translateX(24px);
+	}
+
+	.wpbb-entry-status-editor > small {
+		display: block;
+	}
+}

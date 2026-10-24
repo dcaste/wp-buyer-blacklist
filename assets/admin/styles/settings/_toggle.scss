@@ -1,0 +1,48 @@
+/* Settings toggle switch. */
+.woocommerce_page_wp-buyer-blacklist {
+	.wpbb-toggle {
+		align-items: center;
+		display: flex;
+		gap: var(--wpbb-space-8);
+		font-weight: 600;
+	}
+
+	.wpbb-toggle input[type='checkbox'] {
+		appearance: none !important;
+		-webkit-appearance: none;
+		background: var(--wpbb-neutral);
+		background-image: none !important;
+		border: 0;
+		border-radius: var(--wpbb-radius-pill);
+		box-shadow: none;
+		cursor: pointer;
+		height: 28px;
+		margin: 0;
+		position: relative;
+		width: 48px;
+	}
+
+	.wpbb-toggle input[type='checkbox']::before {
+		content: none !important;
+		display: none !important;
+	}
+
+	.wpbb-toggle input[type='checkbox']::after {
+		background: var(--wpbb-surface);
+		border-radius: var(--wpbb-radius-circle);
+		content: '';
+		height: 20px;
+		left: 4px;
+		position: absolute;
+		top: 4px;
+		width: 20px;
+	}
+
+	.wpbb-toggle input[type='checkbox']:checked {
+		background: #16a34a;
+	}
+
+	.wpbb-toggle input[type='checkbox']:checked::after {
+		transform: translateX(20px);
+	}
+}

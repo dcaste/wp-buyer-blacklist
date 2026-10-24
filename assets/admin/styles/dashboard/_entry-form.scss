@@ -1,0 +1,46 @@
+/* Add Blacklist entry form. */
+#wp-buyer-blacklist-admin {
+	.wpbb-entry-form {
+		display: grid;
+		gap: var(--wpbb-space-16);
+		grid-template-columns: 1fr;
+	}
+
+	.wpbb-entry-form h2,
+	.wpbb-entry-form .wpbb-entry-form-intro,
+	.wpbb-entry-form .wpbb-entry-reason {
+		grid-column: auto;
+	}
+
+	.wpbb-entry-form > p {
+		margin: 0;
+	}
+
+	.wpbb-entry-form input,
+	.wpbb-entry-form select {
+		width: 100%;
+	}
+
+	.wpbb-entry-form .button-primary {
+		justify-self: start;
+	}
+
+	.wpbb-entry-form-intro {
+		color: var(--wpbb-muted);
+		font-size: 14px;
+		line-height: 20px;
+	}
+
+	.wpbb-entry-form small {
+		color: var(--wpbb-muted);
+		display: block;
+		font-size: 12px;
+		line-height: 18px;
+		margin-top: var(--wpbb-space-4);
+	}
+
+	.wpbb-entry-reason {
+		border-top: 1px solid var(--wpbb-border);
+		padding-top: var(--wpbb-space-16);
+	}
+}

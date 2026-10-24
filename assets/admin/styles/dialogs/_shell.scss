@@ -1,0 +1,51 @@
+/* Dialog frame, backdrop and focus ring. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	#wp-buyer-blacklist-entry-dialog,
+	#wp-buyer-blacklist-enroll-customer-dialog,
+	#wp-buyer-blacklist-manage-customer-dialog {
+		background: var(--wpbb-surface);
+		border: 1px solid var(--wpbb-border);
+		border-radius: var(--wpbb-radius-lg);
+		box-shadow: 0 16px 48px rgb(15 23 42 / 24%);
+		box-sizing: border-box;
+		color: var(--wpbb-text);
+		max-height: calc(100vh - 32px);
+		max-width: min(1100px, calc(100vw - 32px));
+		padding: var(--wpbb-space-16);
+		width: min(1100px, calc(100vw - 32px));
+	}
+
+	#wp-buyer-blacklist-manage-customer-dialog {
+		max-width: min(500px, calc(100vw - 32px));
+	}
+
+	#wp-buyer-blacklist-entry-dialog::backdrop,
+	#wp-buyer-blacklist-enroll-customer-dialog::backdrop,
+	#wp-buyer-blacklist-manage-customer-dialog::backdrop {
+		background: rgb(15 23 42 / 48%);
+	}
+
+	#wp-buyer-blacklist-entry-dialog {
+		h2,
+		h3 {
+			color: var(--wpbb-text);
+			font-weight: 700;
+		}
+
+		h2 {
+			font-size: 20px;
+			line-height: 28px;
+			margin: 0 0 var(--wpbb-space-16);
+		}
+
+	}
+
+	#wp-buyer-blacklist-entry-dialog :focus-visible,
+	#wp-buyer-blacklist-enroll-customer-dialog :focus-visible,
+	#wp-buyer-blacklist-manage-customer-dialog :focus-visible,
+	.wp-buyer-blacklist-enrollment-form :focus-visible {
+		outline: 2px solid var(--wpbb-focus);
+		outline-offset: 2px;
+	}
+}

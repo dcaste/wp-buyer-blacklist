@@ -1,0 +1,97 @@
+/* Settings grid and cards. */
+.woocommerce_page_wp-buyer-blacklist {
+	.wpbb-settings {
+		display: grid;
+		gap: var(--wpbb-space-16);
+		grid-template-columns: 1fr;
+	}
+
+	.wpbb-settings-card {
+		margin: 0;
+		max-width: none;
+
+		> header > h2 {
+			align-items: center;
+			color: var(--wpbb-text);
+			display: flex;
+			font-size: 20px;
+			font-weight: 700;
+			gap: var(--wpbb-space-16);
+			line-height: 28px;
+			margin: 0 0 var(--wpbb-space-16);
+			position: relative;
+		}
+
+		> header > h2::before {
+			background: #eaf1ff;
+			border-radius: var(--wpbb-radius-xl);
+			content: '';
+			flex: 0 0 56px;
+			height: 56px;
+			width: 56px;
+		}
+
+		> header > h2::after {
+			background: var(--wpbb-primary);
+			content: '';
+			height: 24px;
+			left: 16px;
+			mask: center / contain no-repeat;
+			position: absolute;
+			top: 16px;
+			width: 24px;
+		}
+
+		input[type='email'],
+		textarea {
+			background: var(--wpbb-surface);
+			border: 1px solid var(--wpbb-input-border);
+			border-radius: var(--wpbb-radius-md);
+			box-shadow: none;
+			box-sizing: border-box;
+			color: var(--wpbb-text);
+			font-size: 14px;
+			line-height: 20px;
+			padding: var(--wpbb-space-8) var(--wpbb-space-12);
+		}
+
+		input[type='email'] {
+			min-height: 38px;
+		}
+
+		input:focus-visible,
+		textarea:focus-visible {
+			outline: 2px solid var(--wpbb-focus);
+			outline-offset: 2px;
+		}
+
+		.description {
+			color: var(--wpbb-muted);
+			margin: 0;
+		}
+	}
+
+	.wpbb-settings-message-card > header > h2::after {
+		mask-image: url('../admin-icons/message.svg');
+	}
+
+	.wpbb-settings-permissions-card > header > h2::after {
+		mask-image: url('../admin-icons/permissions.svg');
+	}
+
+	.wpbb-settings-cleanup-card > header > h2::after {
+		mask-image: url('../admin-icons/data-cleanup.svg');
+	}
+
+	.wpbb-settings-card textarea {
+		min-height: 112px;
+		width: 100%;
+	}
+
+	.wpbb-settings-message-card,
+	.wpbb-settings-permissions-card,
+	.wpbb-settings-cleanup-card {
+		grid-column: auto;
+		grid-row: auto;
+	}
+}

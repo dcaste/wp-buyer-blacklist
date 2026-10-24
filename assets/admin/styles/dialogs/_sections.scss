@@ -1,0 +1,46 @@
+/* Shared dialog section cards. */
+#wp-buyer-blacklist-admin,
+.users-php {
+	.wpbb-buyer-details,
+	.wpbb-entry-reason-editor,
+	.wpbb-entry-status-editor,
+	.wpbb-entry-dialog-footer {
+		background: var(--wpbb-surface);
+		border: 1px solid var(--wpbb-border);
+		border-radius: var(--wpbb-radius-lg);
+		padding: var(--wpbb-space-24);
+	}
+
+	.wpbb-buyer-details,
+	.wpbb-entry-reason-editor,
+	.wpbb-entry-status-editor {
+		border-bottom: 0;
+		border-radius: 0;
+	}
+
+	.wpbb-buyer-details {
+		border-radius: var(--wpbb-radius-lg) var(--wpbb-radius-lg) 0 0;
+		margin-top: var(--wpbb-space-16);
+	}
+
+	.wpbb-entry-status-editor {
+		border-bottom: 1px solid var(--wpbb-border);
+		border-radius: 0 0 var(--wpbb-radius-lg) var(--wpbb-radius-lg);
+	}
+
+	.wpbb-buyer-details h3,
+	.wpbb-entry-reason-editor h3,
+	.wpbb-entry-status-editor h3 {
+		font-size: 20px;
+		line-height: 28px;
+		margin: 0 0 var(--wpbb-space-4);
+	}
+
+	.wpbb-buyer-identity span,
+	.wpbb-buyer-details-card > p,
+	.wpbb-entry-reason-editor > p,
+	.wpbb-entry-status-editor > p,
+	.wpbb-entry-status-editor > small {
+		color: var(--wpbb-muted);
+	}
+}

@@ -1,0 +1,20 @@
+/* Icons inside buttons. */
+#wp-buyer-blacklist-admin {
+	.wpbb-button-icon {
+		background: currentcolor;
+		display: inline-block;
+		height: 18px;
+		margin-right: var(--wpbb-space-8);
+		mask: center / contain no-repeat url('../admin-icons/upload.svg');
+		vertical-align: text-bottom;
+		width: 18px;
+	}
+
+	.wpbb-button-icon.is-download {
+		mask-image: url('../admin-icons/download.svg');
+	}
+
+	.wpbb-button-icon.is-trash {
+		mask-image: url('../admin-icons/trash.svg');
+	}
+}

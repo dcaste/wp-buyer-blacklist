@@ -1,0 +1,64 @@
+/* Users list column and its status badge. */
+.users-php {
+	.column-wp_buyer_blacklist .button-link {
+		color: var(--wpbb-primary);
+		font-weight: 400;
+		margin-top: var(--wpbb-space-6);
+	}
+
+	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge {
+		font-weight: 400;
+	}
+
+	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge::before {
+		background: currentcolor;
+		border-radius: var(--wpbb-radius-circle);
+		content: '';
+		display: inline-block;
+		height: 8px;
+		margin-right: var(--wpbb-space-6);
+		vertical-align: middle;
+		width: 8px;
+	}
+
+	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge.is-active {
+		background: var(--wpbb-danger-bg);
+		color: var(--wpbb-danger);
+	}
+
+	/* Same colors as the "Completed with warnings" import status. */
+	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge.is-inactive {
+		background: var(--wpbb-warning-bg);
+		color: var(--wpbb-warning);
+	}
+
+	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge:focus-visible {
+		outline: 2px solid var(--wpbb-focus);
+		outline-offset: 2px;
+	}
+
+	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge.is-active:focus::after,
+	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge.is-active:hover::after {
+		background: var(--wpbb-text);
+		border-radius: var(--wpbb-radius-sm);
+		color: var(--wpbb-surface);
+		content: attr(data-wpbb-tooltip);
+		font-weight: 400;
+		left: 0;
+		line-height: 18px;
+		padding: var(--wpbb-space-8);
+		position: absolute;
+		top: calc(100% + 8px);
+		width: 190px;
+		z-index: 1;
+	}
+
+	.column-wp_buyer_blacklist .wp-buyer-blacklist-status-badge.is-active {
+		position: relative;
+	}
+}
+
+.users-php .column-wp_buyer_blacklist .button-link:focus-visible {
+	outline: 2px solid var(--wpbb-focus);
+	outline-offset: 2px;
+}

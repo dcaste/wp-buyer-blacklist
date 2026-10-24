@@ -1,0 +1,98 @@
+/* CSV import drop target and template hint. */
+#wp-buyer-blacklist-admin {
+	.wpbb-import-card {
+		display: flow-root;
+	}
+
+	.wpbb-drop-target {
+		background: var(--wpbb-surface-subtle);
+		border: 2px dashed var(--wpbb-border);
+		border-radius: var(--wpbb-radius-md);
+		padding: var(--wpbb-space-24);
+		text-align: center;
+	}
+
+	.wpbb-drop-target .wpbb-icon-tile {
+		float: none;
+		margin: 0 auto var(--wpbb-space-12);
+	}
+
+	.wpbb-drop-target > p {
+		color: var(--wpbb-text);
+		font-weight: 600;
+		margin-bottom: var(--wpbb-space-4);
+	}
+
+	.wpbb-drop-target > span:not(.wpbb-icon-tile) {
+		color: var(--wpbb-muted);
+		display: block;
+		margin-bottom: var(--wpbb-space-12);
+	}
+
+	.wpbb-file-picker {
+		display: inline-block;
+		margin: 0 0 var(--wpbb-space-16);
+		position: relative;
+	}
+
+	.wpbb-file-picker > label.button {
+		align-items: center;
+		display: inline-flex;
+	}
+
+	.wpbb-drop-target small {
+		color: var(--wpbb-muted);
+		display: block;
+	}
+
+	.wpbb-file-input {
+		cursor: pointer;
+		inset: 0;
+		margin: 0;
+		opacity: 0;
+		position: absolute;
+		width: 100%;
+	}
+
+	.wpbb-file-picker:focus-within > label.button {
+		outline: 2px solid var(--wpbb-focus);
+		outline-offset: 2px;
+	}
+
+	.wpbb-import-example {
+		align-items: center;
+		background: #eaf1ff;
+		border-radius: var(--wpbb-radius-md);
+		display: flex;
+		gap: var(--wpbb-space-12);
+		margin-top: var(--wpbb-space-16);
+		padding: var(--wpbb-space-16);
+	}
+
+	.wpbb-import-example-icon {
+		align-items: center;
+		background: var(--wpbb-primary);
+		border-radius: var(--wpbb-radius-circle);
+		color: var(--wpbb-surface);
+		display: inline-flex;
+		flex: 0 0 24px;
+		font-family: serif;
+		font-weight: 700;
+		height: 24px;
+		justify-content: center;
+	}
+
+	.wpbb-import-example strong {
+		color: var(--wpbb-text);
+	}
+
+	.wpbb-import-example p {
+		font-size: 12px;
+		margin: var(--wpbb-space-2) 0 0;
+	}
+
+	.wpbb-import-example .button {
+		margin-left: auto;
+		white-space: nowrap;
+	}
+}
