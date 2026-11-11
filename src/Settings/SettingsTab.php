@@ -7,6 +7,8 @@
 
 namespace WP_Buyer_Blacklist\Settings;
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptRetention;
+
 /**
  * Renders the settings form and its message preview script.
  */
@@ -41,12 +43,13 @@ final class SettingsTab {
 
 		// The template runs in a static closure so it sees only these values, not $this.
 		// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- The required template reads every parameter.
-		( static function ( mixed $buyer_message, mixed $allow_woocommerce_managers, mixed $delete_data_on_uninstall ): void {
+		( static function ( mixed $buyer_message, mixed $allow_woocommerce_managers, mixed $delete_data_on_uninstall, mixed $blocked_attempt_retention_days ): void {
 			require WP_BUYER_BLACKLIST_DIR . 'templates/settings/page.php';
 		} )(
 			get_option( 'wp_buyer_blacklist_buyer_message', $this->buyer_block_message->default() ),
 			get_option( 'wp_buyer_blacklist_allow_woocommerce_managers', true ),
-			get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false )
+			get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ),
+			get_option( BlockedAttemptRetention::OPTION, 0 )
 		);
 	}
 }

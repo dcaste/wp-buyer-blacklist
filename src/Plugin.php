@@ -11,6 +11,7 @@ use WP_Buyer_Blacklist\Access\OperatorAccess;
 use WP_Buyer_Blacklist\Admin\AdminPage;
 use WP_Buyer_Blacklist\Enforcement\AddressCheckoutBlocker;
 use WP_Buyer_Blacklist\Enforcement\BlockedAttemptLog;
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptRetention;
 use WP_Buyer_Blacklist\Enforcement\CheckoutEnforcement;
 use WP_Buyer_Blacklist\Enforcement\CustomerIdCheckoutBlocker;
 use WP_Buyer_Blacklist\Enforcement\EmailCheckoutBlocker;
@@ -83,6 +84,7 @@ final class Plugin {
 				new AddressCheckoutBlocker( $entries, $blocked_attempts ),
 				$buyer_block_message
 			),
+			new BlockedAttemptRetention( $blocked_attempts ),
 			new CustomerScreen( $entries, $enroller, $enrollment_page, $operator_access ),
 			new OrderScreen( $enrollment_page, $operator_access ),
 			$enrollment_page,

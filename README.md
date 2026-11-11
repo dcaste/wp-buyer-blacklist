@@ -198,6 +198,8 @@ Only an Administrator can:
 
 **What the plugin stores.** For each entry it stores the value, reason, status and dates. Audit events store the action, the time, and the acting user's ID and display name, but not their email. A Blocked attempt stores the time, the matched value and the entry it matched. The plugin does not store cart contents, payment data or IP addresses.
 
+**How long Blocked attempts are kept.** By default a Blocked attempt is kept while its entry exists. In **Settings > Data and cleanup**, an Administrator can set **Keep Blocked attempts for (days)**. A daily WP-Cron job then deletes Blocked attempts older than that. Audit events and entries are never deleted this way. Deactivating the plugin stops the job and keeps all data.
+
 ## Privacy
 
 The plugin registers with the WordPress personal-data tools under **Tools > Export Personal Data** and **Tools > Erase Personal Data**. Both look up Email entries by the email address in the request. An export includes the entry, its reason and its Blocked attempts. An erasure removes the entry and its Blocked attempts and keeps only a dated, non-personal record that an erasure happened.
