@@ -16,14 +16,16 @@
     "squizlabs/php_codesniffer": "^3.13",
     "wp-coding-standards/wpcs": "^3.1",
     "wp-phpunit/wp-phpunit": "^7.1",
-    "yoast/phpunit-polyfills": "^4.0"
+    "yoast/phpunit-polyfills": "^4.0",
+    "wp-cli/i18n-command": "^2.7"
   },
   "scripts": {
     "lint": "phpcs --standard=phpcs.xml.dist",
     "lint:fix": "phpcbf --standard=phpcs.xml.dist",
     "test": "phpunit --configuration phpunit.xml.dist",
     "test:unit": "@test",
-    "test:integration": "bash bin/test-integration.sh"
+    "test:integration": "bash bin/test-integration.sh",
+    "make-pot": "@php vendor/wp-cli/wp-cli/php/boot-fs.php i18n make-pot . languages/wp-buyer-blacklist.pot --slug=wp-buyer-blacklist --domain=wp-buyer-blacklist --exclude=vendor,node_modules,tests,dist,docs,bin"
   },
   "config": {
     "allow-plugins": {

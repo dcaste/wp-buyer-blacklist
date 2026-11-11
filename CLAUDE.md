@@ -13,6 +13,7 @@ composer lint                 # PHPCS (WPCS), must pass before commit
 composer lint:fix             # phpcbf auto-fix
 composer test                 # PHP unit tests (tests/unit, *Test.php)
 composer test:integration     # WordPress + WooCommerce integration tests (tests/integration)
+composer make-pot             # rebuild languages/wp-buyer-blacklist.pot (run npm run build first)
 npm run build                 # build the admin app: assets/admin/index.tsx -> build/
 npm test                      # Jest tests in tests/js via wp-scripts
 ```
