@@ -11,6 +11,7 @@
  * License: MIT
  * License URI: https://opensource.org/licenses/MIT
  * Text Domain: wp-buyer-blacklist
+ * Domain Path: /languages
  *
  * @package WP_Buyer_Blacklist
  */
@@ -20,24 +21,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'WP_BUYER_BLACKLIST_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WP_BUYER_BLACKLIST_URL', plugin_dir_url( __FILE__ ) );
 
-/**
- * Loads plugin classes from src/ by PSR-4 mapping.
- *
- * The plugin ships without vendor/, so this does not use the Composer autoloader.
- */
-spl_autoload_register(
-	static function ( string $class_name ): void {
-		$prefix = 'WP_Buyer_Blacklist\\';
-		if ( ! str_starts_with( $class_name, $prefix ) ) {
-			return;
-		}
-
-		$file = __DIR__ . '/src/' . str_replace( '\\', '/', substr( $class_name, strlen( $prefix ) ) ) . '.php';
-		if ( is_file( $file ) ) {
-			require_once $file;
-		}
-	}
-);
+require_once __DIR__ . '/autoload.php';
 
 /**
  * Creates plugin database tables when WooCommerce is available.
@@ -52,24 +36,19 @@ function wp_buyer_blacklist_activate(): void {
 	global $wpdb;
 
 	( new \WP_Buyer_Blacklist\Storage\Schema( $wpdb ) )->install();
+	\WP_Buyer_Blacklist\Enforcement\BlockedAttemptRetention::schedule();
 }
 register_activation_hook( __FILE__, 'wp_buyer_blacklist_activate' );
 
 /**
- * Removes plugin data only when an administrator opted in before uninstalling.
+ * Stops scheduled work. Deactivation keeps all plugin data.
  *
  * @return void
  */
-function wp_buyer_blacklist_uninstall(): void {
-	if ( ! get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ) {
-		return;
-	}
-
-	global $wpdb;
-
-	( new \WP_Buyer_Blacklist\Storage\Schema( $wpdb ) )->uninstall();
+function wp_buyer_blacklist_deactivate(): void {
+	\WP_Buyer_Blacklist\Enforcement\BlockedAttemptRetention::unschedule();
 }
-register_uninstall_hook( __FILE__, 'wp_buyer_blacklist_uninstall' );
+register_deactivation_hook( __FILE__, 'wp_buyer_blacklist_deactivate' );
 
 /**
  * Registers WooCommerce compatibility before initialization.

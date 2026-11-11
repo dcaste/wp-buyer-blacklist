@@ -7,6 +7,8 @@
 
 namespace WP_Buyer_Blacklist\Settings;
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptRetention;
+
 /**
  * Registers the plugin settings and restores their defaults.
  */
@@ -64,6 +66,15 @@ final class BlacklistSettings {
 		);
 		register_setting(
 			'wp_buyer_blacklist',
+			BlockedAttemptRetention::OPTION,
+			array(
+				'type'              => 'integer',
+				'sanitize_callback' => array( BlockedAttemptRetention::class, 'sanitize_days' ),
+				'default'           => 0,
+			)
+		);
+		register_setting(
+			'wp_buyer_blacklist',
 			'wp_buyer_blacklist_buyer_message',
 			array(
 				'type'              => 'string',
@@ -94,6 +105,7 @@ final class BlacklistSettings {
 		delete_option( 'wp_buyer_blacklist_allow_woocommerce_managers' );
 		delete_option( 'wp_buyer_blacklist_delete_data_on_uninstall' );
 		delete_option( 'wp_buyer_blacklist_buyer_message' );
+		delete_option( BlockedAttemptRetention::OPTION );
 	}
 
 	/**

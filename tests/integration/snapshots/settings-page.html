@@ -35,8 +35,10 @@
 	<section class="wpbb-settings-card wpbb-settings-cleanup-card">
 		<header>
 			<h2>Data and cleanup</h2>
-			<p class="description">Manage what happens to Blacklist data when the plugin is removed.</p>
+			<p class="description">Manage how long Blacklist data is kept and what happens to it when the plugin is removed.</p>
 		</header>
+		<p><label for="wp-buyer-blacklist-blocked-attempt-retention">Keep Blocked attempts for (days)</label> <input aria-describedby="wp-buyer-blacklist-blocked-attempt-retention-description" class="small-text" id="wp-buyer-blacklist-blocked-attempt-retention" min="0" name="wp_buyer_blacklist_blocked_attempt_retention_days" step="1" type="number" value="0" /></p>
+		<p class="description" id="wp-buyer-blacklist-blocked-attempt-retention-description">Blocked attempts older than this are deleted once a day. Enter 0 to keep them while their entry exists. The Audit history is never deleted this way.</p>
 		<input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" />
 		<label class="wpbb-toggle"><input aria-describedby="wp-buyer-blacklist-delete-data-description" id="wp-buyer-blacklist-delete-data" name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1"  /> Delete all Blacklist data when the plugin is uninstalled</label>
 		<p class="description" id="wp-buyer-blacklist-delete-data-description">Permanently deletes all Blacklist entries, import history, and Blocked attempt data when the plugin is uninstalled. This cannot be undone.</p>

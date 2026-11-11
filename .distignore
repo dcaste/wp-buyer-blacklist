@@ -1,10 +1,8 @@
 # Files left out of the release ZIP. Read by bin/build-zip.sh (rsync patterns).
-.circleci
 .git
 .github
 .gitignore
 .distignore
-.phpcs.xml.dist
 .phpunit.result.cache
 /AGENTS.md
 /CHANGELOG.md

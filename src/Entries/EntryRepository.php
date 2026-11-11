@@ -68,21 +68,7 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	 * @return bool Whether an entry was created.
 	 */
 	public function create( EmailEntry $entry, string $reason ): bool {
-		$result = $this->database->insert(
-			$this->table_name,
-			array(
-				'match_type'      => 'email',
-				'value'           => $entry->canonical_value(),
-				'canonical_value' => $entry->canonical_value(),
-				'canonical_hash'  => $entry->canonical_hash(),
-				'reason'          => $reason,
-				'is_active'       => 1,
-				'created_at'      => current_time( 'mysql', true ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
-		);
-
-		return 1 === $result && $this->audit_log->record( (int) $this->database->insert_id, 'created' );
+		return true === $this->insert( 'email', $entry->canonical_value(), $entry->canonical_hash(), $reason, true, 'created' );
 	}
 
 	/**
@@ -93,21 +79,7 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	 * @return bool Whether an entry was created.
 	 */
 	public function create_customer_id( CustomerIdEntry $entry, string $reason ): bool {
-		$result = $this->database->insert(
-			$this->table_name,
-			array(
-				'match_type'      => 'customer_id',
-				'value'           => $entry->canonical_value(),
-				'canonical_value' => $entry->canonical_value(),
-				'canonical_hash'  => $entry->canonical_hash(),
-				'reason'          => $reason,
-				'is_active'       => 1,
-				'created_at'      => current_time( 'mysql', true ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
-		);
-
-		return 1 === $result && $this->audit_log->record( (int) $this->database->insert_id, 'created' );
+		return true === $this->insert( 'customer_id', $entry->canonical_value(), $entry->canonical_hash(), $reason, true, 'created' );
 	}
 
 	/**
@@ -118,22 +90,7 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	 * @return bool Whether an entry was created.
 	 */
 	public function create_address( AddressEntry $entry, string $reason ): bool {
-		$value  = wp_json_encode( $entry->canonical_value() );
-		$result = $this->database->insert(
-			$this->table_name,
-			array(
-				'match_type'      => $entry->match_type(),
-				'value'           => $value,
-				'canonical_value' => $value,
-				'canonical_hash'  => $entry->canonical_hash(),
-				'reason'          => $reason,
-				'is_active'       => 1,
-				'created_at'      => current_time( 'mysql', true ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
-		);
-
-		return 1 === $result && $this->audit_log->record( (int) $this->database->insert_id, 'created' );
+		return true === $this->insert( $entry->match_type(), (string) wp_json_encode( $entry->canonical_value() ), $entry->canonical_hash(), $reason, true, 'created' );
 	}
 
 	/**
@@ -151,31 +108,55 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	}
 
 	/**
-	 * Creates an active entry validated by the CSV importer.
+	 * Creates an entry validated by the CSV importer.
 	 *
 	 * @param array{match_type: string, value: string|array<string, string>, canonical_hash: string, reason: string, is_active: bool, row: int} $entry Validated import entry.
 	 * @return string created, duplicate, or failed.
 	 */
 	public function create_imported( array $entry ): string {
-		$value  = is_array( $entry['value'] ) ? wp_json_encode( $entry['value'] ) : $entry['value'];
+		$value    = is_array( $entry['value'] ) ? (string) wp_json_encode( $entry['value'] ) : $entry['value'];
+		$recorded = $this->insert( $entry['match_type'], $value, $entry['canonical_hash'], $entry['reason'], $entry['is_active'], 'imported' );
+		if ( null !== $recorded ) {
+			return $recorded ? 'created' : 'failed';
+		}
+
+		return $this->exists( $entry['match_type'], $entry['canonical_hash'] ) ? 'duplicate' : 'failed';
+	}
+
+	/**
+	 * Inserts one entry row and records its Audit event.
+	 *
+	 * The stored value is the Canonical value, so value and canonical_value
+	 * hold the same text.
+	 *
+	 * @param string $match_type      Match type.
+	 * @param string $canonical_value Canonical value, JSON-encoded for addresses.
+	 * @param string $canonical_hash  Database-safe identity key.
+	 * @param string $reason          Operator-provided reason.
+	 * @param bool   $is_active       Whether the entry blocks checkout.
+	 * @param string $audit_action    Audit event action, such as created or imported.
+	 * @return bool|null Null when the row was not inserted, otherwise whether the Audit event was recorded.
+	 */
+	private function insert( string $match_type, string $canonical_value, string $canonical_hash, string $reason, bool $is_active, string $audit_action ): ?bool {
 		$result = $this->database->insert(
 			$this->table_name,
 			array(
-				'match_type'      => $entry['match_type'],
-				'value'           => $value,
-				'canonical_value' => $value,
-				'canonical_hash'  => $entry['canonical_hash'],
-				'reason'          => $entry['reason'],
-				'is_active'       => $entry['is_active'] ? 1 : 0,
+				'match_type'      => $match_type,
+				'value'           => $canonical_value,
+				'canonical_value' => $canonical_value,
+				'canonical_hash'  => $canonical_hash,
+				'reason'          => $reason,
+				'is_active'       => $is_active ? 1 : 0,
 				'created_at'      => current_time( 'mysql', true ),
 			),
 			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
 		);
-		if ( 1 === $result ) {
-			return $this->audit_log->record( (int) $this->database->insert_id, 'imported' ) ? 'created' : 'failed';
+
+		if ( 1 !== $result ) {
+			return null;
 		}
 
-		return $this->exists( $entry['match_type'], $entry['canonical_hash'] ) ? 'duplicate' : 'failed';
+		return $this->audit_log->record( (int) $this->database->insert_id, $audit_action );
 	}
 
 	/**
@@ -280,7 +261,7 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 			1
 		);
 
-		return array_map( 'intval', (array) $this->database->get_col( $query ) );
+		return $this->active_entry_ids( $query, 'customer_id' );
 	}
 
 	/**
@@ -316,15 +297,14 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
-		$query     = $this->database->prepare(
+		$query = $this->database->prepare(
 			"SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s AND is_active = %d",
 			'email',
 			$entry->canonical_hash(),
 			1
 		);
-		$entry_ids = $this->database->get_col( $query );
 
-		return array_map( 'intval', is_array( $entry_ids ) ? $entry_ids : array() );
+		return $this->active_entry_ids( $query, 'email' );
 	}
 
 	/**
@@ -335,13 +315,36 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	 */
 	public function matching_active_address_entry_ids( AddressEntry $entry ): array {
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
-		$query     = $this->database->prepare(
+		$query = $this->database->prepare(
 			"SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s AND is_active = %d",
 			$entry->match_type(),
 			$entry->canonical_hash(),
 			1
 		);
+
+		return $this->active_entry_ids( $query, $entry->match_type() );
+	}
+
+	/**
+	 * Runs an active-entry lookup for checkout enforcement.
+	 *
+	 * A failed lookup counts as no match, so checkout proceeds (ADR 0004).
+	 * The failure goes to the WooCommerce log so an operator can find it.
+	 *
+	 * @param string $query      Prepared SELECT of matching entry IDs.
+	 * @param string $match_type Match type being checked.
+	 * @return int[] Matching active entry IDs.
+	 */
+	private function active_entry_ids( string $query, string $match_type ): array {
 		$entry_ids = $this->database->get_col( $query );
+		if ( '' !== $this->database->last_error ) {
+			wc_get_logger()->error(
+				sprintf( 'Blacklist entry lookup failed for Match type %1$s, so checkout was not checked against it: %2$s', $match_type, $this->database->last_error ),
+				array( 'source' => 'wp-buyer-blacklist' )
+			);
+
+			return array();
+		}
 
 		return array_map( 'intval', is_array( $entry_ids ) ? $entry_ids : array() );
 	}

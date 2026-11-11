@@ -42,12 +42,14 @@ npm test          # Jest tests for the admin app
 npm run build     # rebuild the admin app into build/
 ```
 
+The **Checks** workflow runs the same four commands on every pull request, in two jobs: **PHP** (lint and unit tests) and **JS** (Jest and build). A pull request can't merge until both pass.
+
 - `composer lint:fix` fixes most style findings for you.
 - The built admin app in `build/` is committed. If you change anything under `assets/admin/`, run `npm run build` and commit the result.
 - Integration tests need the WordPress test library and a MySQL database. The README's Development section explains how to run them.
 - A new class goes in the `src/` folder that owns its feature. Its namespace and file path must match its class name, because the plugin loads classes with its own autoloader.
 - Markup lives in `templates/`, not inside PHP classes.
-- Wrap user-facing strings for translation with the `wp-buyer-blacklist` text domain, in PHP and in the admin app.
+- Wrap user-facing strings for translation with the `wp-buyer-blacklist` text domain, in PHP and in the admin app. Give every string with a placeholder a `/* translators: */` comment. `composer make-pot` rebuilds `languages/wp-buyer-blacklist.pot` from the PHP files and the built JavaScript, so run `npm run build` first. It warns about placeholders without a translators comment.
 - Add or update tests when behavior changes. If you change what users see or do, update the README too.
 - Write commit messages, comments and docs in plain English.
 

@@ -191,8 +191,10 @@ The plugin must retain a Blocked attempt for a blocked storefront checkout and m
 - When multiple active entries match one checkout, the plugin retains one Blocked attempt for each matching entry.
 - Each request that reaches the enforcement boundary creates a new Blocked attempt for each matching entry; the plugin does not deduplicate reattempts.
 - It does not retain cart contents, payment data, or IP address.
-- It remains available while its Blacklist entry exists, including while that entry is inactive.
-- V1 has no automatic retention expiry and sends no email, order-note, or other administrator notification for a blocked attempt.
+- It remains available while its Blacklist entry exists, including while that entry is inactive, unless an Administrator set a retention period.
+- An Administrator can set a retention period in days. Once a day the plugin deletes Blocked attempts older than that period. The default, 0, keeps Blocked attempts while their entry exists.
+- Retention never deletes Audit events or Blacklist entries.
+- The plugin sends no email, order-note, or other administrator notification for a blocked attempt.
 
 ### 4.6 Export and privacy
 
