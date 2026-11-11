@@ -4,7 +4,7 @@ Audit for #120, run on 2026-09-25 against `dev` at `41d8a09`. Guidance came from
 
 Every item in the issue's Scope section has a row below, with one of these outcomes:
 
-- **Finding**: it differs from the docs and has a follow-up issue.
+- **Finding**: it differs from the docs and has a follow-up issue. All six follow-up issues (#141, #142, #143, #145, #146, #147) were fixed and closed by 2026-11-11.
 - **Checked**: I compared it with the docs and it's fine.
 - **Noted**: it differs from the docs, but I'm not recommending a change. The reason is given.
 
@@ -26,17 +26,17 @@ Context7 libraries used:
 | WordPress | Nonces | Checked |
 | WordPress | Sanitizing input, escaping output | Checked |
 | WordPress | Settings / Options API | Checked |
-| WordPress | REST route registration | Finding: #141 |
-| WordPress | i18n | Finding: #142 |
+| WordPress | REST route registration | Finding: #141, fixed |
+| WordPress | i18n | Finding: #142, fixed |
 | WordPress | Script enqueueing | Checked |
-| PHP | Minimum version and language features | Finding: #147 |
+| PHP | Minimum version and language features | Finding: #147, fixed |
 | PHP | Strict types | Noted |
-| PHP | Namespacing and autoloading | Finding: #143 |
+| PHP | Namespacing and autoloading | Finding: #143, fixed |
 | PHP | Error handling | Checked |
 | PHP | PHPUnit test structure | Noted |
 | React | `@wordpress/element`, `components`, `api-fetch` | Checked, `components` noted |
-| React | Hooks and state handling | Finding: #145 |
-| React | Accessibility | Finding: #146 |
+| React | Hooks and state handling | Finding: #145, fixed |
+| React | Accessibility | Finding: #146, fixed |
 | React | TypeScript types | Noted |
 | React | `@wordpress/scripts` build and test config | Checked |
 
