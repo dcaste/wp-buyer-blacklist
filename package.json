@@ -7,11 +7,11 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
-    "@wordpress/a11y": "^4.53.0",
-    "@wordpress/api-fetch": "^7.54.0",
-    "@wordpress/element": "^8.6.0",
-    "@wordpress/i18n": "^6.29.0",
-    "@wordpress/jest-preset-default": "^14.1.0",
-    "@wordpress/scripts": "^34.2.0"
+    "@wordpress/a11y": "^5.1.0",
+    "@wordpress/api-fetch": "^8.1.0",
+    "@wordpress/element": "^10.1.0",
+    "@wordpress/i18n": "^7.1.0",
+    "@wordpress/jest-preset-default": "^14.2.0",
+    "@wordpress/scripts": "^37.1.0"
   }
 }
