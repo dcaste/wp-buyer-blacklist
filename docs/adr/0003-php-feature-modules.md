@@ -24,7 +24,7 @@ Each feature that exposes REST routes has its own controller. All controllers sh
 
 PHP-rendered markup lives in view files under `templates/`, grouped by feature (for example `templates/settings/page.php`). Class methods pass a view the variables it needs and do not build HTML inline. Inline scripts go through `wp_add_inline_script`.
 
-The React admin app currently lives in `src/admin/`. `src/Admin/` would differ from it only by case, and the two folders collide on macOS and Windows filesystems. The React source moves out of the PSR-4 root to `assets/admin/` before `src/Admin/` is created. This updates the path given in ADR-0001; the rest of that record stands.
+The React admin app lives in `assets/admin/`. It used to be in `src/admin/`, which differs from `src/Admin/` only by case, and the two folders collide on macOS and Windows filesystems. So the React source moved out of the PSR-4 root before `src/Admin/` was created. ADR-0001 now gives the new path.
 
 ## Considered Options
 
