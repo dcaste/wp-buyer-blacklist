@@ -7,6 +7,8 @@
 
 namespace WP_Buyer_Blacklist\Storage;
 
+use WP_Buyer_Blacklist\Enforcement\BlockedAttemptRetention;
+
 /**
  * Names, creates and removes the plugin tables.
  */
@@ -46,6 +48,7 @@ final class Schema {
 		'wp_buyer_blacklist_allow_woocommerce_managers',
 		'wp_buyer_blacklist_delete_data_on_uninstall',
 		'wp_buyer_blacklist_block_message',
+		BlockedAttemptRetention::OPTION,
 	);
 
 	/**
@@ -159,6 +162,7 @@ final class Schema {
 		foreach ( self::OPTIONS as $option ) {
 			delete_option( $option );
 		}
+		BlockedAttemptRetention::unschedule();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-off cleanup of unconfirmed import transients, which have no delete-by-prefix API.
 		$this->database->query(
 			$this->database->prepare(

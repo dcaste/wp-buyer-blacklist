@@ -92,4 +92,15 @@ final class BlockedAttemptLog implements BlockedAttemptRecorder {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
 		return $this->database->query( $this->database->prepare( "DELETE FROM {$this->table_name} WHERE entry_id = %d", $entry_id ) );
 	}
+
+	/**
+	 * Deletes Blocked attempts recorded before a UTC time.
+	 *
+	 * @param string $cutoff UTC time in MySQL format.
+	 * @return int|false Number of deleted rows, or false on failure.
+	 */
+	public function delete_older_than( string $cutoff ): int|false {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
+		return $this->database->query( $this->database->prepare( "DELETE FROM {$this->table_name} WHERE created_at < %s", $cutoff ) );
+	}
 }
