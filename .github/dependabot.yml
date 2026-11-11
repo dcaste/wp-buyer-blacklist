@@ -35,6 +35,9 @@ updates:
       # removed, so the suite stays on PHPUnit 9 until WordPress core moves.
       - dependency-name: 'phpunit/phpunit'
         update-types: ['version-update:semver-major']
+      # Polyfills 4 is the last line that supports PHPUnit 9.
+      - dependency-name: 'yoast/phpunit-polyfills'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /

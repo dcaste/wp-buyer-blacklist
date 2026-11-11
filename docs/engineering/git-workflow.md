@@ -48,6 +48,10 @@ Maintainer (human), when `dev` is verified:
 6. **PR language:** English. Reference `Closes #<n>` and PRD requirement ids (`REQ-…`) when applicable.
 7. **Agents never merge `dev` → `main`.**
 
+## Dependency updates
+
+Dependabot (`.github/dependabot.yml`) is the one exception to the issue-branch rule. It opens pull requests into `dev` from its own `dependabot/...` branches, with no issue. They still go through the same checks and are squash-merged like any other change. Review each one; don't merge a major update without reading its changelog.
+
 ## What about planning / wayfinder / research?
 
 - Product decisions and specs still use GitHub Issues (wayfinder map, etc.).
