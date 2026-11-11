@@ -261,7 +261,7 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 			1
 		);
 
-		return array_map( 'intval', (array) $this->database->get_col( $query ) );
+		return $this->active_entry_ids( $query, 'customer_id' );
 	}
 
 	/**
@@ -297,15 +297,14 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
-		$query     = $this->database->prepare(
+		$query = $this->database->prepare(
 			"SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s AND is_active = %d",
 			'email',
 			$entry->canonical_hash(),
 			1
 		);
-		$entry_ids = $this->database->get_col( $query );
 
-		return array_map( 'intval', is_array( $entry_ids ) ? $entry_ids : array() );
+		return $this->active_entry_ids( $query, 'email' );
 	}
 
 	/**
@@ -316,13 +315,36 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	 */
 	public function matching_active_address_entry_ids( AddressEntry $entry ): array {
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name uses only the WordPress table prefix.
-		$query     = $this->database->prepare(
+		$query = $this->database->prepare(
 			"SELECT id FROM {$this->table_name} WHERE match_type = %s AND canonical_hash = %s AND is_active = %d",
 			$entry->match_type(),
 			$entry->canonical_hash(),
 			1
 		);
+
+		return $this->active_entry_ids( $query, $entry->match_type() );
+	}
+
+	/**
+	 * Runs an active-entry lookup for checkout enforcement.
+	 *
+	 * A failed lookup counts as no match, so checkout proceeds (ADR 0004).
+	 * The failure goes to the WooCommerce log so an operator can find it.
+	 *
+	 * @param string $query      Prepared SELECT of matching entry IDs.
+	 * @param string $match_type Match type being checked.
+	 * @return int[] Matching active entry IDs.
+	 */
+	private function active_entry_ids( string $query, string $match_type ): array {
 		$entry_ids = $this->database->get_col( $query );
+		if ( '' !== $this->database->last_error ) {
+			wc_get_logger()->error(
+				sprintf( 'Blacklist entry lookup failed for Match type %1$s, so checkout was not checked against it: %2$s', $match_type, $this->database->last_error ),
+				array( 'source' => 'wp-buyer-blacklist' )
+			);
+
+			return array();
+		}
 
 		return array_map( 'intval', is_array( $entry_ids ) ? $entry_ids : array() );
 	}
