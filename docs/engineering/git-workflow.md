@@ -48,6 +48,10 @@ Maintainer (human), when `dev` is verified:
 6. **PR language:** English. Reference `Closes #<n>` and PRD requirement ids (`REQ-…`) when applicable.
 7. **Agents never merge `dev` → `main`.**
 
+## Dependency updates
+
+Dependabot (`.github/dependabot.yml`) is the one exception to the issue-branch rule. It opens pull requests into `dev` from its own `dependabot/...` branches, with no issue. They still go through the same checks and are squash-merged like any other change. Review each one; don't merge a major update without reading its changelog.
+
 ## What about planning / wayfinder / research?
 
 - Product decisions and specs still use GitHub Issues (wayfinder map, etc.).
@@ -65,9 +69,18 @@ The social rule in `AGENTS.md` applies even where protection is missing. These G
 | Block force pushes | on | on |
 | Require a pull request before merging | on, 0 approvals | on, 0 approvals |
 | Allowed merge methods | **Merge** only | **Squash** only |
-| Required status check | **Check source branch** | none |
+| Required status checks | **Check source branch**, **PHP**, **JS** | **PHP**, **JS** |
 
 Use 0 approvals because a project with one maintainer can't approve its own pull request.
+
+### Lint, tests and build
+
+The workflow `.github/workflows/checks.yml` runs on every pull request into `dev` or `main`, and on every push to `dev`. It has two jobs:
+
+- **PHP**: `composer lint`, then `composer test` against the WordPress test library and a MySQL service.
+- **JS**: `npm ci`, `npm test` and `npm run build`.
+
+Add **PHP** and **JS** as required status checks in both rulesets once they have run on a pull request.
 
 ### Only `dev` can be merged into `main`
 

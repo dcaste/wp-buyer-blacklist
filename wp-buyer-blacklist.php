@@ -53,8 +53,19 @@ function wp_buyer_blacklist_activate(): void {
 	global $wpdb;
 
 	( new \WP_Buyer_Blacklist\Storage\Schema( $wpdb ) )->install();
+	\WP_Buyer_Blacklist\Enforcement\BlockedAttemptRetention::schedule();
 }
 register_activation_hook( __FILE__, 'wp_buyer_blacklist_activate' );
+
+/**
+ * Stops scheduled work. Deactivation keeps all plugin data.
+ *
+ * @return void
+ */
+function wp_buyer_blacklist_deactivate(): void {
+	\WP_Buyer_Blacklist\Enforcement\BlockedAttemptRetention::unschedule();
+}
+register_deactivation_hook( __FILE__, 'wp_buyer_blacklist_deactivate' );
 
 /**
  * Removes plugin data only when an administrator opted in before uninstalling.

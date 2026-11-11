@@ -30,8 +30,6 @@ npx wp-scripts test-unit-js tests/js/admin.test.tsx
 
 Integration tests need the WP test library (`bin/install-wp-tests.sh`, sets `WP_TESTS_DIR`, default `/tmp/wordpress-tests-lib`) and a MySQL database. `WC_PLUGIN_DIR` defaults to the sibling `../woocommerce` directory; override it when running from a worktree. The PHP CLI runs with `output_buffering=0`, so tests that fire `admin_init` must unhook `wp_admin_headers`.
 
-`.circleci/config.yml` is leftover scaffold (PHP 5.6, old PHPUnit) and does not reflect the real toolchain.
-
 ## Architecture
 
 - **Bootstrap:** `wp-buyer-blacklist.php` registers its own PSR-4 autoloader for `WP_Buyer_Blacklist\` → `src/`, because the plugin ships without `vendor/`. A new class needs no registration, but its namespace and file path must match its class name.
