@@ -11,6 +11,7 @@
  * License: MIT
  * License URI: https://opensource.org/licenses/MIT
  * Text Domain: wp-buyer-blacklist
+ * Domain Path: /languages
  *
  * @package WP_Buyer_Blacklist
  */

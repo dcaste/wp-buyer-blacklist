@@ -1,0 +1,886 @@
+# Copyright (C) 2026 Dax Castellón
+# This file is distributed under the MIT.
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Buyer Blacklist 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-buyer-blacklist\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-11T14:46:24+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: wp-buyer-blacklist\n"
+
+#. Plugin Name of the plugin
+#: wp-buyer-blacklist.php:3
+msgid "WP Buyer Blacklist"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: wp-buyer-blacklist.php:4
+msgid "https://github.com/dcaste/wp-buyer-blacklist"
+msgstr ""
+
+#. Description of the plugin
+#: wp-buyer-blacklist.php:5
+msgid "Blocks specified Buyers from completing WooCommerce checkout."
+msgstr ""
+
+#. Author of the plugin
+#: wp-buyer-blacklist.php:10
+msgid "Dax Castellón"
+msgstr ""
+
+#: src/Admin/AdminPage.php:71
+#: src/Admin/AdminPage.php:72
+#: src/Enrollment/CustomerScreen.php:89
+#: src/Privacy/PersonalDataTools.php:60
+#: src/Privacy/PersonalDataTools.php:81
+#: src/Privacy/PersonalDataTools.php:114
+#: templates/admin/page.php:15
+#: templates/enrollment/customer-profile-row.php:12
+msgid "Buyer Blacklist"
+msgstr ""
+
+#: src/Enrollment/CustomerScreen.php:203
+#: src/Enrollment/EnrollmentPage.php:118
+#: src/Enrollment/OrderScreen.php:99
+msgid "You cannot enroll Blacklist entries."
+msgstr ""
+
+#: src/Enrollment/CustomerScreen.php:233
+#: build/index.js:1
+msgid "Blacklist entry created."
+msgstr ""
+
+#: src/Enrollment/CustomerScreen.php:234
+msgid "A Blacklist entry with that Match type and value already exists."
+msgstr ""
+
+#: src/Enrollment/CustomerScreen.php:235
+msgid "The selected Match type has no usable current value for this Buyer."
+msgstr ""
+
+#: src/Enrollment/CustomerScreen.php:283
+#: src/Enrollment/EnrollmentPage.php:58
+#: src/Enrollment/OrderScreen.php:68
+#: src/Enrollment/OrderScreen.php:87
+#: src/Enrollment/OrderScreen.php:113
+#: templates/enrollment/customer-profile-row.php:12
+#: templates/enrollment/page.php:14
+msgid "Enroll in Blacklist"
+msgstr ""
+
+#: src/Entries/EntriesController.php:270
+#: src/ImportExport/CsvImport.php:203
+msgid "Enter a valid email address."
+msgstr ""
+
+#: src/Entries/EntriesController.php:273
+msgid "That email already has a Blacklist entry."
+msgstr ""
+
+#: src/Entries/EntriesController.php:275
+msgid "Email entry created."
+msgstr ""
+
+#: src/Entries/EntriesController.php:298
+#: src/ImportExport/CsvImport.php:236
+msgid "Enter a complete address with a valid country."
+msgstr ""
+
+#: src/Entries/EntriesController.php:301
+msgid "That address already has a Blacklist entry."
+msgstr ""
+
+#: src/Entries/EntriesController.php:304
+msgid "Address entry created."
+msgstr ""
+
+#: src/Entries/EntriesController.php:336
+#: src/Privacy/DossierController.php:86
+#: src/Privacy/DossierDownload.php:93
+msgid "The Blacklist entry could not be found."
+msgstr ""
+
+#: src/Entries/EntriesController.php:343
+#: build/index.js:1
+msgid "No uniquely identified registered Buyer."
+msgstr ""
+
+#: src/Entries/EntriesController.php:359
+msgid "A Blacklist entry identity cannot be changed. Deactivate it and create a replacement entry instead."
+msgstr ""
+
+#: src/Entries/EntriesController.php:362
+msgid "Update either the reason or status in one request."
+msgstr ""
+
+#: src/Entries/EntriesController.php:373
+msgid "Provide a reason or status to update."
+msgstr ""
+
+#: src/Entries/EntriesController.php:377
+msgid "The Blacklist entry could not be updated."
+msgstr ""
+
+#: src/Entries/EntriesController.php:380
+#: assets/js/customer-dialogs.js:199
+#: assets/js/customer-dialogs.js:221
+#: build/index.js:1
+msgid "Blacklist entry updated."
+msgstr ""
+
+#: src/Entries/EntriesController.php:407
+msgid "Confirm deletion before removing this Blacklist entry."
+msgstr ""
+
+#: src/Entries/EntriesController.php:410
+msgid "The Blacklist entry could not be deleted."
+msgstr ""
+
+#: src/Entries/EntriesController.php:413
+#: build/index.js:1
+msgid "Blacklist entry deleted."
+msgstr ""
+
+#: src/Entries/EntriesController.php:422
+msgid "Enter a reason for this Blacklist entry."
+msgstr ""
+
+#: src/ImportExport/CsvExportDownload.php:59
+#: src/ImportExport/CsvExportDownload.php:81
+#: src/Privacy/DossierDownload.php:58
+#: src/Privacy/DossierDownload.php:85
+msgid "You are not allowed to export Blacklist data."
+msgstr ""
+
+#: src/ImportExport/CsvImport.php:32
+#: src/ImportExport/CsvImport.php:42
+msgid "The file must be a UTF-8 CSV file with a header row."
+msgstr ""
+
+#: src/ImportExport/CsvImport.php:48
+msgid "The CSV header must include match_type."
+msgstr ""
+
+#: src/ImportExport/CsvImport.php:70
+msgid "The row has more fields than its header."
+msgstr ""
+
+#: src/ImportExport/CsvImport.php:99
+#: src/ImportExport/ImportExportController.php:131
+#: src/ImportExport/ImportExportController.php:170
+msgid "Duplicate entry."
+msgstr ""
+
+#: src/ImportExport/CsvImport.php:105
+#: src/ImportExport/ImportExportController.php:137
+msgid "Imported blacklist entry"
+msgstr ""
+
+#: src/ImportExport/CsvImport.php:184
+msgid "Choose a valid status."
+msgstr ""
+
+#: src/ImportExport/CsvImport.php:215
+msgid "Enter a positive Customer ID."
+msgstr ""
+
+#. translators: %d: Customer ID from the CSV row.
+#: src/ImportExport/CsvImport.php:219
+#, php-format
+msgid "No Customer exists with ID %d."
+msgstr ""
+
+#: src/ImportExport/CsvImport.php:230
+msgid "Choose a valid Match type."
+msgstr ""
+
+#: src/ImportExport/ImportExportController.php:157
+msgid "Validate the CSV file before importing it."
+msgstr ""
+
+#: src/ImportExport/ImportExportController.php:165
+msgid "The import stopped because of a technical failure."
+msgstr ""
+
+#: src/ImportExport/ImportExportController.php:178
+msgid "CSV import"
+msgstr ""
+
+#: src/Privacy/DossierDownload.php:88
+msgid "The download link has expired. Refresh the page and try again."
+msgstr ""
+
+#: src/Privacy/PersonalDataTools.php:85
+#: templates/enrollment/customer-modal.php:21
+#: templates/enrollment/page.php:21
+#: assets/js/customer-dialogs.js:41
+#: build/index.js:1
+msgid "Email"
+msgstr ""
+
+#: src/Privacy/PersonalDataTools.php:89
+#: templates/enrollment/customer-modal.php:26
+#: templates/enrollment/customer-modal.php:35
+#: templates/enrollment/page.php:22
+#: build/index.js:1
+msgid "Reason"
+msgstr ""
+
+#: src/Privacy/PersonalDataTools.php:93
+#: build/index.js:1
+msgid "Blocked attempts"
+msgstr ""
+
+#: src/Settings/BlacklistSettings.php:118
+msgid "You are not allowed to reset Blacklist settings."
+msgstr ""
+
+#: src/Settings/BlacklistSettings.php:124
+msgid "Settings restored to their defaults."
+msgstr ""
+
+#: src/Settings/BuyerBlockMessage.php:33
+msgid "We’re unable to process your order. Please contact us for assistance."
+msgstr ""
+
+#: templates/admin/page.php:16
+msgid "Buyer Blacklist sections"
+msgstr ""
+
+#: templates/admin/page.php:17
+msgid "Manage entries"
+msgstr ""
+
+#: templates/admin/page.php:18
+msgid "Import and export"
+msgstr ""
+
+#: templates/admin/page.php:20
+msgid "Settings"
+msgstr ""
+
+#: templates/enrollment/customer-column-enroll.php:12
+msgid "Enroll"
+msgstr ""
+
+#: templates/enrollment/customer-column-status.php:14
+#: assets/js/customer-dialogs.js:129
+msgid "Blacklisted. This Buyer cannot place new orders."
+msgstr ""
+
+#: templates/enrollment/customer-column-status.php:14
+#: assets/js/customer-dialogs.js:133
+msgid "This Buyer is blacklisted from placing new orders in your store."
+msgstr ""
+
+#: templates/enrollment/customer-column-status.php:14
+#: assets/js/customer-dialogs.js:123
+msgid "Blacklisted"
+msgstr ""
+
+#: templates/enrollment/customer-column-status.php:14
+#: assets/js/customer-dialogs.js:100
+#: assets/js/customer-dialogs.js:124
+#: build/index.js:1
+msgid "Inactive"
+msgstr ""
+
+#: templates/enrollment/customer-column-status.php:14
+#: build/index.js:1
+msgid "Manage"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:11
+#: templates/enrollment/customer-modal.php:31
+#: build/index.js:1
+msgid "Close dialog"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:13
+msgid "Enroll Buyer in Blacklist"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:17
+msgid "Current Buyer"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:19
+msgid "Name"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:20
+msgid "WordPress user ID"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:22
+#: templates/enrollment/page.php:21
+#: assets/js/customer-dialogs.js:43
+#: build/index.js:1
+msgid "Billing address"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:23
+#: templates/enrollment/page.php:21
+#: assets/js/customer-dialogs.js:44
+#: build/index.js:1
+msgid "Shipping address"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:25
+#: templates/enrollment/page.php:21
+#: build/index.js:1
+msgid "Match type"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:27
+msgid "Create entry"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:27
+msgid "Cancel"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:32
+#: build/index.js:1
+msgid "Manage Blacklist entry"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:33
+msgid "Matching Blacklist entry"
+msgstr ""
+
+#: templates/enrollment/customer-modal.php:36
+msgid "Save reason"
+msgstr ""
+
+#: templates/enrollment/no-sources.php:10
+msgid "Select at least one Customer or Order to enroll."
+msgstr ""
+
+#: templates/enrollment/page.php:21
+#: assets/js/customer-dialogs.js:42
+#: build/index.js:1
+msgid "Customer ID"
+msgstr ""
+
+#: templates/enrollment/page.php:22
+msgid "Email and Customer ID need a value. Addresses need every address field. Sources without the selected value are skipped."
+msgstr ""
+
+#: templates/enrollment/page.php:22
+msgid "Create entries"
+msgstr ""
+
+#. translators: 1: entries created, 2: duplicate entries skipped, 3: unavailable sources skipped.
+#: templates/enrollment/result-notice.php:14
+#, php-format
+msgid "%1$d created, %2$d duplicates skipped, %3$d unavailable sources skipped."
+msgstr ""
+
+#: templates/settings/page.php:22
+msgid "Buyer-facing block message"
+msgstr ""
+
+#: templates/settings/page.php:23
+msgid "This message is shown when a Buyer is blocked from placing an order."
+msgstr ""
+
+#: templates/settings/page.php:27
+msgid "Message"
+msgstr ""
+
+#: templates/settings/page.php:28
+msgid "Keep the message clear and professional. Explain what the Buyer can do next."
+msgstr ""
+
+#: templates/settings/page.php:31
+msgid "Preview"
+msgstr ""
+
+#: templates/settings/page.php:32
+msgid "This is how the message appears to a blocked Buyer during checkout."
+msgstr ""
+
+#: templates/settings/page.php:39
+msgid "Permissions"
+msgstr ""
+
+#: templates/settings/page.php:40
+msgid "Control who can manage the Blacklist in your store."
+msgstr ""
+
+#: templates/settings/page.php:43
+msgid "Allow WooCommerce managers to manage Blacklist entries"
+msgstr ""
+
+#: templates/settings/page.php:44
+msgid "Gives users with WooCommerce management permission access to entries, CSV imports, and Blocked attempts."
+msgstr ""
+
+#: templates/settings/page.php:48
+msgid "Data and cleanup"
+msgstr ""
+
+#: templates/settings/page.php:49
+msgid "Manage how long Blacklist data is kept and what happens to it when the plugin is removed."
+msgstr ""
+
+#: templates/settings/page.php:51
+msgid "Keep Blocked attempts for (days)"
+msgstr ""
+
+#: templates/settings/page.php:52
+msgid "Blocked attempts older than this are deleted once a day. Enter 0 to keep them while their entry exists. The Audit history is never deleted this way."
+msgstr ""
+
+#: templates/settings/page.php:54
+msgid "Delete all Blacklist data when the plugin is uninstalled"
+msgstr ""
+
+#: templates/settings/page.php:55
+msgid "Permanently deletes all Blacklist entries, import history, and Blocked attempt data when the plugin is uninstalled. This cannot be undone."
+msgstr ""
+
+#: templates/settings/page.php:59
+msgid "This will permanently delete your data."
+msgstr ""
+
+#: templates/settings/page.php:60
+msgid "Export your entries first if you need a backup before uninstalling the plugin."
+msgstr ""
+
+#: templates/settings/page.php:65
+#: build/index.js:1
+msgid "Save changes"
+msgstr ""
+
+#: templates/settings/page.php:65
+msgid "Reset all Buyer Blacklist settings to their defaults?"
+msgstr ""
+
+#: templates/settings/page.php:65
+msgid "Reset to defaults"
+msgstr ""
+
+#: wp-buyer-blacklist.php:129
+msgid "WP Buyer Blacklist requires WooCommerce. Blacklist operations are unavailable until WooCommerce is active."
+msgstr ""
+
+#. translators: %s: Match type name.
+#: assets/js/customer-dialogs.js:51
+#, js-format
+msgid "%s (unavailable)"
+msgstr ""
+
+#. translators: 1: Match type, 2: entry value, 3: entry status.
+#: assets/js/customer-dialogs.js:95
+#, js-format
+msgid "%1$s: %2$s (%3$s)"
+msgstr ""
+
+#: assets/js/customer-dialogs.js:99
+#: build/index.js:1
+msgid "Active"
+msgstr ""
+
+#: assets/js/customer-dialogs.js:152
+msgid "Deactivate"
+msgstr ""
+
+#: assets/js/customer-dialogs.js:153
+msgid "Activate"
+msgstr ""
+
+#. translators: 1: Buyer name, 2: Buyer ID.
+#: assets/js/customer-dialogs.js:163
+#, js-format
+msgid "Current Buyer: %1$s (#%2$d)"
+msgstr ""
+
+#: build/index.js:1
+msgid "Choose a CSV file no larger than 5 MB."
+msgstr ""
+
+#: build/index.js:1
+msgid "Loading…"
+msgstr ""
+
+#: build/index.js:1
+msgid "This information could not be loaded."
+msgstr ""
+
+#: build/index.js:1
+msgid "Export Blacklist entries"
+msgstr ""
+
+#: build/index.js:1
+msgid "Download all Blacklist entries to a CSV file. You can use this file to keep a backup or import it to another store."
+msgstr ""
+
+#: build/index.js:1
+msgid "Export CSV"
+msgstr ""
+
+#: build/index.js:1
+msgid "The exported file includes all Blacklist entries, including Match type, value, reason, status, and date added."
+msgstr ""
+
+#: build/index.js:1
+msgid "Import Blacklist entries"
+msgstr ""
+
+#: build/index.js:1
+msgid "Upload a CSV file to add multiple Blacklist entries at once. Existing entries are not removed."
+msgstr ""
+
+#: build/index.js:1
+msgid "Drag and drop your CSV file here"
+msgstr ""
+
+#: build/index.js:1
+msgid "or"
+msgstr ""
+
+#: build/index.js:1
+msgid "Choose file"
+msgstr ""
+
+#: build/index.js:1
+msgid "Accepted file type: CSV (.csv) · Maximum file size: 5 MB"
+msgstr ""
+
+#: build/index.js:1
+msgid "Need a template?"
+msgstr ""
+
+#: build/index.js:1
+msgid "Download our example CSV file to see the correct format."
+msgstr ""
+
+#: build/index.js:1
+msgid "Download example CSV"
+msgstr ""
+
+#: build/index.js:1
+msgid "Import review"
+msgstr ""
+
+#. translators: 1: number of valid rows, 2: number of duplicate rows, 3: number of rejected rows.
+#: build/index.js:1
+#, js-format
+msgid "%1$d valid, %2$d duplicate, %3$d rejected."
+msgstr ""
+
+#: build/index.js:1
+msgid "CSV import completed."
+msgstr ""
+
+#: build/index.js:1
+msgid "Confirm import"
+msgstr ""
+
+#. translators: 1: CSV row number, 2: why the row was not imported.
+#: build/index.js:1
+#, js-format
+msgid "Row %1$d: %2$s"
+msgstr ""
+
+#. translators: %d: number of entries created by the import.
+#: build/index.js:1
+#, js-format
+msgid "Created %d entry."
+msgid_plural "Created %d entries."
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/index.js:1
+msgid "Recent imports"
+msgstr ""
+
+#: build/index.js:1
+msgid "View the status of your recent import activities."
+msgstr ""
+
+#: build/index.js:1
+msgid "Date and time"
+msgstr ""
+
+#: build/index.js:1
+msgid "File name"
+msgstr ""
+
+#: build/index.js:1
+msgid "Entries found"
+msgstr ""
+
+#: build/index.js:1
+msgid "Imported"
+msgstr ""
+
+#: build/index.js:1
+msgid "Skipped"
+msgstr ""
+
+#: build/index.js:1
+msgid "Status"
+msgstr ""
+
+#: build/index.js:1
+msgid "Completed"
+msgstr ""
+
+#: build/index.js:1
+msgid "Completed with warnings"
+msgstr ""
+
+#: build/index.js:1
+msgid "Failed"
+msgstr ""
+
+#: build/index.js:1
+msgid "No imports have been recorded."
+msgstr ""
+
+#: build/index.js:1
+msgid "Blacklist entry summary"
+msgstr ""
+
+#: build/index.js:1
+msgid "Total entries"
+msgstr ""
+
+#: build/index.js:1
+msgid "All Blacklist entries."
+msgstr ""
+
+#: build/index.js:1
+msgid "Active entries"
+msgstr ""
+
+#: build/index.js:1
+msgid "Currently blocking matching Buyers."
+msgstr ""
+
+#: build/index.js:1
+msgid "Inactive entries"
+msgstr ""
+
+#: build/index.js:1
+msgid "Kept without blocking Buyers."
+msgstr ""
+
+#: build/index.js:1
+msgid "Checkout attempts prevented."
+msgstr ""
+
+#: build/index.js:1
+msgid "Add new Blacklist entry"
+msgstr ""
+
+#: build/index.js:1
+msgid "Add an email or structured address to block matching Buyers at checkout."
+msgstr ""
+
+#: build/index.js:1
+msgid "Choose the Buyer detail to match during checkout. To block by Customer ID, enroll the Customer from the <a>Users screen</a>."
+msgstr ""
+
+#: build/index.js:1
+msgid "e.g. customer@example.com"
+msgstr ""
+
+#: build/index.js:1
+msgid "Enter the full email address to block."
+msgstr ""
+
+#: build/index.js:1
+msgid "Address line 1"
+msgstr ""
+
+#: build/index.js:1
+msgid "Enter the building number and street name."
+msgstr ""
+
+#: build/index.js:1
+msgid "Address line 2"
+msgstr ""
+
+#: build/index.js:1
+msgid "Add an apartment, suite, or unit when needed."
+msgstr ""
+
+#: build/index.js:1
+msgid "City"
+msgstr ""
+
+#: build/index.js:1
+msgid "Enter the city or town."
+msgstr ""
+
+#: build/index.js:1
+msgid "State"
+msgstr ""
+
+#: build/index.js:1
+msgid "Enter the state, province, or region."
+msgstr ""
+
+#: build/index.js:1
+msgid "Postcode"
+msgstr ""
+
+#: build/index.js:1
+msgid "Enter the postal or ZIP code."
+msgstr ""
+
+#: build/index.js:1
+msgid "Country"
+msgstr ""
+
+#: build/index.js:1
+msgid "Enter the two-letter country code, such as US."
+msgstr ""
+
+#: build/index.js:1
+msgid "Add a reason for this Blacklist entry..."
+msgstr ""
+
+#: build/index.js:1
+msgid "This helps operators understand why the Buyer was blacklisted."
+msgstr ""
+
+#: build/index.js:1
+msgid "Add entry"
+msgstr ""
+
+#: build/index.js:1
+msgid "Blacklist entries"
+msgstr ""
+
+#: build/index.js:1
+msgid "Search entries"
+msgstr ""
+
+#: build/index.js:1
+msgid "All Match types"
+msgstr ""
+
+#: build/index.js:1
+msgid "All statuses"
+msgstr ""
+
+#: build/index.js:1
+msgid "Reset"
+msgstr ""
+
+#: build/index.js:1
+msgid "Canonical value"
+msgstr ""
+
+#: build/index.js:1
+msgid "Updated"
+msgstr ""
+
+#: build/index.js:1
+msgid "Actions"
+msgstr ""
+
+#: build/index.js:1
+msgid "Previous"
+msgstr ""
+
+#. translators: 1: current page number, 2: total number of pages.
+#: build/index.js:1
+#, js-format
+msgid "%1$d of %2$d"
+msgstr ""
+
+#: build/index.js:1
+msgid "Next"
+msgstr ""
+
+#: build/index.js:1
+msgid "View and manage the details for this Blacklist entry."
+msgstr ""
+
+#: build/index.js:1
+msgid "Buyer details"
+msgstr ""
+
+#: build/index.js:1
+msgid "Not provided"
+msgstr ""
+
+#: build/index.js:1
+msgid "Add a note to help you remember why this Buyer was blacklisted."
+msgstr ""
+
+#: build/index.js:1
+msgid "Control whether this entry is actively blocking Buyers from placing orders."
+msgstr ""
+
+#: build/index.js:1
+msgid "Active Blacklist entry"
+msgstr ""
+
+#: build/index.js:1
+msgid "This entry is currently blocking matching Buyers."
+msgstr ""
+
+#: build/index.js:1
+msgid "This entry is not blocking matching Buyers."
+msgstr ""
+
+#. translators: %s: the Blacklist entry value, such as an email address.
+#: build/index.js:1
+#, js-format
+msgid "Delete %s? This cannot be undone."
+msgstr ""
+
+#: build/index.js:1
+msgid "Delete entry"
+msgstr ""
+
+#: build/index.js:1
+msgid "Permanently remove this entry from the Blacklist."
+msgstr ""
+
+#: build/index.js:1
+msgid "Export dossier"
+msgstr ""
+
+#: build/index.js:1
+msgid "Audit history"
+msgstr ""
+
+#. translators: %s: display name of the user who made the change.
+#: build/index.js:1
+#, js-format
+msgid "by %s"
+msgstr ""
+
+#: build/index.js:1
+msgid "System"
+msgstr ""
+
+#: build/index.js:1
+msgid "No Audit events yet."
+msgstr ""
+
+#: build/index.js:1
+msgid "No blocked attempts yet"
+msgstr ""
+
+#: build/index.js:1
+msgid "This Buyer has not triggered any blocked order attempts."
+msgstr ""
+
+#: build/index.js:1
+msgid "When this Buyer attempts to place an order, the attempt appears here."
+msgstr ""
