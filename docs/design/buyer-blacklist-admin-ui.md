@@ -5,11 +5,11 @@
 This document is the implementation contract for the Buyer Blacklist admin UI.
 The visual references are:
 
-- `docs/UI/manage-entries.png`: Manage entries.
-- `docs/UI/import-export.png`: Import & Export.
-- `docs/UI/settings.png`: Settings.
-- `docs/UI/box.png`: entry management dialog.
-- `docs/UI/users-list.png`: Buyer Blacklist column on the native WordPress Users list.
+- `docs/design/mockups/manage-entries.png`: Manage entries.
+- `docs/design/mockups/import-export.png`: Import & Export.
+- `docs/design/mockups/settings.png`: Settings.
+- `docs/design/mockups/box.png`: entry management dialog.
+- `docs/design/mockups/users-list.png`: Buyer Blacklist column on the native WordPress Users list.
 
 Use the references for visual hierarchy and component placement. Preserve WordPress
 admin navigation, capability checks, nonces, notices, form semantics, and familiar
