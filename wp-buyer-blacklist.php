@@ -20,24 +20,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'WP_BUYER_BLACKLIST_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WP_BUYER_BLACKLIST_URL', plugin_dir_url( __FILE__ ) );
 
-/**
- * Loads plugin classes from src/ by PSR-4 mapping.
- *
- * The plugin ships without vendor/, so this does not use the Composer autoloader.
- */
-spl_autoload_register(
-	static function ( string $class_name ): void {
-		$prefix = 'WP_Buyer_Blacklist\\';
-		if ( ! str_starts_with( $class_name, $prefix ) ) {
-			return;
-		}
-
-		$file = __DIR__ . '/src/' . str_replace( '\\', '/', substr( $class_name, strlen( $prefix ) ) ) . '.php';
-		if ( is_file( $file ) ) {
-			require_once $file;
-		}
-	}
-);
+require_once __DIR__ . '/autoload.php';
 
 /**
  * Creates plugin database tables when WooCommerce is available.
@@ -54,22 +37,6 @@ function wp_buyer_blacklist_activate(): void {
 	( new \WP_Buyer_Blacklist\Storage\Schema( $wpdb ) )->install();
 }
 register_activation_hook( __FILE__, 'wp_buyer_blacklist_activate' );
-
-/**
- * Removes plugin data only when an administrator opted in before uninstalling.
- *
- * @return void
- */
-function wp_buyer_blacklist_uninstall(): void {
-	if ( ! get_option( 'wp_buyer_blacklist_delete_data_on_uninstall', false ) ) {
-		return;
-	}
-
-	global $wpdb;
-
-	( new \WP_Buyer_Blacklist\Storage\Schema( $wpdb ) )->uninstall();
-}
-register_uninstall_hook( __FILE__, 'wp_buyer_blacklist_uninstall' );
 
 /**
  * Registers WooCommerce compatibility before initialization.

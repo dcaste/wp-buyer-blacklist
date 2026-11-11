@@ -6,7 +6,7 @@
  */
 
 /**
- * Covers the opt-in data removal run by the uninstall hook.
+ * Covers the opt-in data removal that uninstall.php runs when WordPress uninstalls the plugin.
  */
 class UninstallIntegrationTest extends WP_UnitTestCase {
 
@@ -64,7 +64,7 @@ class UninstallIntegrationTest extends WP_UnitTestCase {
 		global $wpdb;
 		update_option( 'wp_buyer_blacklist_delete_data_on_uninstall', true );
 
-		wp_buyer_blacklist_uninstall();
+		$this->uninstall();
 
 		foreach ( array( 'entries', 'audit_events', 'blocked_attempts', 'imports' ) as $table ) {
 			$this->assertContains( "DROP TABLE IF EXISTS {$wpdb->prefix}buyer_blacklist_{$table}", $this->drops, $table );
@@ -90,7 +90,7 @@ class UninstallIntegrationTest extends WP_UnitTestCase {
 		}
 		update_option( 'wp_buyer_blacklist_delete_data_on_uninstall', true );
 
-		wp_buyer_blacklist_uninstall();
+		$this->uninstall();
 
 		foreach ( $options as $option ) {
 			$this->assertFalse( get_option( $option ), $option );
@@ -106,7 +106,7 @@ class UninstallIntegrationTest extends WP_UnitTestCase {
 		set_transient( 'wp_buyer_blacklist_import_1_token', array( 'accepted' => array() ), HOUR_IN_SECONDS );
 		update_option( 'wp_buyer_blacklist_delete_data_on_uninstall', true );
 
-		wp_buyer_blacklist_uninstall();
+		$this->uninstall();
 		wp_cache_flush();
 
 		$this->assertFalse( get_transient( 'wp_buyer_blacklist_import_1_token' ) );
@@ -120,7 +120,7 @@ class UninstallIntegrationTest extends WP_UnitTestCase {
 	public function test_keeps_options_without_opting_in(): void {
 		update_option( 'wp_buyer_blacklist_buyer_message', 'stored' );
 
-		wp_buyer_blacklist_uninstall();
+		$this->uninstall();
 
 		$this->assertSame( 'stored', get_option( 'wp_buyer_blacklist_buyer_message' ) );
 	}
@@ -131,8 +131,51 @@ class UninstallIntegrationTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_keeps_data_without_opting_in(): void {
-		wp_buyer_blacklist_uninstall();
+		$this->uninstall();
 
 		$this->assertSame( array(), $this->drops );
+	}
+
+	/**
+	 * Confirms that uninstall.php does nothing when WordPress did not start an uninstall.
+	 *
+	 * A separate PHP process loads the file with ABSPATH defined, as if WordPress
+	 * were loaded, but without WP_UNINSTALL_PLUGIN. It runs apart because this
+	 * process already defines that constant and constants can't be undefined.
+	 * Without the guard, the file would call get_option() and fail.
+	 *
+	 * @return void
+	 */
+	public function test_does_nothing_outside_a_wordpress_uninstall(): void {
+		$output = array();
+		$status = null;
+		$code   = sprintf( "define( 'ABSPATH', '/' ); include %s;", var_export( $this->uninstall_file(), true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export -- Quotes a path for the child process.
+
+		exec( escapeshellarg( PHP_BINARY ) . ' -r ' . escapeshellarg( $code ) . ' 2>&1', $output, $status ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_exec -- Runs the file outside an uninstall to check its guard.
+
+		$this->assertSame( 0, $status, implode( "\n", $output ) );
+		$this->assertSame( array(), $output );
+	}
+
+	/**
+	 * Runs uninstall.php the way WordPress does when an Administrator deletes the plugin.
+	 *
+	 * @return void
+	 */
+	private function uninstall(): void {
+		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+			define( 'WP_UNINSTALL_PLUGIN', 'wp-buyer-blacklist/wp-buyer-blacklist.php' );
+		}
+
+		include $this->uninstall_file();
+	}
+
+	/**
+	 * Path of the plugin's uninstall file.
+	 *
+	 * @return string Absolute path.
+	 */
+	private function uninstall_file(): string {
+		return dirname( __DIR__, 2 ) . '/uninstall.php';
 	}
 }
