@@ -32,7 +32,7 @@ Integration tests need the WP test library (`bin/install-wp-tests.sh`, sets `WP_
 
 ## Architecture
 
-- **Bootstrap:** `wp-buyer-blacklist.php` registers its own PSR-4 autoloader for `WP_Buyer_Blacklist\` → `src/`, because the plugin ships without `vendor/`. A new class needs no registration, but its namespace and file path must match its class name.
+- **Bootstrap:** `autoload.php` registers the plugin's own PSR-4 autoloader for `WP_Buyer_Blacklist\` → `src/`, because the plugin ships without `vendor/`. `wp-buyer-blacklist.php` and `uninstall.php` both load it, since WordPress runs `uninstall.php` without the main file. A new class needs no registration, but its namespace and file path must match its class name.
 - **Composition root:** `src/Plugin.php` is built as `new Plugin( $wpdb )`, constructs every module by hand and calls each module's `register()`. It holds no feature logic and there is no DI container. Wire new modules there.
 - **Feature folders** under `src/` are PSR-4 subnamespaces of `WP_Buyer_Blacklist` (ADR 0003): `Entries`, `Enforcement`, `Enrollment`, `ImportExport`, `Privacy`, `Settings`, `Access`, `Admin`, `Storage`. New code goes in the folder that owns its workflow.
 - **REST:** each feature with routes has its own controller; all share `Plugin::REST_NAMESPACE` (`wp-buyer-blacklist/v1`). Endpoints are private and capability-checked through `Access\OperatorAccess` (operators) or `Privacy\PrivacyDataAccess` (Administrator-only actions: settings, export, erase, delete).

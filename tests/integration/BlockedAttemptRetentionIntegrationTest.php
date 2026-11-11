@@ -81,7 +81,10 @@ class BlockedAttemptRetentionIntegrationTest extends WP_UnitTestCase {
 		wp_buyer_blacklist_activate();
 		update_option( 'wp_buyer_blacklist_delete_data_on_uninstall', true );
 
-		wp_buyer_blacklist_uninstall();
+		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+			define( 'WP_UNINSTALL_PLUGIN', 'wp-buyer-blacklist/wp-buyer-blacklist.php' );
+		}
+		include dirname( __DIR__, 2 ) . '/uninstall.php';
 
 		$this->assertFalse( wp_next_scheduled( BlockedAttemptRetention::HOOK ) );
 	}
