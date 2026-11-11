@@ -9,7 +9,7 @@
  * @var mixed  $buyer_message              Stored Buyer block message.
  * @var mixed  $allow_woocommerce_managers Stored "allow WooCommerce managers" option.
  * @var mixed  $delete_data_on_uninstall   Stored "delete data on uninstall" option.
- * @var mixed  $blocked_attempt_retention_days Stored Blocked attempt retention period, in days.
+ * @var int    $blocked_attempt_retention_days Blocked attempt retention period, in days.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -48,7 +48,7 @@ defined( 'ABSPATH' ) || exit;
 			<h2><?php esc_html_e( 'Data and cleanup', 'wp-buyer-blacklist' ); ?></h2>
 			<p class="description"><?php esc_html_e( 'Manage how long Blacklist data is kept and what happens to it when the plugin is removed.', 'wp-buyer-blacklist' ); ?></p>
 		</header>
-		<p><label for="wp-buyer-blacklist-blocked-attempt-retention"><?php esc_html_e( 'Keep Blocked attempts for (days)', 'wp-buyer-blacklist' ); ?></label> <input aria-describedby="wp-buyer-blacklist-blocked-attempt-retention-description" class="small-text" id="wp-buyer-blacklist-blocked-attempt-retention" min="0" name="<?php echo esc_attr( WP_Buyer_Blacklist\Enforcement\BlockedAttemptRetention::OPTION ); ?>" step="1" type="number" value="<?php echo esc_attr( (string) WP_Buyer_Blacklist\Enforcement\BlockedAttemptRetention::sanitize_days( $blocked_attempt_retention_days ) ); ?>" /></p>
+		<p><label for="wp-buyer-blacklist-blocked-attempt-retention"><?php esc_html_e( 'Keep Blocked attempts for (days)', 'wp-buyer-blacklist' ); ?></label> <input aria-describedby="wp-buyer-blacklist-blocked-attempt-retention-description" class="small-text" id="wp-buyer-blacklist-blocked-attempt-retention" min="0" name="wp_buyer_blacklist_blocked_attempt_retention_days" step="1" type="number" value="<?php echo esc_attr( (string) $blocked_attempt_retention_days ); ?>" /></p>
 		<p class="description" id="wp-buyer-blacklist-blocked-attempt-retention-description"><?php esc_html_e( 'Blocked attempts older than this are deleted once a day. Enter 0 to keep them while their entry exists. The Audit history is never deleted this way.', 'wp-buyer-blacklist' ); ?></p>
 		<input name="wp_buyer_blacklist_delete_data_on_uninstall" type="hidden" value="0" />
 		<label class="wpbb-toggle"><input aria-describedby="wp-buyer-blacklist-delete-data-description" id="wp-buyer-blacklist-delete-data" name="wp_buyer_blacklist_delete_data_on_uninstall" type="checkbox" value="1" <?php checked( $delete_data_on_uninstall ); ?> /> <?php esc_html_e( 'Delete all Blacklist data when the plugin is uninstalled', 'wp-buyer-blacklist' ); ?></label>
