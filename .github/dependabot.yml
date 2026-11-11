@@ -1,0 +1,50 @@
+# Weekly dependency updates, opened against dev like any other change.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    groups:
+      wordpress:
+        patterns:
+          - '@wordpress/*'
+      testing:
+        patterns:
+          - '@testing-library/*'
+
+  - package-ecosystem: composer
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    groups:
+      coding-standards:
+        patterns:
+          - 'squizlabs/php_codesniffer'
+          - 'wp-coding-standards/wpcs'
+          - 'phpcompatibility/*'
+      testing:
+        patterns:
+          - 'phpunit/phpunit'
+          - 'yoast/phpunit-polyfills'
+          - 'wp-phpunit/wp-phpunit'
+    ignore:
+      # The WordPress test library still calls PHPUnit APIs that PHPUnit 10
+      # removed, so the suite stays on PHPUnit 9 until WordPress core moves.
+      - dependency-name: 'phpunit/phpunit'
+        update-types: ['version-update:semver-major']
+      # Polyfills 4 supports PHPUnit 9; a later major could drop it.
+      - dependency-name: 'yoast/phpunit-polyfills'
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - '*'
