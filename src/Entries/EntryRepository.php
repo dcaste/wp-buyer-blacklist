@@ -68,9 +68,7 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	 * @return bool Whether an entry was created.
 	 */
 	public function create( EmailEntry $entry, string $reason ): bool {
-		$entry_id = $this->insert( 'email', $entry->canonical_value(), $entry->canonical_hash(), $reason, true );
-
-		return 0 !== $entry_id && $this->audit_log->record( $entry_id, 'created' );
+		return true === $this->insert( 'email', $entry->canonical_value(), $entry->canonical_hash(), $reason, true, 'created' );
 	}
 
 	/**
@@ -81,9 +79,7 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	 * @return bool Whether an entry was created.
 	 */
 	public function create_customer_id( CustomerIdEntry $entry, string $reason ): bool {
-		$entry_id = $this->insert( 'customer_id', $entry->canonical_value(), $entry->canonical_hash(), $reason, true );
-
-		return 0 !== $entry_id && $this->audit_log->record( $entry_id, 'created' );
+		return true === $this->insert( 'customer_id', $entry->canonical_value(), $entry->canonical_hash(), $reason, true, 'created' );
 	}
 
 	/**
@@ -94,9 +90,7 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	 * @return bool Whether an entry was created.
 	 */
 	public function create_address( AddressEntry $entry, string $reason ): bool {
-		$entry_id = $this->insert( $entry->match_type(), (string) wp_json_encode( $entry->canonical_value() ), $entry->canonical_hash(), $reason, true );
-
-		return 0 !== $entry_id && $this->audit_log->record( $entry_id, 'created' );
+		return true === $this->insert( $entry->match_type(), (string) wp_json_encode( $entry->canonical_value() ), $entry->canonical_hash(), $reason, true, 'created' );
 	}
 
 	/**
@@ -121,16 +115,16 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	 */
 	public function create_imported( array $entry ): string {
 		$value    = is_array( $entry['value'] ) ? (string) wp_json_encode( $entry['value'] ) : $entry['value'];
-		$entry_id = $this->insert( $entry['match_type'], $value, $entry['canonical_hash'], $entry['reason'], $entry['is_active'] );
-		if ( 0 !== $entry_id ) {
-			return $this->audit_log->record( $entry_id, 'imported' ) ? 'created' : 'failed';
+		$recorded = $this->insert( $entry['match_type'], $value, $entry['canonical_hash'], $entry['reason'], $entry['is_active'], 'imported' );
+		if ( null !== $recorded ) {
+			return $recorded ? 'created' : 'failed';
 		}
 
 		return $this->exists( $entry['match_type'], $entry['canonical_hash'] ) ? 'duplicate' : 'failed';
 	}
 
 	/**
-	 * Inserts one entry row. The caller records the Audit event.
+	 * Inserts one entry row and records its Audit event.
 	 *
 	 * The stored value is the Canonical value, so value and canonical_value
 	 * hold the same text.
@@ -140,9 +134,10 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 	 * @param string $canonical_hash  Database-safe identity key.
 	 * @param string $reason          Operator-provided reason.
 	 * @param bool   $is_active       Whether the entry blocks checkout.
-	 * @return int The new entry ID, or 0 when the row was not inserted.
+	 * @param string $audit_action    Audit event action, such as created or imported.
+	 * @return bool|null Null when the row was not inserted, otherwise whether the Audit event was recorded.
 	 */
-	private function insert( string $match_type, string $canonical_value, string $canonical_hash, string $reason, bool $is_active ): int {
+	private function insert( string $match_type, string $canonical_value, string $canonical_hash, string $reason, bool $is_active, string $audit_action ): ?bool {
 		$result = $this->database->insert(
 			$this->table_name,
 			array(
@@ -157,7 +152,11 @@ final class EntryRepository implements ActiveAddressEntryFinder, ActiveCustomerI
 			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
 		);
 
-		return 1 === $result ? (int) $this->database->insert_id : 0;
+		if ( 1 !== $result ) {
+			return null;
+		}
+
+		return $this->audit_log->record( (int) $this->database->insert_id, $audit_action );
 	}
 
 	/**
