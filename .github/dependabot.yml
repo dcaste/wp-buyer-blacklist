@@ -13,6 +13,14 @@ updates:
       testing:
         patterns:
           - '@testing-library/*'
+    ignore:
+      # @wordpress/scripts 35+ runs unit tests on Vitest 5 and drops Jest.
+      # The JS suite and jest.config.js stay on Jest until that migration is
+      # done, so hold the scripts and Jest preset packages at their majors.
+      - dependency-name: '@wordpress/scripts'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@wordpress/jest-preset-default'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: composer
     directory: /
